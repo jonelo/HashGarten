@@ -2,6 +2,8 @@
 
 A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of Jacksum by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
 
+HashGarten is also part of the Jacksum File Browser Integration. See also https://github.com/jonelo/jacksum-fbi-windows.
+
 ## Screenshots
 
 ### Dark Theme
@@ -17,6 +19,7 @@ A simple graphical user interface for the desktop (Windows, Linux, macOS) to acc
 
 ## Features
 
+- run it standalone or integrate it to your file browser
 - find algorithms, regular expressions are supported (e.g. `^sha`)
 - select one or many of a pool of 470 algorithms
 - get detailed help for each algorithm
