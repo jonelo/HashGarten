@@ -79,5 +79,5 @@
             <version>2.3</version>
         </dependency>
     </dependencies>
-    <name>HashGarten-local</name>
+    <name>HashGarten</name>
 </project>
