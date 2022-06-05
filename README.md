@@ -20,12 +20,13 @@ HashGarten is also part of the Jacksum File Browser Integration. See also https:
 ## Features
 
 - run it standalone or integrate it to your file browser
-- find algorithms, regular expressions are supported (e.g. `^sha`)
+- find algorithms, regular expressions are supported (e.g. `^sha\d?-`)
 - select one or many of a pool of 470 algorithms
 - get detailed help for each algorithm
 - drag and drop files and directories to the GUI
 - components become visible if yout need them
 - calculate and verify hash values
+- window is always on top
 - Light and Dark themes are supported
 
 ## Internals
