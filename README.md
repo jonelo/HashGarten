@@ -36,5 +36,5 @@ Note that the algorithm list above has been filtered. Actually 472 algorithms ar
 - HashGarten is written entirely in Java and it uses the Swing framework
 - it requires FlatLaF to get a modern look and feel. See also https://github.com/JFormDesigner/FlatLaf
 - it uses Jacksum as a lib and calls its API, it does not call Jacksum by the command line
-- the GUI supports the same program options as Jacksum does which can be useful to initialize the GUI
-- it read and writes GUI properties from/to $HOME/.HashGarten.properties
+- the GUI supports the same program options as Jacksum does, so you can initialize the GUI even by the command line
+- it reads and stores GUI properties from/to $HOME/.HashGarten.properties
