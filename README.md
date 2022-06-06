@@ -12,7 +12,7 @@ HashGarten is also part of the Jacksum File Browser Integration. See also https:
 
 <img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.9.0-select-algorithm.png" alt="HashGarten screenshot" style="vertical-align:top;margin:10px 10px" />
 
-Note that the algorithm list above has been filtered. Actually more than 470 algorithms can be selected!
+Note that the algorithm list above has been filtered. Actually 472 algorithms are supported!
 
 #### Calculate hashes (advanced mode)
 
