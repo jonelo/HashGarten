@@ -62,7 +62,7 @@ import net.jacksum.multicore.ThreadControl;
 import net.jacksum.parameters.ParameterException;
 import net.jacksum.parameters.Parameters;
 import net.jacksum.statistics.Statistics;
-import org.n16n.sugar.util.ExitException;
+import net.loefflmann.sugar.util.ExitException;
 
 /**
  *
@@ -70,7 +70,7 @@ import org.n16n.sugar.util.ExitException;
  */
 public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogInterface {
 
-    private final static String VERSION = "0.9.0";
+    private final static String VERSION = "0.10.0";
     private final static String PROPERTIES_FILE = String.format("%s/.HashGarten.properties", System.getProperty("user.home"));
     private final static String TIMESTAMP_DEFAULT = "yyyyMMddHHmmssSSS";
 
@@ -246,11 +246,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         } else {
             parameters = parametersFromCLI;
         }
-        // adjust the object again, no stdin for the GUI
-        parameters.setStdinForFilenamesFromArgs(false);
+
         
         try {
             parameters = parameters.checked();
+        // adjust the object again, no stdin for the GUI
+        parameters.setStdinForFilenamesFromArgs(false);
+
            // parameters.expandFileList();
             // parameters.restoreStdErr();
             // parameters.restoreStdOut();
@@ -1689,6 +1691,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // check all parameters
         try {
             parameters = parameters.checked();
+        // adjust the object again, no stdin for the GUI
+        parameters.setStdinForFilenamesFromArgs(false);
+
         } catch (ParameterException | ExitException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             // debug(ex.toString());
@@ -1979,9 +1984,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
         // workaround for bug in Jacksum 3.3.0
         // sm3 not returned
-        if (!map.containsKey("sm3")) {
-            model.addElement("sm3");
-        }
+        //if (!map.containsKey("sm3")) {
+        //    model.addElement("sm3");
+        //}
         return model;
     }
 
