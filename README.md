@@ -1,3 +1,5 @@
+![GitHub downloads](https://img.shields.io/github/downloads/jonelo/HashGarten/total?color=green)
+
 # HashGarten
 
 A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of Jacksum by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
