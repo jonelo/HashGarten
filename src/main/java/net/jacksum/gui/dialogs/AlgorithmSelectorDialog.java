@@ -1,7 +1,7 @@
 /*
 
-  HashGarten 0.9.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  HashGarten 0.12.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -34,8 +34,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-import net.jacksum.actions.help.Help;
-import net.jacksum.actions.help.NothingFoundException;
+import net.jacksum.actions.info.help.Help;
+import net.jacksum.actions.info.help.NothingFoundException;
 
 /**
  *

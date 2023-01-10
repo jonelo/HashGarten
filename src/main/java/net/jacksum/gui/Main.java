@@ -1,7 +1,7 @@
 /*
 
-  HashGarten 0.9.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  HashGarten 0.12.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -70,7 +70,7 @@ import net.loefflmann.sugar.util.ExitException;
  */
 public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogInterface {
 
-    private final static String VERSION = "0.10.0";
+    private final static String VERSION = "0.12.0";
     private final static String PROPERTIES_FILE = String.format("%s/.HashGarten.properties", System.getProperty("user.home"));
     private final static String TIMESTAMP_DEFAULT = "yyyyMMddHHmmssSSS";
 
@@ -886,7 +886,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         styleLabel.setText("Style:");
 
         outputStyleComboBox.setMaximumRowCount(16);
-        outputStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "custom", "bsd", "fciv", "linux", "sfv", "solaris-tagged", "solaris-untagged", "openssl" }));
+        outputStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "custom", "bsd", "bsd-r", "sfv", "gnu-linux", "fciv", "openssl-dgst", "openssl-dgst-r", "solaris-digest", "solaris-digest-v" }));
         outputStyleComboBox.setToolTipText("What style/format should be used?");
         outputStyleComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1394,7 +1394,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
             if (parameters.getEncoding() != null) {
                 hashValueEncodingCheckBox.setSelected(true);
-                hashValueEncodingComboBox.setSelectedItem(parameters.getEncoding().toString());
+                hashValueEncodingComboBox.setSelectedItem(Encoding.encoding2String(parameters.getEncoding()));
             }
 
             // include file size
@@ -1592,7 +1592,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // Custom Style
         // hash value encoding
         if (hashValueEncodingCheckBox.isSelected()) {
-            parameters.setEncoding(hashValueEncodingComboBox.getSelectedItem().toString());
+            parameters.setEncoding(Encoding.string2Encoding(hashValueEncodingComboBox.getSelectedItem().toString()));
         } else {
             parameters.setEncoding((Encoding) null);
         }
@@ -1691,6 +1691,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // check all parameters
         try {
             parameters = parameters.checked();
+            
+        // transform the ListModel to an ArrayList
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < fileList.getModel().getSize(); i++) {
+            list.add(i, fileList.getModel().getElementAt(i));
+        }
+        parameters.setFilenamesFromFilelist(list);
+            
         // adjust the object again, no stdin for the GUI
         parameters.setStdinForFilenamesFromArgs(false);
 

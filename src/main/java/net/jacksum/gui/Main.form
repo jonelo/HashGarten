@@ -843,16 +843,18 @@
           <Properties>
             <Property name="maximumRowCount" type="int" value="16"/>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="9">
+              <StringArray count="11">
                 <StringItem index="0" value="default"/>
                 <StringItem index="1" value="custom"/>
                 <StringItem index="2" value="bsd"/>
-                <StringItem index="3" value="fciv"/>
-                <StringItem index="4" value="linux"/>
-                <StringItem index="5" value="sfv"/>
-                <StringItem index="6" value="solaris-tagged"/>
-                <StringItem index="7" value="solaris-untagged"/>
-                <StringItem index="8" value="openssl"/>
+                <StringItem index="3" value="bsd-r"/>
+                <StringItem index="4" value="sfv"/>
+                <StringItem index="5" value="gnu-linux"/>
+                <StringItem index="6" value="fciv"/>
+                <StringItem index="7" value="openssl-dgst"/>
+                <StringItem index="8" value="openssl-dgst-r"/>
+                <StringItem index="9" value="solaris-digest"/>
+                <StringItem index="10" value="solaris-digest-v"/>
               </StringArray>
             </Property>
             <Property name="toolTipText" type="java.lang.String" value="What style/format should be used?"/>

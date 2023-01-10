@@ -1,7 +1,7 @@
 /*
 
-  HashGarten 0.9.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  HashGarten 0.12.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -85,7 +85,7 @@ public class SwingUtils {
      * is currently located. Purpose: avoid that the window appear on an
      * unexpected place in a multi monitor environment.
      *
-     * @param jframe
+     * @param jframe the JFrame instance
      */
     // Credits: https://stackoverflow.com/questions/1248386/how-do-i-determine-which-monitor-a-swing-mouse-event-occurs-in
     public static void centerJFrameOnTheDisplayWhereTheMouseIs(JFrame jframe) {
