@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.12.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.13.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -70,7 +70,7 @@ import net.loefflmann.sugar.util.ExitException;
  */
 public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogInterface {
 
-    private final static String VERSION = "0.12.0";
+    private final static String VERSION = "0.13.0";
     private final static String PROPERTIES_FILE = String.format("%s/.HashGarten.properties", System.getProperty("user.home"));
     private final static String TIMESTAMP_DEFAULT = "yyyyMMddHHmmssSSS";
 
@@ -1388,6 +1388,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // hash value encoding
         
         // Style
+
         if (parameters.getCompatibilityID() != null) {
             outputStyleComboBox.setSelectedItem(parameters.getCompatibilityID());
         } else {
