@@ -9,16 +9,19 @@ HashGarten is also part of the Jacksum File Browser Integration. See also
 - https://github.com/jonelo/jacksum-fbi-macos
 - https://github.com/jonelo/jacksum-fbi-linux
 
+## Trivia
+
+In a "Kindergarten" children should be cherished and cared for like young plants. The German name has persisted to this day and has spread to other countries. In reference to the famous "Kindergarten", the HashGarten is a similar construction, but for hash algorithms.
 
 ## Screenshots
 
-### Dark Theme
+### Use Cases
 
 #### Find and select algorithms
 
-<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.9.0-select-algorithm.png" alt="HashGarten screenshot" style="vertical-align:top;margin:10px 10px" />
+<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.9.0-select-algorithm.png" alt="HashGarten: find and select algorithms" style="vertical-align:top;margin:10px 10px" />
 
-Note that the algorithm list above has been filtered. Actually 472 algorithms are supported!
+Note that the algorithm list above has been filtered. Actually more than 470 algorithms are supported!
 
 #### Calculate hashes (advanced mode)
 
@@ -30,20 +33,20 @@ Note that the algorithm list above has been filtered. Actually 472 algorithms ar
 
 ## Features
 
-- run it standalone or integrate it to your file browser
-- find algorithms, regular expressions are supported (e.g. `^sha\d?-`)
-- select one or many of a pool of 470 algorithms
-- get detailed help for each algorithm
-- drag and drop files and directories to the GUI
-- components become visible if yout need them
-- calculate and verify hash values
-- window is always on top
+- Run it standalone or integrate it to your file browser
+- Find suitable algorithms, regular expressions are supported (e.g. `^sha\d?-`)
+- Select one or many of a pool of more than 470 algorithms
+- Get detailed help for each algorithm
+- Drag and drop files and directories to the GUI
+- Components become visible if yout need them
+- Calculate and verify hash values
+- Window is always on top
 - Light and Dark themes are supported
 
 ## Internals
 
 - HashGarten is written entirely in Java and it uses the Swing framework
-- it requires FlatLaF to get a modern look and feel. See also https://github.com/JFormDesigner/FlatLaf
-- it uses Jacksum as a lib and calls its API, it does not call Jacksum by the command line
-- the GUI supports the same program options as Jacksum does, so you can initialize the GUI even by the command line
-- it reads and stores GUI properties from/to $HOME/.HashGarten.properties
+- It uses Jacksum as a lib and calls its API, it does not call Jacksum by the command line
+- It requires FlatLaF to get a modern look and feel. See also https://github.com/JFormDesigner/FlatLaf
+- The GUI supports the same program options as Jacksum does, so you can initialize the GUI even by the command line
+- It reads and stores GUI properties from/to $HOME/.HashGarten.properties
