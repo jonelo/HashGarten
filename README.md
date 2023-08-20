@@ -22,8 +22,11 @@ Note that the algorithm list above has been filtered. Actually 472 algorithms ar
 
 #### Calculate hashes (advanced mode)
 
-<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.9.0.png" alt="HashGarten screenshot" style="vertical-align:top;margin:10px 10px" />
+<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.9.0.png" alt="HashGarten: calculate hashes" style="vertical-align:top;margin:10px 10px" />
 
+#### Verify hash values (simple mode)
+
+<img height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.14.0-verify-hash-values.png" alt="HashGarten: verify hash values" style="vertical-align:top;margin:10px 10px" />
 
 ## Features
 
