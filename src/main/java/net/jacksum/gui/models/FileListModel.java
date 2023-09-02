@@ -55,8 +55,7 @@ public class FileListModel extends DefaultListModel implements Cloneable {
     public void copyFrom(FileListModel model) {
         clear();
         for (int i = 0; i < model.size(); i++) {
-            // make a real copy with the new Bookmark constructor
-            // don't copy just the references
+            // make a real copy, don't just copy the reference
             addElement(new String((String) model.getElementAt(i)));
         }
     }

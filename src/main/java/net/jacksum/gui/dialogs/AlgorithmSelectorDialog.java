@@ -25,6 +25,8 @@ import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
 import net.jacksum.gui.models.AlgorithmsModel;
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.RowFilter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -34,8 +36,12 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
+import net.jacksum.actions.info.algo.AlgoInfoAction;
+import net.jacksum.actions.info.algo.AlgoInfoActionParameters;
 import net.jacksum.actions.info.help.Help;
 import net.jacksum.actions.info.help.NothingFoundException;
+import net.jacksum.cli.Verbose;
+import net.loefflmann.sugar.util.ExitException;
 
 /**
  *
@@ -58,15 +64,64 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         sorter = new TableRowSorter<>(tableModel);
 
         initComponents();
-        helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );        
+        helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );     
+        implTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );
         table.setRowSorter(sorter);
         //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         adjustColumnWidths();
         registerManpages();
+        registerImplDetails();
         registerFilter();
     }
 
+    interface AlgoInfoActionParametersExtended extends AlgoInfoActionParameters {
+        public void setAlgorithmIdentifier(String identifier);
+    }
+    private AlgoInfoActionParametersExtended params;
+    
+    private void registerImplDetails() {
+        params = new AlgoInfoActionParametersExtended() {
+            private String identifier;
+            
+            @Override
+            public boolean isList() {
+                return false;
+            }
+
+            @Override
+            public boolean isInfoMode() {
+                return true;
+            }
+
+            @Override
+            public String getAlgorithmIdentifier() {
+                return identifier;
+            }
+
+            @Override
+            public boolean isAlternateImplementationWanted() {
+                return false;
+            }
+
+            @Override
+            public Verbose getVerbose() {
+                return new Verbose();
+            }
+
+            @Override
+            public void setAlgorithmIdentifier(String identifier) {
+                this.identifier = identifier;
+            }
+        };
+
+    }
+    
+    String currentAlgorithmIdentifier;
+    public String getCurrentAlgoritmIdentifier() {
+        return currentAlgorithmIdentifier;
+    }
+    
     private void registerFilter() {
         filterTextField.getDocument().addDocumentListener(
                 new DocumentListener() {
@@ -123,6 +178,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                 if (viewRow < 0) {
                     // Selection got filtered away.
                     helpTextArea.setText("");
+                    implTextArea.setText("");
                 } else {
                     int modelRow = table.convertRowIndexToModel(viewRow);
 
@@ -138,6 +194,18 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                         try {
                             helpTextArea.setText(Help.searchHelp("en", algoSelected, true));
                             helpTextArea.setCaretPosition(0);
+                                                        
+                            StringBuilder buffer = new StringBuilder();
+                            params.setAlgorithmIdentifier(algoSelected);
+                            AlgoInfoAction action = new AlgoInfoAction(params);
+                            try {
+                                action.perform(buffer);
+                                implTextArea.setText(buffer.toString());
+                                implTextArea.setCaretPosition(0);    
+                            } catch (ExitException ex) {
+                                Logger.getLogger(AlgorithmSelectorDialog.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+
                         } catch (NothingFoundException | IOException e) {
                             System.err.println(e);
                         }
@@ -194,8 +262,6 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
 
         tableScrollPane = new javax.swing.JScrollPane();
         table = new javax.swing.JTable();
-        helpScrollPane = new javax.swing.JScrollPane();
-        helpTextArea = new javax.swing.JTextArea();
         FilterLabel = new javax.swing.JLabel();
         algorithmCountLabel = new javax.swing.JLabel();
         filterTextField = new javax.swing.JTextField();
@@ -210,6 +276,13 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         resetButton = new javax.swing.JButton();
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        helpPanel = new javax.swing.JPanel();
+        helpScrollPane = new javax.swing.JScrollPane();
+        helpTextArea = new javax.swing.JTextArea();
+        implPanel = new javax.swing.JPanel();
+        implScrollPane = new javax.swing.JScrollPane();
+        implTextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Select algorithms");
@@ -217,10 +290,6 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         table.setAutoCreateRowSorter(true);
         table.setModel(tableModel);
         tableScrollPane.setViewportView(table);
-
-        helpTextArea.setEditable(false);
-        helpTextArea.setColumns(20);
-        helpScrollPane.setViewportView(helpTextArea);
 
         FilterLabel.setText("Filter:");
 
@@ -316,6 +385,61 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             }
         });
 
+        jTabbedPane1.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
+
+        helpTextArea.setEditable(false);
+        helpTextArea.setColumns(20);
+        helpScrollPane.setViewportView(helpTextArea);
+
+        javax.swing.GroupLayout helpPanelLayout = new javax.swing.GroupLayout(helpPanel);
+        helpPanel.setLayout(helpPanelLayout);
+        helpPanelLayout.setHorizontalGroup(
+            helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 690, Short.MAX_VALUE)
+            .addGroup(helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(helpPanelLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 678, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+        helpPanelLayout.setVerticalGroup(
+            helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 369, Short.MAX_VALUE)
+            .addGroup(helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(helpPanelLayout.createSequentialGroup()
+                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+
+        jTabbedPane1.addTab("Manpage", helpPanel);
+
+        implTextArea.setEditable(false);
+        implTextArea.setColumns(20);
+        implTextArea.setRows(5);
+        implScrollPane.setViewportView(implTextArea);
+
+        javax.swing.GroupLayout implPanelLayout = new javax.swing.GroupLayout(implPanel);
+        implPanel.setLayout(implPanelLayout);
+        implPanelLayout.setHorizontalGroup(
+            implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 690, Short.MAX_VALUE)
+            .addGroup(implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(implPanelLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 678, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+        implPanelLayout.setVerticalGroup(
+            implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 369, Short.MAX_VALUE)
+            .addGroup(implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, implPanelLayout.createSequentialGroup()
+                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+                    .addContainerGap()))
+        );
+
+        jTabbedPane1.addTab("Implementation Details", implPanel);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -350,13 +474,13 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                                 .addComponent(showCheckedButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(showUncheckedButton)))
-                        .addGap(0, 38, Short.MAX_VALUE)
+                        .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(resetButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cancelButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(okButton))
-                    .addComponent(helpScrollPane))
+                    .addComponent(jTabbedPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -365,7 +489,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(tableScrollPane)
-                    .addComponent(helpScrollPane))
+                    .addComponent(jTabbedPane1))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(FilterLabel)
@@ -456,8 +580,13 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton checkButton;
     private javax.swing.JTextField filterTextField;
+    private javax.swing.JPanel helpPanel;
     private javax.swing.JScrollPane helpScrollPane;
     private javax.swing.JTextArea helpTextArea;
+    private javax.swing.JPanel implPanel;
+    private javax.swing.JScrollPane implScrollPane;
+    private javax.swing.JTextArea implTextArea;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton okButton;
     private javax.swing.JButton resetButton;
     private javax.swing.JButton selectAllButton;
