@@ -1,4 +1,23 @@
+/*
 
+  HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  All Rights Reserved, <https://jacksum.net>.
+
+  This program is free software: you can redistribute it and/or modify it under
+  the terms of the GNU General Public License as published by the Free Software
+  Foundation, either version 3 of the License, or (at your option) any later
+  version.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+  details.
+
+  You should have received a copy of the GNU General Public License along with
+  this program. If not, see <https://www.gnu.org/licenses/>.
+
+ */
 package net.jacksum.gui.dialogs;
 
 import java.io.IOException;
@@ -103,6 +122,10 @@ public class HelpDialog extends javax.swing.JDialog {
     public void searchHelp(String text, boolean strict) throws NothingFoundException, IOException {
         helpTextArea.setText(Help.searchHelp("en", text, strict));
         helpTextArea.setCaretPosition(0);
+    }
+    
+    public void setText(String text) {
+        helpTextArea.setText(text);
     }
 
     
