@@ -87,47 +87,47 @@ public class SwingUtils {
      *
      * @param jframe the JFrame instance
      */
-    // Credits: https://stackoverflow.com/questions/1248386/how-do-i-determine-which-monitor-a-swing-mouse-event-occurs-in
-    public static void centerJFrameOnTheDisplayWhereTheMouseIs(JFrame jframe) {
+    // credit: https://stackoverflow.com/questions/4627553/show-jframe-in-a-specific-screen-in-dual-monitor-configuration
+    public static void centerJFrameOnTheDisplayWhereTheMouseIs(JFrame jframe) {        
+        
+        // search for the screen device where the mouse pointer is
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] gd = ge.getScreenDevices();
+
+        // get the mouse pointer        
         PointerInfo pointerInfo = MouseInfo.getPointerInfo();
-        Point currentPoint = pointerInfo.getLocation();
+        //Point currentMousePoint = pointerInfo.getLocation();
+   
+        int deviceID = 0;
+        // Get the configurations for each device
+        boolean locationSet = false;
+        for (GraphicsDevice device : gd) {
 
-        GraphicsEnvironment e
-                = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsConfiguration gc = device.getDefaultConfiguration();
+            Rectangle b = gc.getBounds();
 
-        GraphicsDevice[] devices = e.getScreenDevices();
-
-        Rectangle currentDisplayBounds = null;
-        int displayTotalWidth = 0;
-        int currentDisplayTotalWidth = 0;
-
-        // now get the configurations for each device
-        for (GraphicsDevice device : devices) {
-
-            GraphicsConfiguration[] configurations
-                    = device.getConfigurations();
-            for (GraphicsConfiguration config : configurations) {
-                Rectangle gcBounds = config.getBounds();
-
-                displayTotalWidth += gcBounds.width;
-                if (gcBounds.contains(currentPoint)) {
-                    currentDisplayBounds = gcBounds;
-                    currentDisplayTotalWidth = displayTotalWidth;
-                }
+/*
+            Main.debug("Device #" + deviceID);
+            Main.debug(String.format("  bounds.x=%s", b.x));
+            Main.debug(String.format("  bounds.y=%s", b.y));
+            Main.debug(String.format("  bounds.width=%s", b.width));
+            Main.debug(String.format("  bounds.height=%s", b.height));
+*/
+            if (pointerInfo.getDevice() == device) {
+/*
+                Main.debug(String.format("  Mouse pointer found at device #%s", deviceID));
+                Main.debug(String.format("  Mouse pointer is at (%s, %s)", currentMousePoint.x, currentMousePoint.y));
+*/
+                int x = b.x + (b.width / 2) - (jframe.getSize().width / 2);
+                int y = b.y + (b.height / 2) - (jframe.getSize().height / 2);
+                jframe.setLocation(x, y);        
+                locationSet = true;
             }
+            deviceID++;
         }
-
-        if (currentDisplayBounds == null) {
-            //not found, get the bounds for the default currentDisplayBounds
-            GraphicsDevice device = e.getDefaultScreenDevice();
-            currentDisplayBounds = device.getDefaultConfiguration().getBounds();
-        }
-
-        // some math to find the new point on the (multi) display where the mouse pointer actually is
-        int x = Math.max(currentDisplayTotalWidth - currentDisplayBounds.width + (currentDisplayBounds.width / 2) - (jframe.getWidth() / 2), 0);
-        int y = Math.max((currentDisplayBounds.height / 2) - (jframe.getHeight() / 2), 0);
-
-        jframe.setLocation(new Point(x, y));
+        if (!locationSet) {
+            jframe.setLocationRelativeTo(null);
+        }                    
     }
 
     public static void moveSelectedJListItemUp(JList jList, DefaultListModel model) {
