@@ -406,8 +406,9 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 369, Short.MAX_VALUE)
             .addGroup(helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(helpPanelLayout.createSequentialGroup()
-                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, helpPanelLayout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 357, Short.MAX_VALUE)
                     .addContainerGap()))
         );
 
@@ -434,7 +435,8 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             .addGap(0, 369, Short.MAX_VALUE)
             .addGroup(implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, implPanelLayout.createSequentialGroup()
-                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 363, Short.MAX_VALUE)
+                    .addContainerGap()
+                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 357, Short.MAX_VALUE)
                     .addContainerGap()))
         );
 
