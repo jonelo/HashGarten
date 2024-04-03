@@ -2,7 +2,7 @@
 
 # HashGarten
 
-A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of Jacksum by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
+A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of [Jacksum](https://github.com/jonelo/jacksum) by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
 
 HashGarten is also part of the Jacksum File Browser Integration. See also
 - https://github.com/jonelo/jacksum-fbi-windows
@@ -34,13 +34,16 @@ Note that the algorithm list above has been filtered. Actually more than 470 alg
 ## Features
 
 - Run it standalone or integrate it to your file browser
+- Drag and drop files and directories to the GUI
+- Calculate and verify hash values
+- Initialize the GUI by Jacksum command line options, because it supports the same options as Jacksum does 
 - Find suitable algorithms, regular expressions are supported (e.g. `^sha\d?-`)
 - Select one or many of a pool of more than 470 algorithms
 - Get detailed help for each algorithm
-- Drag and drop files and directories to the GUI
+- Get detailed help for many configuration options
 - Components become visible if yout need them
-- Calculate and verify hash values
-- Window is always on top
+- On multi screen environments it appears on the screen on which your mouse cursor is
+- Window is always on top if you want
 - Light and Dark themes are supported
 
 ## Internals
