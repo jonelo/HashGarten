@@ -126,6 +126,7 @@ public class HelpDialog extends javax.swing.JDialog {
     
     public void setText(String text) {
         helpTextArea.setText(text);
+        helpTextArea.setCaretPosition(0);
     }
 
     
