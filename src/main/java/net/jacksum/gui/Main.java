@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.16.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -38,7 +38,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
@@ -50,8 +49,11 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.LookAndFeel;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -84,6 +86,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private LookAndFeel flatDarkLaf = null;
     private LookAndFeel flatLightLaf = null;
     private String theme = PropertyValues.THEME_LIGHT;
+    
+    private final static String PANEL_NAME_INPUT = "Input";
+    private final static String PANEL_NAME_CALCULATION = "Calculation";
+    private final static String PANEL_NAME_VERIFICATION = "Verification";    
+    private final static String PANEL_NAME_OUTPUT_STYLE = "Output Style";
+    private final static String PANEL_NAME_OUTPUT_FILES = "Output Files";
+    private final static String ACTION_BUTTON_CALCULATE_HASHES = "Calculate Hash Values";
+    private final static String ACTION_BUTTON_VERIFY_HASHES = "Verify Hash Values";
+
 
     /**
      * Creates the GUI.
@@ -100,6 +111,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         updateGUIfromProperties();
         finishLookAndFeel();
         arrangeGUI();
+        //this.setSize(2000,1000);
+        this.setVisible(true);
+        //this.pack();
     }
 
     /**
@@ -140,6 +154,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }
 
     private void finishLookAndFeel() {
+        installDropHandlers();
         darkThemeToggleButton.setSelected(theme.equals(PropertyValues.THEME_DARK));
         setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
     }
@@ -299,7 +314,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         readingThreadsSpinner = new javax.swing.JSpinner();
         parallelThreadsLabel = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        processingPanel = new javax.swing.JPanel();
+        calculationPanel = new javax.swing.JPanel();
         integrityStrengthPanel = new javax.swing.JPanel();
         headerDataIntegrityStrengthLabel = new javax.swing.JLabel();
         algoLabel = new javax.swing.JLabel();
@@ -310,6 +325,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         calculateHashesLabel1 = new javax.swing.JLabel();
         hashingThreadsSpinner = new javax.swing.JSpinner();
         calculateHashesLabel2 = new javax.swing.JLabel();
+        alternativeImplemenationCheckBox = new javax.swing.JCheckBox();
+        alternativeImplementationHelpButton = new javax.swing.JButton();
+        threadsHashingHelpButton1 = new javax.swing.JButton();
         verificationPanel = new javax.swing.JPanel();
         integrityVerificationFilePanel = new javax.swing.JPanel();
         headerFileIntegrityVerificationLabel = new javax.swing.JLabel();
@@ -319,6 +337,21 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         fileVerificationClearButton = new javax.swing.JButton();
         fileVerificationCharacterSetLabel = new javax.swing.JLabel();
         fileVerificationCharacterSetComboBox = new javax.swing.JComboBox<>();
+        fileVerificationViewButton = new javax.swing.JButton();
+        integrityVerificationFileFormatPanel = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        styleLabel1 = new javax.swing.JLabel();
+        outputStyleComboBox_verify = new javax.swing.JComboBox<>();
+        verificationStyleHelpButton = new javax.swing.JButton();
+        hashValueEncodingCheckBox_verify = new javax.swing.JCheckBox();
+        hashValueEncodingComboBox_verify = new javax.swing.JComboBox<>();
+        hashValueEncodingHelpButton1 = new javax.swing.JButton();
+        includeFileSizeCheckBox_verify = new javax.swing.JCheckBox();
+        filesizeHelpButton_verifiy = new javax.swing.JButton();
+        includeTimestampCheckBox_verify = new javax.swing.JCheckBox();
+        timestampFormatComboBox_verify = new javax.swing.JComboBox<>();
+        timestampFormatTextField_verify = new javax.swing.JTextField();
+        timestampHelpButton_verify = new javax.swing.JButton();
         integrityVerificationFilterPanel = new javax.swing.JPanel();
         showFilesLabel = new javax.swing.JLabel();
         showOkFilesCheckBox = new javax.swing.JCheckBox();
@@ -326,10 +359,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         showMissingFilesCheckBox = new javax.swing.JCheckBox();
         showNewFilesCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
-        formatPanel = new javax.swing.JPanel();
-        customizedFormatPanel = new javax.swing.JPanel();
+        outputStylePanel = new javax.swing.JPanel();
+        outputStyleHeaderPanel = new javax.swing.JPanel();
         printHeaderCheckBox = new javax.swing.JCheckBox();
         outputRespIntegrityInputFormatLabel = new javax.swing.JLabel();
+        printHeaderHelpButton = new javax.swing.JButton();
+        customizedFormatPanel = new javax.swing.JPanel();
         styleLabel = new javax.swing.JLabel();
         outputStyleComboBox = new javax.swing.JComboBox<>();
         hashValueEncodingCheckBox = new javax.swing.JCheckBox();
@@ -338,26 +373,25 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         includeTimestampCheckBox = new javax.swing.JCheckBox();
         timestampFormatComboBox = new javax.swing.JComboBox<>();
         timestampFormatTextField = new javax.swing.JTextField();
-        pathStyleLabel = new javax.swing.JLabel();
-        pathStyleComboBox = new javax.swing.JComboBox<>();
-        prefixPathsWithLabel = new javax.swing.JLabel();
-        pathRelativeToTextField = new javax.swing.JTextField();
         lineFormatCheckBox = new javax.swing.JCheckBox();
         lineFormatTextField = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
         lineFormatHelpButton = new javax.swing.JButton();
         styleHelpButton = new javax.swing.JButton();
         hashValueEncodingHelpButton = new javax.swing.JButton();
         timestampHelpButton = new javax.swing.JButton();
         filesizeHelpButton = new javax.swing.JButton();
+        outputStylePathFormatPanel = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        pathStyleLabel = new javax.swing.JLabel();
+        pathStyleComboBox = new javax.swing.JComboBox<>();
         pathStyleHelpButton = new javax.swing.JButton();
+        pathRelativeToTextField = new javax.swing.JTextField();
         customizedPathSeparatorCheckBox = new javax.swing.JCheckBox();
         customizedPathSpearatorTextField = new javax.swing.JTextField();
         customizedPathSeparatorHelpButton = new javax.swing.JButton();
-        printHeaderHelpButton = new javax.swing.JButton();
-        outputPanel = new javax.swing.JPanel();
         outputFilesPanel = new javax.swing.JPanel();
+        outputFilesInnerPanel = new javax.swing.JPanel();
         headerOutputFilesLabel = new javax.swing.JLabel();
         standardOutputFileLabel = new javax.swing.JLabel();
         standardOutputFileTextField = new javax.swing.JTextField();
@@ -380,16 +414,32 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel5 = new javax.swing.JLabel();
         alwaysOnTopCheckBox = new javax.swing.JCheckBox();
         stayOpenCheckBox = new javax.swing.JCheckBox();
+        centerWindowWhereTheMouseIsCheckBox = new javax.swing.JCheckBox();
         actionPanel = new javax.swing.JPanel();
         actionButton = new javax.swing.JButton();
-        verificationModeToggleButton = new javax.swing.JToggleButton();
-        quitButton = new javax.swing.JButton();
+        menuBar = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        preferencesMenuItem = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
+        exitMenuItem = new javax.swing.JMenuItem();
+        modeMenu = new javax.swing.JMenu();
+        calcMenuItem = new javax.swing.JMenuItem();
+        verifyMenuItem = new javax.swing.JMenuItem();
+        helpMenu = new javax.swing.JMenu();
+        homepageHashGartenMenuItem = new javax.swing.JMenuItem();
+        reportIssueHashGartenMenuItem = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
+        manpageJacksumMenuItem = new javax.swing.JMenuItem();
+        homepageJacksumMenuItem = new javax.swing.JMenuItem();
+        reportIssueJacksumMenuItem = new javax.swing.JMenuItem();
+        jSeparator4 = new javax.swing.JPopupMenu.Separator();
+        aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-        setTitle(String.format("HashGarten %s • a GUI powered by Jacksum %s • https://jacksum.net", AppConstants.VERSION, JacksumAPI.getVersion()));
+        setTitle(String.format("HashGarten %s", AppConstants.VERSION));
         setAlwaysOnTop(true);
         setIconImage(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix32x32/jacksum-32x32.png")).getImage());
-        setMinimumSize(new java.awt.Dimension(500, 0));
+        setMinimumSize(new java.awt.Dimension(600, 0));
         setName("HashGarten"); // NOI18N
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -401,7 +451,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         fileInputPanel.setMaximumSize(new java.awt.Dimension(400, 32767));
 
         fileList.setModel(fileListModel);
-        fileList.setToolTipText("You can drag and drop files and directories here");
+        fileList.setToolTipText("Drag and drop files and directories here.");
         fileList.setDropMode(javax.swing.DropMode.INSERT);
         fileListScrollPane.setViewportView(fileList);
 
@@ -517,7 +567,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addComponent(restoreButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clearButton)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(47, Short.MAX_VALUE))
         );
         listModificationPanelLayout.setVerticalGroup(
             listModificationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -546,8 +596,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addComponent(listSortingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(fileInputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(fileListScrollPane)
-                            .addComponent(listModificationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(listModificationPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(fileListScrollPane))))
                 .addContainerGap())
         );
         fileInputPanelLayout.setVerticalGroup(
@@ -559,7 +609,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(fileInputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(listSortingPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(fileInputPanelLayout.createSequentialGroup()
-                        .addComponent(fileListScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(fileListScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(listModificationPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
@@ -646,7 +696,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addComponent(readingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(parallelThreadsLabel)
-                        .addGap(0, 95, Short.MAX_VALUE)))
+                        .addGap(0, 38, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         readPerformancePanelLayout.setVerticalGroup(
@@ -744,6 +794,22 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         calculateHashesLabel2.setText("parallel threads (if multiple algorithms have been selected)");
 
+        alternativeImplemenationCheckBox.setText("Use alternative implementation(s) if available");
+
+        alternativeImplementationHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        alternativeImplementationHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                alternativeImplementationHelpButtonActionPerformed(evt);
+            }
+        });
+
+        threadsHashingHelpButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        threadsHashingHelpButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                threadsHashingHelpButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout processingOptionsPanelLayout = new javax.swing.GroupLayout(processingOptionsPanel);
         processingOptionsPanel.setLayout(processingOptionsPanelLayout);
         processingOptionsPanelLayout.setHorizontalGroup(
@@ -751,16 +817,20 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             .addGroup(processingOptionsPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(processingOptionsPanelLayout.createSequentialGroup()
-                        .addComponent(headerDataIntegrityStrengthLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
+                    .addComponent(headerDataIntegrityStrengthLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(processingOptionsPanelLayout.createSequentialGroup()
                         .addComponent(calculateHashesLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(hashingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(calculateHashesLabel2)
-                        .addGap(0, 91, Short.MAX_VALUE))))
+                        .addComponent(calculateHashesLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(threadsHashingHelpButton1))
+                    .addGroup(processingOptionsPanelLayout.createSequentialGroup()
+                        .addComponent(alternativeImplemenationCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(alternativeImplementationHelpButton)))
+                .addContainerGap())
         );
         processingOptionsPanelLayout.setVerticalGroup(
             processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -768,35 +838,41 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addComponent(headerDataIntegrityStrengthLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 8, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(calculateHashesLabel1)
-                    .addComponent(hashingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(calculateHashesLabel2))
+                .addGroup(processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(processingOptionsPanelLayout.createSequentialGroup()
+                        .addGroup(processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(calculateHashesLabel1)
+                            .addComponent(hashingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(calculateHashesLabel2)
+                            .addComponent(threadsHashingHelpButton1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(alternativeImplemenationCheckBox))
+                    .addComponent(alternativeImplementationHelpButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout processingPanelLayout = new javax.swing.GroupLayout(processingPanel);
-        processingPanel.setLayout(processingPanelLayout);
-        processingPanelLayout.setHorizontalGroup(
-            processingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(processingPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout calculationPanelLayout = new javax.swing.GroupLayout(calculationPanel);
+        calculationPanel.setLayout(calculationPanelLayout);
+        calculationPanelLayout.setHorizontalGroup(
+            calculationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(calculationPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(processingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(calculationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(processingOptionsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(integrityStrengthPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        processingPanelLayout.setVerticalGroup(
-            processingPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(processingPanelLayout.createSequentialGroup()
+        calculationPanelLayout.setVerticalGroup(
+            calculationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(calculationPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(integrityStrengthPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(processingOptionsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(310, Short.MAX_VALUE))
+                .addContainerGap(284, Short.MAX_VALUE))
         );
 
-        tabbedPane.addTab("Compute", processingPanel);
+        tabbedPane.addTab("Calculation", calculationPanel);
 
         headerFileIntegrityVerificationLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         headerFileIntegrityVerificationLabel.setText("Integrity Verification File");
@@ -824,6 +900,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         fileVerificationCharacterSetComboBox.setModel(net.jacksum.gui.GUIHelper.buildCharsetsComboBoxModel());
         fileVerificationCharacterSetComboBox.setSelectedItem("UTF-8");
 
+        fileVerificationViewButton.setText("View");
+        fileVerificationViewButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileVerificationViewButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout integrityVerificationFilePanelLayout = new javax.swing.GroupLayout(integrityVerificationFilePanel);
         integrityVerificationFilePanel.setLayout(integrityVerificationFilePanelLayout);
         integrityVerificationFilePanelLayout.setHorizontalGroup(
@@ -832,18 +915,23 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(integrityVerificationFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(headerFileIntegrityVerificationLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(integrityVerificationFilePanelLayout.createSequentialGroup()
-                        .addComponent(fileVerificationLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fileVerificationTextField)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fileVerificationSelectFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fileVerificationClearButton))
-                    .addGroup(integrityVerificationFilePanelLayout.createSequentialGroup()
-                        .addComponent(fileVerificationCharacterSetLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fileVerificationCharacterSetComboBox, 0, 427, Short.MAX_VALUE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, integrityVerificationFilePanelLayout.createSequentialGroup()
+                        .addGroup(integrityVerificationFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(integrityVerificationFilePanelLayout.createSequentialGroup()
+                                .addComponent(fileVerificationCharacterSetLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(fileVerificationCharacterSetComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(integrityVerificationFilePanelLayout.createSequentialGroup()
+                                .addComponent(fileVerificationLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(fileVerificationTextField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(fileVerificationSelectFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(7, 7, 7)
+                                .addComponent(fileVerificationViewButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(fileVerificationClearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(4, 4, 4)))
                 .addContainerGap())
         );
         integrityVerificationFilePanelLayout.setVerticalGroup(
@@ -856,12 +944,162 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(fileVerificationTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(fileVerificationSelectFileButton)
                     .addComponent(fileVerificationLabel)
-                    .addComponent(fileVerificationClearButton))
+                    .addComponent(fileVerificationClearButton)
+                    .addComponent(fileVerificationViewButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(integrityVerificationFilePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fileVerificationCharacterSetLabel)
                     .addComponent(fileVerificationCharacterSetComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
+        );
+
+        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel6.setText("Integrity Verification File Format");
+
+        styleLabel1.setText("Style:");
+
+        outputStyleComboBox_verify.setMaximumRowCount(16);
+        outputStyleComboBox_verify.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "custom", "bsd", "bsd-r", "sfv", "gnu-linux", "fciv", "openssl-dgst", "openssl-dgst-r", "solaris-digest", "solaris-digest-v" }));
+        outputStyleComboBox_verify.setToolTipText("What style/format should be used?");
+        outputStyleComboBox_verify.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                outputStyleComboBox_verifyItemStateChanged(evt);
+            }
+        });
+
+        verificationStyleHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        verificationStyleHelpButton.setToolTipText("What does that mean?");
+        verificationStyleHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                verificationStyleHelpButtonActionPerformed(evt);
+            }
+        });
+
+        hashValueEncodingCheckBox_verify.setText("Hash value encoding:");
+        hashValueEncodingCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                hashValueEncodingCheckBox_verifyItemStateChanged(evt);
+            }
+        });
+
+        hashValueEncodingComboBox_verify.setMaximumRowCount(16);
+        hashValueEncodingComboBox_verify.setModel(net.jacksum.gui.GUIHelper.getEncodingsComboBoxModel());
+        hashValueEncodingComboBox_verify.setSelectedItem("hex");
+
+        hashValueEncodingHelpButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        hashValueEncodingHelpButton1.setToolTipText("What does that mean?");
+        hashValueEncodingHelpButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hashValueEncodingHelpButton1ActionPerformed(evt);
+            }
+        });
+
+        includeFileSizeCheckBox_verify.setText("File size in bytes is included");
+        includeFileSizeCheckBox_verify.setToolTipText("");
+        includeFileSizeCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                includeFileSizeCheckBox_verifyItemStateChanged(evt);
+            }
+        });
+
+        filesizeHelpButton_verifiy.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        filesizeHelpButton_verifiy.setToolTipText("What does that mean?");
+        filesizeHelpButton_verifiy.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                filesizeHelpButton_verifiyActionPerformed(evt);
+            }
+        });
+
+        includeTimestampCheckBox_verify.setText("Timestamp is included, format:");
+        includeTimestampCheckBox_verify.setToolTipText("");
+        includeTimestampCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                includeTimestampCheckBox_verifyItemStateChanged(evt);
+            }
+        });
+
+        timestampFormatComboBox_verify.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "custom", "unixtime", "unixtime-ms", "iso8601" }));
+        timestampFormatComboBox_verify.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                timestampFormatComboBox_verifyItemStateChanged(evt);
+            }
+        });
+
+        timestampFormatTextField_verify.setText(AppConstants.TIMESTAMP_DEFAULT);
+
+        timestampHelpButton_verify.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        timestampHelpButton_verify.setToolTipText("What does that mean?");
+        timestampHelpButton_verify.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                timestampHelpButton_verifyActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout integrityVerificationFileFormatPanelLayout = new javax.swing.GroupLayout(integrityVerificationFileFormatPanel);
+        integrityVerificationFileFormatPanel.setLayout(integrityVerificationFileFormatPanelLayout);
+        integrityVerificationFileFormatPanelLayout.setHorizontalGroup(
+            integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                        .addComponent(styleLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                                .addComponent(includeTimestampCheckBox_verify)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(timestampFormatComboBox_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(timestampFormatTextField_verify, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(timestampHelpButton_verify))
+                            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                                .addComponent(includeFileSizeCheckBox_verify)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(filesizeHelpButton_verifiy))
+                            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                                .addComponent(hashValueEncodingCheckBox_verify)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(hashValueEncodingComboBox_verify, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(hashValueEncodingHelpButton1))
+                            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                                .addComponent(outputStyleComboBox_verify, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(verificationStyleHelpButton)))))
+                .addContainerGap())
+        );
+        integrityVerificationFileFormatPanelLayout.setVerticalGroup(
+            integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(styleLabel1)
+                        .addComponent(outputStyleComboBox_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(verificationStyleHelpButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(hashValueEncodingHelpButton1)
+                    .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(hashValueEncodingCheckBox_verify)
+                        .addComponent(hashValueEncodingComboBox_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(filesizeHelpButton_verifiy)
+                    .addComponent(includeFileSizeCheckBox_verify))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(timestampHelpButton_verify)
+                    .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(includeTimestampCheckBox_verify)
+                        .addComponent(timestampFormatComboBox_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(timestampFormatTextField_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         showFilesLabel.setText("Show only files that match status:");
@@ -894,14 +1132,16 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(integrityVerificationFilterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(integrityVerificationFilterPanelLayout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addGroup(integrityVerificationFilterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(showFailedFilesCheckBox)
-                            .addComponent(showOkFilesCheckBox)
-                            .addComponent(showMissingFilesCheckBox)
-                            .addComponent(showNewFilesCheckBox))
+                        .addComponent(showOkFilesCheckBox)
+                        .addGap(18, 18, 18)
+                        .addComponent(showFailedFilesCheckBox)
+                        .addGap(18, 18, 18)
+                        .addComponent(showMissingFilesCheckBox)
+                        .addGap(18, 18, 18)
+                        .addComponent(showNewFilesCheckBox)
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(integrityVerificationFilterPanelLayout.createSequentialGroup()
-                        .addComponent(showFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(showFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 528, Short.MAX_VALUE)
                         .addContainerGap())
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
@@ -912,15 +1152,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(showFilesLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(showOkFilesCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(showFailedFilesCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(showMissingFilesCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(showNewFilesCheckBox)
-                .addContainerGap())
+                .addGroup(integrityVerificationFilterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(showOkFilesCheckBox)
+                    .addComponent(showFailedFilesCheckBox)
+                    .addComponent(showMissingFilesCheckBox)
+                    .addComponent(showNewFilesCheckBox)))
         );
 
         javax.swing.GroupLayout verificationPanelLayout = new javax.swing.GroupLayout(verificationPanel);
@@ -931,7 +1168,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(verificationPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(integrityVerificationFilePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(integrityVerificationFilterPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(integrityVerificationFilterPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(integrityVerificationFileFormatPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         verificationPanelLayout.setVerticalGroup(
@@ -940,17 +1178,53 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addComponent(integrityVerificationFilePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
+                .addComponent(integrityVerificationFileFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(integrityVerificationFilterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap(105, Short.MAX_VALUE))
         );
 
-        tabbedPane.addTab("Verfication", verificationPanel);
+        tabbedPane.addTab("Verification", verificationPanel);
 
         printHeaderCheckBox.setText("Print header");
         printHeaderCheckBox.setToolTipText("Prints a short header before the data set");
 
         outputRespIntegrityInputFormatLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         outputRespIntegrityInputFormatLabel.setText("Header");
+
+        printHeaderHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        printHeaderHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                printHeaderHelpButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout outputStyleHeaderPanelLayout = new javax.swing.GroupLayout(outputStyleHeaderPanel);
+        outputStyleHeaderPanel.setLayout(outputStyleHeaderPanelLayout);
+        outputStyleHeaderPanelLayout.setHorizontalGroup(
+            outputStyleHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStyleHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(outputStyleHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(outputStyleHeaderPanelLayout.createSequentialGroup()
+                        .addComponent(outputRespIntegrityInputFormatLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(outputStyleHeaderPanelLayout.createSequentialGroup()
+                        .addComponent(printHeaderCheckBox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(printHeaderHelpButton))))
+        );
+        outputStyleHeaderPanelLayout.setVerticalGroup(
+            outputStyleHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStyleHeaderPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(outputRespIntegrityInputFormatLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(outputStyleHeaderPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(printHeaderCheckBox)
+                    .addComponent(printHeaderHelpButton))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         styleLabel.setText("Style:");
 
@@ -998,25 +1272,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         timestampFormatTextField.setText(AppConstants.TIMESTAMP_DEFAULT);
 
-        pathStyleLabel.setText("Path style:");
-
-        pathStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "absolute paths", "relativize paths to", "omit paths" }));
-        pathStyleComboBox.setToolTipText("Do you want to adjust paths?");
-        pathStyleComboBox.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                pathStyleComboBoxItemStateChanged(evt);
-            }
-        });
-
-        prefixPathsWithLabel.setText("Paths are relative to:");
-
-        pathRelativeToTextField.setDropMode(javax.swing.DropMode.INSERT);
-        pathRelativeToTextField.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                pathRelativeToTextFieldKeyTyped(evt);
-            }
-        });
-
         lineFormatCheckBox.setText("Line format:");
         lineFormatCheckBox.setToolTipText("Sets the format of the lines");
         lineFormatCheckBox.addItemListener(new java.awt.event.ItemListener() {
@@ -1029,9 +1284,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel3.setText("Line Format");
-
-        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel4.setText("Path Format");
 
         lineFormatHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
         lineFormatHelpButton.setToolTipText("What does that mean?");
@@ -1073,32 +1325,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
-        pathStyleHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
-        pathStyleHelpButton.setToolTipText("What does that mean?");
-        pathStyleHelpButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                pathStyleHelpButtonActionPerformed(evt);
-            }
-        });
-
-        customizedPathSeparatorCheckBox.setText("Customized path separator:");
-
-        customizedPathSpearatorTextField.setText("/");
-
-        customizedPathSeparatorHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
-        customizedPathSeparatorHelpButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                customizedPathSeparatorHelpButtonActionPerformed(evt);
-            }
-        });
-
-        printHeaderHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
-        printHeaderHelpButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                printHeaderHelpButtonActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout customizedFormatPanelLayout = new javax.swing.GroupLayout(customizedFormatPanel);
         customizedFormatPanel.setLayout(customizedFormatPanelLayout);
         customizedFormatPanelLayout.setHorizontalGroup(
@@ -1107,10 +1333,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(customizedFormatPanelLayout.createSequentialGroup()
-                        .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(outputRespIntegrityInputFormatLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(customizedFormatPanelLayout.createSequentialGroup()
                         .addComponent(styleLabel)
@@ -1121,70 +1344,43 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(filesizeHelpButton))
                             .addGroup(customizedFormatPanelLayout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(outputStyleComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 529, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(4, 4, 4)
+                                .addComponent(outputStyleComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(styleHelpButton))
                             .addGroup(customizedFormatPanelLayout.createSequentialGroup()
                                 .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, customizedFormatPanelLayout.createSequentialGroup()
                                         .addComponent(includeTimestampCheckBox)
-                                        .addGap(2, 2, 2)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(timestampFormatComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(timestampFormatTextField))
                                     .addGroup(customizedFormatPanelLayout.createSequentialGroup()
                                         .addComponent(hashValueEncodingCheckBox)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGap(10, 10, 10)
                                         .addComponent(hashValueEncodingComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, customizedFormatPanelLayout.createSequentialGroup()
                                         .addComponent(lineFormatCheckBox)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(lineFormatTextField)))
+                                        .addComponent(lineFormatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 379, Short.MAX_VALUE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(lineFormatHelpButton)
                                     .addComponent(hashValueEncodingHelpButton)
-                                    .addComponent(timestampHelpButton)))))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, customizedFormatPanelLayout.createSequentialGroup()
-                        .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(pathStyleLabel)
-                            .addComponent(prefixPathsWithLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(customizedFormatPanelLayout.createSequentialGroup()
-                                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(pathStyleComboBox, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.Alignment.LEADING))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(pathStyleHelpButton))
-                            .addGroup(customizedFormatPanelLayout.createSequentialGroup()
-                                .addComponent(customizedPathSeparatorCheckBox)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(customizedPathSeparatorHelpButton))))
-                    .addGroup(customizedFormatPanelLayout.createSequentialGroup()
-                        .addComponent(printHeaderCheckBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(printHeaderHelpButton))))
+                                    .addComponent(timestampHelpButton)))))))
         );
         customizedFormatPanelLayout.setVerticalGroup(
             customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, customizedFormatPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(outputRespIntegrityInputFormatLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(printHeaderCheckBox)
-                    .addComponent(printHeaderHelpButton))
-                .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(outputStyleComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(styleLabel)
-                    .addComponent(styleHelpButton))
+                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(styleHelpButton)
+                    .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(outputStyleComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(styleLabel)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lineFormatCheckBox)
@@ -1205,50 +1401,130 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(timestampFormatComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(timestampFormatTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(timestampHelpButton))
-                .addGap(18, 18, 18)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel4.setText("Path Format");
+
+        pathStyleLabel.setText("Path style:");
+
+        pathStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "absolute paths", "relativize paths to", "omit paths" }));
+        pathStyleComboBox.setToolTipText("Do you want to adjust paths?");
+        pathStyleComboBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                pathStyleComboBoxItemStateChanged(evt);
+            }
+        });
+
+        pathStyleHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        pathStyleHelpButton.setToolTipText("What does that mean?");
+        pathStyleHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathStyleHelpButtonActionPerformed(evt);
+            }
+        });
+
+        pathRelativeToTextField.setToolTipText("Drag and Drop is supported");
+        pathRelativeToTextField.setDropMode(javax.swing.DropMode.INSERT);
+        pathRelativeToTextField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                pathRelativeToTextFieldKeyTyped(evt);
+            }
+        });
+
+        customizedPathSeparatorCheckBox.setText("Customized path separator:");
+
+        customizedPathSpearatorTextField.setText("/");
+
+        customizedPathSeparatorHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        customizedPathSeparatorHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                customizedPathSeparatorHelpButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout outputStylePathFormatPanelLayout = new javax.swing.GroupLayout(outputStylePathFormatPanel);
+        outputStylePathFormatPanel.setLayout(outputStylePathFormatPanelLayout);
+        outputStylePathFormatPanelLayout.setHorizontalGroup(
+            outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStylePathFormatPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(outputStylePathFormatPanelLayout.createSequentialGroup()
+                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, outputStylePathFormatPanelLayout.createSequentialGroup()
+                        .addComponent(pathStyleLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(pathStyleComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, outputStylePathFormatPanelLayout.createSequentialGroup()
+                                .addComponent(customizedPathSeparatorCheckBox)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 195, Short.MAX_VALUE))
+                            .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.Alignment.LEADING))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(pathStyleHelpButton)
+                            .addComponent(customizedPathSeparatorHelpButton)))))
+        );
+        outputStylePathFormatPanelLayout.setVerticalGroup(
+            outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStylePathFormatPanelLayout.createSequentialGroup()
+                .addContainerGap()
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(pathStyleLabel)
-                    .addComponent(pathStyleComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(pathStyleLabel)
+                        .addComponent(pathStyleComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(pathStyleHelpButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(prefixPathsWithLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(customizedPathSeparatorCheckBox)
-                    .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(outputStylePathFormatPanelLayout.createSequentialGroup()
+                        .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(customizedPathSeparatorCheckBox)
+                            .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(customizedPathSeparatorHelpButton))
-                .addContainerGap(41, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout formatPanelLayout = new javax.swing.GroupLayout(formatPanel);
-        formatPanel.setLayout(formatPanelLayout);
-        formatPanelLayout.setHorizontalGroup(
-            formatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(formatPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout outputStylePanelLayout = new javax.swing.GroupLayout(outputStylePanel);
+        outputStylePanel.setLayout(outputStylePanelLayout);
+        outputStylePanelLayout.setHorizontalGroup(
+            outputStylePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStylePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(customizedFormatPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(outputStylePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(outputStyleHeaderPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(customizedFormatPanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(outputStylePathFormatPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        formatPanelLayout.setVerticalGroup(
-            formatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(formatPanelLayout.createSequentialGroup()
+        outputStylePanelLayout.setVerticalGroup(
+            outputStylePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputStylePanelLayout.createSequentialGroup()
                 .addContainerGap()
+                .addComponent(outputStyleHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(customizedFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addGap(18, 18, 18)
+                .addComponent(outputStylePathFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(72, Short.MAX_VALUE))
         );
 
-        tabbedPane.addTab("Output Style", formatPanel);
+        tabbedPane.addTab("Output Style", outputStylePanel);
 
         headerOutputFilesLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         headerOutputFilesLabel.setText("Output Files");
 
         standardOutputFileLabel.setText("Standard output:");
 
-        standardOutputFileTextField.setToolTipText("To which file do you want to save the output?");
+        standardOutputFileTextField.setToolTipText("To which file do you want to save the output?\n(drag and drop is supported)");
 
         standardOutputViewButton.setText("View");
         standardOutputViewButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1259,7 +1535,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         standardErrorFileLabel.setText("Error log:");
 
-        standardErrorFileTextField.setToolTipText("To which file do you want to save errors?");
+        standardErrorFileTextField.setToolTipText("To which file do you want to save errors?\n(drag and drop is supported)");
 
         standardErrorViewButton.setText("View");
         standardErrorViewButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1278,59 +1554,59 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         standardErrorFileCharacterSetComboBox.setModel(net.jacksum.gui.GUIHelper.buildCharsetsComboBoxModel());
         standardErrorFileCharacterSetComboBox.setSelectedItem("UTF-8");
 
-        javax.swing.GroupLayout outputFilesPanelLayout = new javax.swing.GroupLayout(outputFilesPanel);
-        outputFilesPanel.setLayout(outputFilesPanelLayout);
-        outputFilesPanelLayout.setHorizontalGroup(
-            outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(outputFilesPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout outputFilesInnerPanelLayout = new javax.swing.GroupLayout(outputFilesInnerPanel);
+        outputFilesInnerPanel.setLayout(outputFilesInnerPanelLayout);
+        outputFilesInnerPanelLayout.setHorizontalGroup(
+            outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(headerOutputFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(outputFilesPanelLayout.createSequentialGroup()
-                        .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
+                        .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(standardOutputFileLabel)
                             .addComponent(standardErrorFileLabel))
                         .addGap(76, 76, 76)
-                        .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(outputFilesPanelLayout.createSequentialGroup()
-                                .addComponent(standardOutputFileTextField)
+                        .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
+                                .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(standardOutputViewButton))
-                            .addGroup(outputFilesPanelLayout.createSequentialGroup()
+                            .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                                 .addComponent(standardErrorFileTextField)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(standardErrorViewButton))))
-                    .addGroup(outputFilesPanelLayout.createSequentialGroup()
+                    .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                         .addComponent(standardOutputFileCharacterSetLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(standardOutputFileCharacterSetComboBox, 0, 420, Short.MAX_VALUE))
-                    .addGroup(outputFilesPanelLayout.createSequentialGroup()
+                        .addComponent(standardOutputFileCharacterSetComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                         .addComponent(standardErrorFileCharacterSetLabel)
                         .addGap(47, 47, 47)
                         .addComponent(standardErrorFileCharacterSetComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        outputFilesPanelLayout.setVerticalGroup(
-            outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, outputFilesPanelLayout.createSequentialGroup()
+        outputFilesInnerPanelLayout.setVerticalGroup(
+            outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, outputFilesInnerPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(headerOutputFilesLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(standardOutputFileLabel)
                     .addComponent(standardOutputViewButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardOutputFileCharacterSetLabel)
                     .addComponent(standardOutputFileCharacterSetComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardErrorFileLabel)
                     .addComponent(standardErrorFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(standardErrorViewButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardErrorFileCharacterSetLabel)
                     .addComponent(standardErrorFileCharacterSetComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -1350,7 +1626,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(outputFilesOptionsPanelLayout.createSequentialGroup()
                         .addComponent(bomCheckBox)
-                        .addGap(0, 220, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(placeholderForOutputFilesOptionsLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -1364,28 +1640,28 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap())
         );
 
-        javax.swing.GroupLayout outputPanelLayout = new javax.swing.GroupLayout(outputPanel);
-        outputPanel.setLayout(outputPanelLayout);
-        outputPanelLayout.setHorizontalGroup(
-            outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(outputPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout outputFilesPanelLayout = new javax.swing.GroupLayout(outputFilesPanel);
+        outputFilesPanel.setLayout(outputFilesPanelLayout);
+        outputFilesPanelLayout.setHorizontalGroup(
+            outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputFilesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(outputFilesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(outputFilesInnerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(outputFilesOptionsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(10, 10, 10))
         );
-        outputPanelLayout.setVerticalGroup(
-            outputPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(outputPanelLayout.createSequentialGroup()
+        outputFilesPanelLayout.setVerticalGroup(
+            outputFilesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(outputFilesPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(outputFilesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(outputFilesInnerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(outputFilesOptionsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
-        tabbedPane.addTab("Output Files", outputPanel);
+        tabbedPane.addTab("Output Files", outputFilesPanel);
 
         themeLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         themeLabel.setText("Theme");
@@ -1409,7 +1685,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(themeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(themePanelLayout.createSequentialGroup()
                         .addComponent(darkThemeToggleButton)
-                        .addGap(0, 456, Short.MAX_VALUE)))
+                        .addGap(0, 399, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         themePanelLayout.setVerticalGroup(
@@ -1426,14 +1702,18 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel5.setText("Window behavior");
 
         alwaysOnTopCheckBox.setSelected(true);
-        alwaysOnTopCheckBox.setText("Window always on top");
+        alwaysOnTopCheckBox.setText("Window is always on top");
         alwaysOnTopCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 alwaysOnTopCheckBoxItemStateChanged(evt);
             }
         });
 
-        stayOpenCheckBox.setText("Stay window open after a task has been finished");
+        stayOpenCheckBox.setSelected(true);
+        stayOpenCheckBox.setText("Stay the window open after a task has been finished");
+
+        centerWindowWhereTheMouseIsCheckBox.setSelected(true);
+        centerWindowWhereTheMouseIsCheckBox.setText("After starting, center the window on the screen where the mouse cursor is");
 
         javax.swing.GroupLayout guiPanelLayout = new javax.swing.GroupLayout(guiPanel);
         guiPanel.setLayout(guiPanelLayout);
@@ -1443,8 +1723,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(guiPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(stayOpenCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, 528, Short.MAX_VALUE)
                     .addComponent(alwaysOnTopCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(stayOpenCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(guiPanelLayout.createSequentialGroup()
+                        .addComponent(centerWindowWhereTheMouseIsCheckBox)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         guiPanelLayout.setVerticalGroup(
@@ -1453,10 +1736,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(centerWindowWhereTheMouseIsCheckBox)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(alwaysOnTopCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(stayOpenCheckBox)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(62, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout guiOptionsPanelLayout = new javax.swing.GroupLayout(guiOptionsPanel);
@@ -1485,7 +1770,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.weightx = 0.1;
         gridBagConstraints.weighty = 0.1;
         getContentPane().add(tabbedPane, gridBagConstraints);
@@ -1495,26 +1780,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         actionButton.setMnemonic('J');
         actionButton.setText("  Calculate hash values");
         actionButton.setToolTipText("Action!");
+        actionButton.setIconTextGap(20);
         actionButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 actionButtonActionPerformed(evt);
-            }
-        });
-
-        verificationModeToggleButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix32x32/toggle-off-32x32.png"))); // NOI18N
-        verificationModeToggleButton.setText("Verification mode");
-        verificationModeToggleButton.setToolTipText("Do you want to verify data integrity against a precalculated list?");
-        verificationModeToggleButton.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                verificationModeToggleButtonItemStateChanged(evt);
-            }
-        });
-
-        quitButton.setText("Quit");
-        quitButton.setToolTipText("Quits tihs app");
-        quitButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                quitButtonActionPerformed(evt);
             }
         });
 
@@ -1524,21 +1793,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             actionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(actionPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(verificationModeToggleButton, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(quitButton)
+                .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 563, Short.MAX_VALUE)
                 .addContainerGap())
         );
         actionPanelLayout.setVerticalGroup(
             actionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(actionPanelLayout.createSequentialGroup()
                 .addGap(8, 8, 8)
-                .addGroup(actionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(verificationModeToggleButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(quitButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1550,15 +1812,116 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         gridBagConstraints.insets = new java.awt.Insets(11, 0, 11, 0);
         getContentPane().add(actionPanel, gridBagConstraints);
 
+        fileMenu.setText("File");
+
+        preferencesMenuItem.setText("Set Preferences");
+        preferencesMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                preferencesMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(preferencesMenuItem);
+        fileMenu.add(jSeparator1);
+
+        exitMenuItem.setText("Exit");
+        exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                exitMenuItemActionPerformed(evt);
+            }
+        });
+        fileMenu.add(exitMenuItem);
+
+        menuBar.add(fileMenu);
+
+        modeMenu.setText("Operating Mode");
+
+        calcMenuItem.setText("Calculate hash values");
+        calcMenuItem.setActionCommand("Calculate Hash Values");
+        calcMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                calcMenuItemActionPerformed(evt);
+            }
+        });
+        modeMenu.add(calcMenuItem);
+
+        verifyMenuItem.setText("Verify hash values");
+        verifyMenuItem.setActionCommand("Verify Hash Values");
+        verifyMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                verifyMenuItemActionPerformed(evt);
+            }
+        });
+        modeMenu.add(verifyMenuItem);
+
+        menuBar.add(modeMenu);
+
+        helpMenu.setText("Help");
+
+        homepageHashGartenMenuItem.setText("HashGarten Homepage");
+        homepageHashGartenMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homepageHashGartenMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(homepageHashGartenMenuItem);
+
+        reportIssueHashGartenMenuItem.setText("Report Issue for HashGarten");
+        reportIssueHashGartenMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reportIssueHashGartenMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(reportIssueHashGartenMenuItem);
+        helpMenu.add(jSeparator3);
+
+        manpageJacksumMenuItem.setText("Jacksum Manpage");
+        manpageJacksumMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                manpageJacksumMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(manpageJacksumMenuItem);
+
+        homepageJacksumMenuItem.setText("Jacksum Homepage");
+        homepageJacksumMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                homepageJacksumMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(homepageJacksumMenuItem);
+
+        reportIssueJacksumMenuItem.setText("Report Issue for Jacksum");
+        reportIssueJacksumMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reportIssueJacksumMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(reportIssueJacksumMenuItem);
+        helpMenu.add(jSeparator4);
+
+        aboutMenuItem.setText("About");
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutMenuItemActionPerformed(evt);
+            }
+        });
+        helpMenu.add(aboutMenuItem);
+
+        menuBar.add(helpMenu);
+
+        setJMenuBar(menuBar);
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void updateGUIfromProperties() {
-//        if (props.getProperty(PropertyKeys.GUI_THEME) != null) {
         darkThemeToggleButton.setSelected(props.getProperty(
                 PropertyKeys.GUI_THEME,
                 PropertyValues.THEME_LIGHT).equals(PropertyValues.THEME_DARK));
-//        }
+
+        centerWindowWhereTheMouseIsCheckBox.setSelected(props.getProperty(
+                PropertyKeys.GUI_SMARTPOSITIONED,
+                PropertyValues.TRUE).equals(PropertyValues.TRUE));
 
         alwaysOnTopCheckBox.setSelected(props.getProperty(
                 PropertyKeys.GUI_ALWAYSONTOP,
@@ -1566,126 +1929,29 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         stayOpenCheckBox.setSelected(props.getProperty(
                 PropertyKeys.GUI_STAYOPEN,
-                PropertyValues.FALSE).equals(PropertyValues.TRUE));
-        
+                PropertyValues.TRUE).equals(PropertyValues.TRUE));
     }
 
     private void updatePropertiesFromGUI() {
         props.setProperty(PropertyKeys.GUI_THEME, darkThemeToggleButton.isSelected() ? PropertyValues.THEME_DARK : theme.equals(PropertyValues.THEME_SYSTEM) ? theme : PropertyValues.THEME_LIGHT);
+        props.setProperty(PropertyKeys.GUI_SMARTPOSITIONED, centerWindowWhereTheMouseIsCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_ALWAYSONTOP, alwaysOnTopCheckBox.isSelected() ? PropertyValues.TRUE : PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_STAYOPEN, stayOpenCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
     }
 
-    private void updateGUIfromParameters() {
-        // DATA INTEGRITY STRENGTH
 
-        // algorithm string can become very long, and we have to restore the original
-        // preferred size of the text field component before the long text has been set
-        Dimension dimensionBackup = algoTextField.getPreferredSize();
-        algoTextField.setText(parameters.getAlgorithm());
-        algoTextField.setPreferredSize(dimensionBackup);
-
-        // OPTIONS
-        // calculate hashes with x parallel threads
-        hashingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
-        if (parameters.getThreadsHashing() > 1) {
-            hashingThreadsSpinner.setValue(parameters.getThreadsHashing());
-        }
-
-        readingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
-        if (parameters.getThreadsReading() > 1) {
-            readingThreadsSpinner.setValue(parameters.getThreadsReading());
-            readingThreadsCheckBox.setSelected(true);
-        }
-
-        // READ OPTIONS
-        // walking depth
-        walkingDepthCheckBox.setSelected(parameters.isRecursive());
-        walkingDepthSpinner.setValue(parameters.isRecursive() ? parameters.getDepth() : 1);
-
-        // reading threads
-        readingThreadsCheckBox.setSelected(parameters.getThreadsReading() > 1);
-        if (parameters.getThreadsReading() > 1) {
-            readingThreadsSpinner.setValue(parameters.getThreadsReading());
-        }
-
-        // follow symlinks to directories
-        followSymlinksToDirectoriesCheckBox.setSelected(!parameters.isDontFollowSymlinksToDirectories());
-
-        // follow symlinks to files
-        followSymlinksToFilesCheckBox.setSelected(!parameters.isDontFollowSymlinksToFiles());
-
-        // find Alternate Data Streams (ADS)
-        scanNtfsAdsCheckBox.setSelected(parameters.isScanNtfsAds());
+    // for both the verify panel (verification mode) and the output style panel (calculation mode)
+    private void parameters2customStylePanel(
+            JCheckBox hashValueEncodingCheckBox, JComboBox hashValueEncodingComboBox,
+            JCheckBox includeFileSizeCheckBox, JComboBox outputStyleComboBox,
+            JCheckBox includeTimestampCheckBox, JComboBox timestampFormatComboBox, JTextField timestampFormatTextField, JCheckBox lineFormatCheckBox, JTextField lineFormatTextField) {
         
-        // VERIFICATION OPTIONS PANEL
-        if (parameters.getCharsetCheckFile() != null) {
-            fileVerificationCharacterSetComboBox.setSelectedItem(parameters.getCharsetCheckFile());
-        }
-        
-        // header
-        printHeaderCheckBox.setSelected(parameters.isHeaderWanted());
-        
-        // OUTPUT FILE OPTIONS
-        // standard output
-        if (parameters.getCharsetOutputFile() != null) {
-            standardOutputFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetOutputFile());
-        }
-
-        // error log
-        if (parameters.getCharsetErrorFile() != null) {
-            standardErrorFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetErrorFile());
-        }
-
-        // bom
-        bomCheckBox.setSelected(parameters.isBom());
-
-        
-
-
-        // FORMAT
-        // Paths should be relative to something else
-        if (parameters.isNoPath()) {
-            pathStyleComboBox.setSelectedItem("omit paths");
-        } else if (parameters.isPathAbsolute()) {
-            pathStyleComboBox.setSelectedItem("absolute paths");
-        } else if (parameters.getPathRelativeTo() != null) {
-            pathRelativeToTextField.setText(parameters.getPathRelativeTo().toString());
-            pathStyleComboBox.setSelectedItem("relativize paths to");
-        } else {
-            pathStyleComboBox.setSelectedItem("default");
-        }
-        
-        if (parameters.isPathCharSet()) {
-            customizedPathSeparatorCheckBox.setSelected(true);
-            customizedPathSpearatorTextField.setText(parameters.getPathChar().toString());            
-        } else {
-            customizedPathSeparatorCheckBox.setSelected(false);
-        }
-
-        // FILE INTEGRITY VERIFICATION
-        if (parameters.getCheckFile() == null) {
-            fileVerificationTextField.setText("");
-            verificationModeToggleButton.setSelected(false);
-        } else {
-            if (parameters.getCheckFile().equals("relative")) {
-                String text = Paths.get(pathRelativeToTextField.getText(), "."+algoTextField.getText().toUpperCase(Locale.US)).toString();
-                fileVerificationTextField.setText(text);
-            } else {
-                fileVerificationTextField.setText(parameters.getCheckFile());
-            }
-            verificationModeToggleButton.setSelected(true);
-        }
-
-
-        
-        // CUSTOMIZED OUTPUT
-        // hash value encoding
         // Style
         if (parameters.getCompatibilityID() != null) {
             outputStyleComboBox.setSelectedItem(parameters.getCompatibilityID());
         } else {
 
+            // hash value encoding
             if (parameters.getEncoding() != null) {
                 hashValueEncodingCheckBox.setSelected(true);
                 hashValueEncodingComboBox.setSelectedItem(Encoding.encoding2String(parameters.getEncoding()));
@@ -1707,97 +1973,126 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     timestampFormatTextField.setText(timestampCode);
                 }
             }
-            // line-format
-            if (parameters.getFormat() != null) {
+            timestampFormatTextField.setEnabled(timestampFormatComboBox.getSelectedItem().equals("custom"));
+
+            // line-format (not available in verify mode)
+            if (lineFormatCheckBox != null && parameters.getFormat() != null) {
                 lineFormatCheckBox.setSelected(true);
                 lineFormatTextField.setText(parameters.getFormat());
             }
         }
-
-        // show file integrity status
-        showOkFilesCheckBox.setSelected(parameters.getListFilter().isFilterOk());
-        showFailedFilesCheckBox.setSelected(parameters.getListFilter().isFilterFailed());
-        showMissingFilesCheckBox.setSelected(parameters.getListFilter().isFilterMissing());
-        showNewFilesCheckBox.setSelected(parameters.getListFilter().isFilterNew());
-
-
-
-        // OUTPUT FILES
-        // standard output character set
-        if (parameters.getOutputFile() != null) {
-            if (parameters.getOutputFile().equals("relative")) {
-                
-                updateOutputTextField();
-/*                
-                String newFilename = "temp-tbd";
-                // transform the ListModel to an ArrayList
-                List<String> list = new ArrayList<>();
-                for (int i = 0; i < fileList.getModel().getSize(); i++) {
-                    list.add(i, fileList.getModel().getElementAt(i));
+    }
+    
+    
+    private void customStylePanel2parameters(
+            JCheckBox hashValueEncodingCheckBox, JComboBox hashValueEncodingComboBox,
+            JCheckBox includeFileSizeCheckBox, JComboBox outputStyleComboBox,
+            JCheckBox includeTimestampCheckBox, JComboBox timestampFormatComboBox, JTextField timestampFormatTextField, JCheckBox lineFormatCheckBox, JTextField lineFormatTextField
+            
+    ) throws UserInputError {
+        
+        // line-format (not available in verify mode)
+        if (lineFormatCheckBox != null) {
+            if (lineFormatCheckBox.isSelected()) {
+                if (lineFormatTextField.getText().equals("")) {
+                    parameters.setFormat(null);
+                } else {
+                    parameters.setFormat(lineFormatTextField.getText());
                 }
-                if (!list.isEmpty()) {
-                    // take the first item
-                    String filename = list.get(0);
-                    Path p = Paths.get(filename);
-                    if (Files.exists(p)) {
-                       if (Files.isDirectory(p)) {
-                           newFilename = p.getParent().toString()+File.separator+algoTextField.getText()+".hashes";
-                       }
-                       if (Files.isRegularFile(p)) {
-                           newFilename = p.getParent().toString()+File.separator+algoTextField.getText()+".hashes";
-                       }
-                    }
-                }
-                standardOutputFileTextField.setText(newFilename);
-  */              
             } else {
-                standardOutputFileTextField.setText(parameters.getOutputFile());
+                parameters.setFormat(null);
             }
         }
-
-        // error log character set
-        if (parameters.getErrorFile() != null) {
-            standardErrorFileTextField.setText(parameters.getErrorFile());
+        
+        // Hash value encoding               
+        if (hashValueEncodingCheckBox.isSelected()) {
+            parameters.setEncoding(Encoding.string2Encoding(hashValueEncodingComboBox.getSelectedItem().toString()));
+        } else {
+            parameters.setEncoding((Encoding) null);
         }
 
 
+        // include file size in bytes
+        parameters.unsetFilesizeWanted();
+        if (includeFileSizeCheckBox.isSelected() && outputStyleComboBox.getSelectedItem().equals("custom")) {
+            parameters.setFilesizeWanted(true);
+        }
+        if (!includeFileSizeCheckBox.isSelected() && outputStyleComboBox.getSelectedItem().equals("custom")) {
+            parameters.setFilesizeWanted(false);
+        }
 
-        // OTHER
-        // the Drop-Handler
-        DropTransferHandler dropHandler = new DropTransferHandler();
-        fileList.setTransferHandler(dropHandler);
-        // fileVerificationTextField.setTransferHandler(dropHandler);
-        // pathRelativeToTextField.setTransferHandler(dropHandler);
 
-        setVerificationModeVisibility(verificationModeToggleButton.isSelected());
+        // include timestamp
+        if (includeTimestampCheckBox.isSelected()) {
+            if (timestampFormatComboBox.getSelectedItem().equals("custom")) {
+                if (!timestampFormatTextField.getText().equals("")) {
+                    parameters.setTimestampFormat(timestampFormatTextField.getText());
+                } else {                    
+                    JOptionPane.showMessageDialog(this, "Timestamp format has been set to custom, but it shall be a non-empty string.");
+                    timestampFormatTextField.setText("ENTER SOMETHING HERE, e. g. " + AppConstants.TIMESTAMP_DEFAULT);
+                    timestampFormatTextField.selectAll();
+                    timestampFormatTextField.requestFocus();
+                    throw new UserInputError();
+                }
+            } else {
+                parameters.setTimestampFormat(timestampFormatComboBox.getSelectedItem().toString());
+            }
+        } else {
+            parameters.setTimestampFormat(null);
+        }
 
-        pathRelativeToTextField.setVisible(pathStyleComboBox.getSelectedItem().equals("relativize paths to"));
-        timestampFormatTextField.setEnabled(timestampFormatComboBox.getSelectedItem().equals("custom"));
-
-        enableCustomFormatOptions(outputStyleComboBox.getSelectedItem().equals("custom"));
+        // Style
+        if (outputStyleComboBox.getSelectedItem().equals("default") || outputStyleComboBox.getSelectedItem().equals("custom")) {
+            parameters.setCompatibilityID(null);
+        } else {
+            parameters.setCompatibilityID(outputStyleComboBox.getSelectedItem().toString());
+        }        
     }
 
-    private void updateParametersFromGUI() throws UserInputError {
+    
+    
+    // INPUT PANEL
+
+    private void parameters2inputPanel() {
         
-                
-        //Parameters parameters = parametersFromCLI; // we simply reuse the exising parameter object
-        parameters.setHelp(false);
-        
+        // file list
+        // happended already at buildFileListModel()
+
+        // walking depth
+        walkingDepthCheckBox.setSelected(parameters.isRecursive());
+        walkingDepthSpinner.setValue(parameters.isRecursive() ? parameters.getDepth() : 1);
+
+        // follow symlinks to directories
+        followSymlinksToDirectoriesCheckBox.setSelected(!parameters.isDontFollowSymlinksToDirectories());
+
+        // follow symlinks to files
+        followSymlinksToFilesCheckBox.setSelected(!parameters.isDontFollowSymlinksToFiles());
+
+        // find Alternate Data Streams (ADS)
+        scanNtfsAdsCheckBox.setSelected(parameters.isScanNtfsAds());
+
         // read files with n threads
-        if ((int) hashingThreadsSpinner.getValue() > 1) {
-            parameters.setThreadsHashing((int) hashingThreadsSpinner.getValue());
+        readingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
+        if (parameters.getThreadsReading() > 1) {
+            readingThreadsCheckBox.setSelected(true);
+            readingThreadsSpinner.setValue(parameters.getThreadsReading());
         }
+
+    }    
+    
+    private void inputPanel2parameters() {
+
+        // transform the ListModel to an ArrayList
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < fileList.getModel().getSize(); i++) {
+            list.add(i, fileList.getModel().getElementAt(i));
+        }
+        parameters.setFilenamesFromFilelist(list);
         
-        // READ OPTIONS
-        // go down max. n level(s)
+        // walking depth
         parameters.setRecursive(walkingDepthCheckBox.isSelected());
         if (walkingDepthCheckBox.isSelected()) {
             parameters.setDepth((int) walkingDepthSpinner.getValue());
-        }
-
-        // read files with n threads
-        if (readingThreadsCheckBox.isSelected()) {
-            parameters.setThreadsReading((int) readingThreadsSpinner.getValue());
         }
 
         // follow symlinks to directories        
@@ -1811,48 +2106,156 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         // find Alternate Datea Streams
         parameters.setScanNtfsAds(scanNtfsAdsCheckBox.isSelected());
-
         
-        // line format
-        if (lineFormatCheckBox.isSelected()) {
-            if (lineFormatTextField.getText().equals("")) {
-                parameters.setFormat(null);
-            } else {
-                parameters.setFormat(lineFormatTextField.getText());
-            }
-        } else {
-            parameters.setFormat(null);
+        // read files with n threads
+        if (readingThreadsCheckBox.isSelected()) {
+            parameters.setThreadsReading((int) readingThreadsSpinner.getValue());
         }
 
-        // header
-        parameters.setHeaderWanted(printHeaderCheckBox.isSelected());
-        
-        // OUTPUT FILE OPTIONS
-        parameters.setCharsetOutputFile(standardOutputFileCharacterSetComboBox.getSelectedItem().toString());
-        parameters.setCharsetErrorFile(standardErrorFileCharacterSetComboBox.getSelectedItem().toString());
+    }
+    
 
-        parameters.setBom(bomCheckBox.isSelected());
+    // CALCULATION PANEL
+    
+    private void parameters2calculationPanel() {
+        // Algorithm(s)
+        // algorithm string can become very long, and we have to restore the original
+        // preferred size of the text field component before the long text has been set
+        Dimension dimensionBackup = algoTextField.getPreferredSize();
+        algoTextField.setText(parameters.getAlgorithm());
+        algoTextField.setPreferredSize(dimensionBackup);
 
+        // Calculate hashes with n threads
+        hashingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
+        if (parameters.getThreadsHashing() > 1) {
+            hashingThreadsSpinner.setValue(parameters.getThreadsHashing());
+        }
 
-        // DATA INTEGRITY STRENGTH
-        // algorithm
+        // Use alternative implemenation if available
+        alternativeImplemenationCheckBox.setSelected(parameters.isAlternateImplementationWanted());        
+    }
+    
+    private void calculationPanel2parameters() {
+        // Algorithm(s)
         if (algoTextField.getText().length() > 0) {
             parameters.setAlgorithm(algoTextField.getText());
+        }
+
+        // Calculate hashes with n threads
+        if ((int) hashingThreadsSpinner.getValue() > 1) {
+            parameters.setThreadsHashing((int) hashingThreadsSpinner.getValue());
+        }
+
+        // Use alternative implemenation if available
+        if (alternativeImplemenationCheckBox.isSelected()) {
+            parameters.setAlternateImplementationWanted(true);
+        }        
+    }
+    
+
+    // VERIFICATION PANEL
+    
+    private void parameters2verificationPanel() {
+            // check file
+            if (parameters.getCheckFile() != null) {
+                fileVerificationTextField.setText(parameters.getCheckFile());
+            }        
+            if (parameters.getCharsetCheckFile() != null) {
+                fileVerificationCharacterSetComboBox.setSelectedItem(parameters.getCharsetCheckFile());
+            }
+
+            parameters2customStylePanel(
+                hashValueEncodingCheckBox_verify, hashValueEncodingComboBox_verify,
+                includeFileSizeCheckBox_verify, outputStyleComboBox_verify,
+                includeTimestampCheckBox_verify, timestampFormatComboBox_verify, timestampFormatTextField_verify, null, null);
+            enableCustomFormatOptions_verify(outputStyleComboBox.getSelectedItem().equals("custom"));
+        
+            // show file integrity status
+            showOkFilesCheckBox.setSelected(parameters.getListFilter().isFilterOk());
+            showFailedFilesCheckBox.setSelected(parameters.getListFilter().isFilterFailed());
+            showMissingFilesCheckBox.setSelected(parameters.getListFilter().isFilterMissing());
+            showNewFilesCheckBox.setSelected(parameters.getListFilter().isFilterNew());
+
+    }
+
+
+    private void verificationPanel2Parameters() throws UserInputError {
+        if (operatingMode == OperatingMode.VERIFY) {
+
+            // check file
+            parameters.setCheckFile(fileVerificationTextField.getText());
+            parameters.setCharsetCheckFile(fileVerificationCharacterSetComboBox.getSelectedItem().toString());
+            
+            customStylePanel2parameters(
+                hashValueEncodingCheckBox_verify, hashValueEncodingComboBox_verify,
+                includeFileSizeCheckBox_verify, outputStyleComboBox_verify,
+                includeTimestampCheckBox_verify, timestampFormatComboBox_verify, timestampFormatTextField_verify, null, null);
+            
+            // show file integrity status
+            parameters.getListFilter().setFilterOk(showOkFilesCheckBox.isSelected());
+            parameters.getListFilter().setFilterFailed(showFailedFilesCheckBox.isSelected());
+            parameters.getListFilter().setFilterMissing(showMissingFilesCheckBox.isSelected());
+            parameters.getListFilter().setFilterNew(showNewFilesCheckBox.isSelected());
+            
+            
+            /*
+            String pathRelativeTo_verify = pathRelativeToTextField_verify.getText();
+            if (!pathRelativeTo_verify.equals("")) {
+                parameters.setPathRelativeToAsString(pathRelativeTo_verify);
+            } */           
+
+        }
+    }
+
+    
+    
+    // OUTPUT STYLE PANEL
+    
+    private void parameters2outputStylePanel() {
+        // Header
+        printHeaderCheckBox.setSelected(parameters.isHeaderWanted());
+
+        // Custom style
+        parameters2customStylePanel(
+                hashValueEncodingCheckBox, hashValueEncodingComboBox,
+                includeFileSizeCheckBox, outputStyleComboBox,
+                includeTimestampCheckBox, timestampFormatComboBox, timestampFormatTextField, lineFormatCheckBox, lineFormatTextField);
+        enableCustomFormatOptions(outputStyleComboBox.getSelectedItem().equals("custom"));
+        
+        // Path style
+        if (parameters.isNoPath()) {
+            pathStyleComboBox.setSelectedItem("omit paths");
+        } else if (parameters.isPathAbsolute()) {
+            pathStyleComboBox.setSelectedItem("absolute paths");
+        } else if (parameters.getPathRelativeTo() != null) {
+            pathRelativeToTextField.setText(parameters.getPathRelativeTo().toString());
+            pathStyleComboBox.setSelectedItem("relativize paths to");
         } else {
-            tabbedPane.setSelectedComponent(processingPanel);
-            JOptionPane.showMessageDialog(this, "Please select at least one algorithm.");
-            throw new UserInputError();
+            pathStyleComboBox.setSelectedItem("default");
         }
+        pathRelativeToTextField.setVisible(pathStyleComboBox.getSelectedItem().equals("relativize paths to"));
+        
+        // Customized path char
+        if (parameters.isPathCharSet()) {
+            customizedPathSeparatorCheckBox.setSelected(true);
+            customizedPathSpearatorTextField.setText(parameters.getPathChar().toString());
+        } else {
+            customizedPathSeparatorCheckBox.setSelected(false);            
+            customizedPathSpearatorTextField.setText("/");
+        }               
 
+    }
+            
 
-        // READ FILES AND DIRECTORIES
-        // transform the ListModel to an ArrayList
-        List<String> list = new ArrayList<>();
-        for (int i = 0; i < fileList.getModel().getSize(); i++) {
-            list.add(i, fileList.getModel().getElementAt(i));
-        }
-        parameters.setFilenamesFromFilelist(list);
+    private void outputStylePanel2parameters() throws UserInputError {
+        // Header
+        parameters.setHeaderWanted(printHeaderCheckBox.isSelected());
 
+        // Custom style
+        customStylePanel2parameters(
+            hashValueEncodingCheckBox, hashValueEncodingComboBox,
+            includeFileSizeCheckBox, outputStyleComboBox,
+            includeTimestampCheckBox, timestampFormatComboBox, timestampFormatTextField, lineFormatCheckBox, lineFormatTextField);
 
         // Path style
         parameters.setPathRelativeToAsString(null);
@@ -1860,68 +2263,23 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         parameters.setPathRelativeToEntry(0);
         parameters.setPathAbsolute(false);
         parameters.setNoPath(false);
+        parameters.setPathChar(File.separatorChar);        
 
-        // FILE INTEGRITY VERIFICATION
-        // FILE VERIFICATION PANEL
-        if (verificationModeToggleButton.isSelected()) { // verification mode
-
-            // verification file name
-            if (fileVerificationTextField.getText().equals("")) {
-                // JOptionPane: has to be filled out!
-                tabbedPane.setSelectedComponent(verificationPanel);
-                JOptionPane.showMessageDialog(this, "In verification mode a verification file name is required.");
-                fileVerificationTextField.setText("ENTER A VERIFICATION FILE HERE");
-                fileVerificationTextField.selectAll();
-                fileVerificationTextField.requestFocus();
-                throw new UserInputError();
-            } else {
-                parameters.setCheckFile(fileVerificationTextField.getText());
-
-                // file verification character set
-                parameters.setCharsetCheckFile(fileVerificationCharacterSetComboBox.getSelectedItem().toString());
-
-                // show file integrity status
-                parameters.getListFilter().setFilterOk(showOkFilesCheckBox.isSelected());
-                parameters.getListFilter().setFilterFailed(showFailedFilesCheckBox.isSelected());
-                parameters.getListFilter().setFilterMissing(showMissingFilesCheckBox.isSelected());
-                parameters.getListFilter().setFilterNew(showNewFilesCheckBox.isSelected());
-
-                String pathRelativeTo = pathRelativeToTextField.getText();
-                if (!pathRelativeTo.equals("")) {
-                    parameters.setPathRelativeToAsString(pathRelativeTo);
-                }
+        if (pathStyleComboBox.getSelectedItem().equals("default")) {
+        } else if (pathStyleComboBox.getSelectedItem().equals("omit paths")) {
+            parameters.setNoPath(true);
+        } else if (pathStyleComboBox.getSelectedItem().equals("absolute paths")) {
+            parameters.setPathAbsolute(true);
+        } else if (pathStyleComboBox.getSelectedItem().equals("relativize paths to")) {
+            String pathRelativeTo = pathRelativeToTextField.getText();
+            if (!pathRelativeTo.equals("")) {
+                parameters.setPathRelativeToAsString(pathRelativeTo);
             }
-
-        } else { // calculation mode
-
-            // if no file has been given, Jacksum would expect data from stdin, but stdin is not accessible for GUI users,
-            // so inform the user to enter files
-            if (fileListModel.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please add at least one file to the file list.\nYou can also drag and drop to the file list!");
-                throw new UserInputError();
-            } else {
-
-                // calculataion has been selected, so disable the verification mode options that would Jacksum trigger the verification mode            
-                parameters.setCheckFile(null);
-
-                // path style            
-                if (pathStyleComboBox.getSelectedItem().equals("default")) {
-                } else if (pathStyleComboBox.getSelectedItem().equals("omit paths")) {
-                    parameters.setNoPath(true);
-                } else if (pathStyleComboBox.getSelectedItem().equals("absolute paths")) {
-                    parameters.setPathAbsolute(true);
-                } else if (pathStyleComboBox.getSelectedItem().equals("relativize paths to")) {
-                    String pathRelativeTo = pathRelativeToTextField.getText();
-                    if (!pathRelativeTo.equals("")) {
-                        parameters.setPathRelativeToAsString(pathRelativeTo);
-                    }
-                }
-            }
-        }
-
+        }            
+        
         if (customizedPathSeparatorCheckBox.isSelected()) {
             if (customizedPathSpearatorTextField.getText().length() != 1) {
-                tabbedPane.setSelectedComponent(formatPanel);
+                tabbedPane.setSelectedComponent(outputStylePanel);
                 JOptionPane.showMessageDialog(this, "Path separator has ben set to custom, but it shall be a single character.");
                 customizedPathSpearatorTextField.selectAll();
                 customizedPathSpearatorTextField.requestFocus();
@@ -1930,69 +2288,158 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 parameters.setPathChar(customizedPathSpearatorTextField.getText().charAt(0));
             }
         }
-        
-        // Custom Style
-        // hash value encoding
-        if (hashValueEncodingCheckBox.isSelected()) {
-            parameters.setEncoding(Encoding.string2Encoding(hashValueEncodingComboBox.getSelectedItem().toString()));
-        } else {
-            parameters.setEncoding((Encoding) null);
-        }
-
-        // include file size in bytes
-        parameters.unsetFilesizeWanted();
-        if (includeFileSizeCheckBox.isSelected() && outputStyleComboBox.getSelectedItem().equals("custom")) {
-            parameters.setFilesizeWanted(true);
-        }
-        if (!includeFileSizeCheckBox.isSelected() && outputStyleComboBox.getSelectedItem().equals("custom")) {
-            parameters.setFilesizeWanted(false);
-        }
-
-        // include timestamp
-        if (includeTimestampCheckBox.isSelected()) {
-            if (timestampFormatComboBox.getSelectedItem().equals("custom")) {
-                if (!timestampFormatTextField.getText().equals("")) {
-                    parameters.setTimestampFormat(timestampFormatTextField.getText());
-                } else {                    
-                    JOptionPane.showMessageDialog(this, "Timestamp format has ben set to custom, but it shall be a non-empty string.");
-                    fileVerificationTextField.setText("ENTER SOMETHING HERE, e. g. " + AppConstants.TIMESTAMP_DEFAULT);
-                    fileVerificationTextField.selectAll();
-                    timestampFormatTextField.requestFocus();
-                    throw new UserInputError();
-                }
+    }
+    
+    
+    
+    // OUTPUT FILES PANEL
+    
+    private void parameters2outputFilesPanel() {
+        // Standard output        
+        if (parameters.getOutputFile() != null) {
+            if (parameters.getOutputFile().equals("relative")) { // special meaning
+                updateOutputTextField();
             } else {
-                parameters.setTimestampFormat(timestampFormatComboBox.getSelectedItem().toString());
+                standardOutputFileTextField.setText(parameters.getOutputFile());
             }
-        } else {
-            parameters.setTimestampFormat(null);
+        }        
+        if (parameters.getCharsetOutputFile() != null) {
+            standardOutputFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetOutputFile());
         }
 
-
-
-        // Style
-        if (outputStyleComboBox.getSelectedItem().equals("default") || outputStyleComboBox.getSelectedItem().equals("custom")) {
-            parameters.setCompatibilityID(null);
-        } else {
-            parameters.setCompatibilityID(outputStyleComboBox.getSelectedItem().toString());
+        // Standard error
+        if (parameters.getErrorFile() != null) {
+            standardErrorFileTextField.setText(parameters.getErrorFile());
+        }
+        if (parameters.getCharsetErrorFile() != null) {
+            standardErrorFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetErrorFile());
         }
 
-        // customized output is not selected, so reset all those customized output options
-        // parameters.setFormat(null);
-        // OUTPUT FILES
+        // BOM
+        bomCheckBox.setSelected(parameters.isBom());
+    }
+
+    private void updateParametersFromOutputFilesPanel() {
+        // Standard output
         if (standardOutputFileTextField.getText().equals("")) {
             parameters.setOutputFile(null);
         } else {
             parameters.setOutputFile(standardOutputFileTextField.getText());
+            parameters.setCharsetOutputFile(standardOutputFileCharacterSetComboBox.getSelectedItem().toString());
             parameters.setOutputFileOverwrite(true);
         }
 
+        // Standard error
         if (standardErrorFileTextField.getText().equals("")) {
             parameters.setErrorFile(null);
         } else {
             parameters.setErrorFile(standardErrorFileTextField.getText());
+            parameters.setCharsetErrorFile(standardErrorFileCharacterSetComboBox.getSelectedItem().toString());
             parameters.setErrorFileOverwrite(true);
         }
 
+        // BOM
+        parameters.setBom(bomCheckBox.isSelected());
+    }
+
+
+    private void installDropHandlers() {
+        // the Drop-Handler
+        DropTransferHandler dropHandler = new DropTransferHandler();
+        fileList.setTransferHandler(dropHandler);
+        fileVerificationTextField.setTransferHandler(dropHandler);
+        pathRelativeToTextField.setTransferHandler(dropHandler);
+        standardOutputFileTextField.setTransferHandler(dropHandler);
+        standardErrorFileTextField.setTransferHandler(dropHandler);
+    }
+    
+    private void parameters2modeSelection() {
+        if (parameters.getCheckFile() == null) {
+            fileVerificationTextField.setText("");
+            setOperatingMode(OperatingMode.CALC);
+        } else {
+            setOperatingMode(OperatingMode.VERIFY);
+            if (parameters.getCheckFile().equals("relative")) {
+                String text = Paths.get(pathRelativeToTextField.getText(), "."+algoTextField.getText().toUpperCase(Locale.US)).toString();
+                fileVerificationTextField.setText(text);
+            } else {
+                fileVerificationTextField.setText(parameters.getCheckFile());
+            }
+        }        
+    }
+    
+    
+    private void updateGUIfromParameters() {
+        parameters2inputPanel();
+        parameters2calculationPanel();
+        parameters2verificationPanel();
+        parameters2outputStylePanel();
+        parameters2outputFilesPanel();
+        // must be the last call in this method, because it adjusts the GUI
+        parameters2modeSelection();
+    }
+
+    
+    private void checkUserInput() throws UserInputError {
+
+        if (operatingMode == OperatingMode.CALC || operatingMode == OperatingMode.VERIFY) {
+            if (algoTextField.getText().length() == 0) {               
+                tabbedPane.setSelectedComponent(calculationPanel);
+                JOptionPane.showMessageDialog(this, "Please select at least one algorithm.");
+                throw new UserInputError();
+            }
+        }
+
+        if (operatingMode == OperatingMode.CALC) {
+            // if no file has been given, Jacksum would expect data from stdin, but stdin is not accessible for GUI users,
+            // so inform the user to enter files
+            if (fileListModel.isEmpty()) {
+                tabbedPane.setSelectedComponent(inputPanel);
+                JOptionPane.showMessageDialog(this, "You must add at least one file to the file list.\nYou can also drag and drop files to the file list!");
+                throw new UserInputError();
+            }            
+        }
+        
+        if (operatingMode == OperatingMode.VERIFY) {
+            // Verification file name
+            if (fileVerificationTextField.getText().equals("")) {
+                // JOptionPane: has to be filled out!
+                tabbedPane.setSelectedComponent(verificationPanel);
+                JOptionPane.showMessageDialog(this, "In verification mode a verification file name is required.");
+                fileVerificationTextField.setText("ENTER A VERIFICATION FILE HERE");
+                fileVerificationTextField.selectAll();
+                fileVerificationTextField.requestFocus();
+                throw new UserInputError();
+            }
+        }
+        
+    }
+    
+    private void updateParametersDependentOnMode() {
+        if (operatingMode == OperatingMode.CALC) {            
+            // calculataion has been selected, so disable the verification mode options that would Jacksum trigger the verification mode            
+            parameters.setCheckFile(null);
+        }
+    }
+    
+    
+    
+
+    private void updateParametersFromGUI() throws UserInputError {
+
+        // invisible settings
+        parameters.setHelp(false);
+
+        // check user input
+        checkUserInput();
+        updateParametersDependentOnMode();
+        
+        // update parameter object from the user input done on all the panels
+        inputPanel2parameters();
+        calculationPanel2parameters();
+        verificationPanel2Parameters();
+        outputStylePanel2parameters();
+        updateParametersFromOutputFilesPanel();
     }
 
 
@@ -2045,7 +2492,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // parameters.restoreStdOut();
             
             if (stayOpenCheckBox.isSelected()) {
-                tabbedPane.setSelectedComponent(outputPanel);
+                tabbedPane.setSelectedComponent(outputFilesPanel);
                 setVisible(true);
             }
 
@@ -2065,10 +2512,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
 
     }//GEN-LAST:event_actionButtonActionPerformed
-
-    private void quitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quitButtonActionPerformed
-        cancel();
-    }//GEN-LAST:event_quitButtonActionPerformed
 
     private void clearButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
         DefaultListModel<String> model = (DefaultListModel) fileList.getModel();
@@ -2132,7 +2575,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }//GEN-LAST:event_fileVerificationSelectFileButtonActionPerformed
 
     private void pathStyleComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_pathStyleComboBoxItemStateChanged
-        pathRelativeToTextField.setVisible(pathStyleComboBox.getSelectedItem().equals("relativize paths to"));
+        boolean bool = pathStyleComboBox.getSelectedItem().equals("relativize paths to");
+        pathRelativeToTextField.setVisible(bool);
+        if (!bool) {
+            pathRelativeToTextField.setText("");
+        }
         this.pack();
     }//GEN-LAST:event_pathStyleComboBoxItemStateChanged
 
@@ -2156,17 +2603,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     private void outputStyleComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_outputStyleComboBoxItemStateChanged
         if (evt.getStateChange() == ItemEvent.SELECTED) {
-            if (outputStyleComboBox.getSelectedItem().equals("custom")) {
-                enableCustomFormatOptions(true);
-            } else {
-                hashValueEncodingCheckBox.setSelected(false);
-                includeFileSizeCheckBox.setSelected(false);
-                includeTimestampCheckBox.setSelected(false);
-                lineFormatCheckBox.setSelected(false);
-                
-
-                enableCustomFormatOptions(false);
-            }
+            enableCustomFormatOptions(outputStyleComboBox.getSelectedItem().equals("custom"));
             pack();
         }
     }//GEN-LAST:event_outputStyleComboBoxItemStateChanged
@@ -2181,13 +2618,26 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         includeTimestampCheckBox.setVisible(bool);
         timestampFormatComboBox.setVisible(bool);
-        //timestampFormatTextField.setEnabled(bool && timestampFormatComboBox.getSelectedItem().equals("custom"));
         timestampFormatTextField.setVisible(bool);
         timestampHelpButton.setVisible(bool);
         
         lineFormatCheckBox.setVisible(bool);
         lineFormatTextField.setVisible(bool);
         lineFormatHelpButton.setVisible(bool);        
+    }
+
+    private void enableCustomFormatOptions_verify(boolean bool) {
+        hashValueEncodingCheckBox_verify.setVisible(bool);
+        hashValueEncodingComboBox_verify.setVisible(bool);
+        hashValueEncodingHelpButton1.setVisible(bool);
+        
+        includeFileSizeCheckBox_verify.setVisible(bool);
+        filesizeHelpButton_verifiy.setVisible(bool);
+        
+        includeTimestampCheckBox_verify.setVisible(bool);
+        timestampFormatComboBox_verify.setVisible(bool);
+        timestampFormatTextField_verify.setVisible(bool);
+        timestampHelpButton_verify.setVisible(bool);        
     }
 
 
@@ -2206,19 +2656,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         }
     }//GEN-LAST:event_timestampFormatComboBoxItemStateChanged
-
-    private void verificationModeToggleButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_verificationModeToggleButtonItemStateChanged
-        setVerificationModeVisibility(verificationModeToggleButton.isSelected());
-
-        if (verificationModeToggleButton.isSelected()) {
-            actionButton.setText("  Verify hash values");
-        } else {
-            actionButton.setText("  Calculate hash values");
-        }
-
-        GUIHelper.setIconOfToggleButton(verificationModeToggleButton);
-        this.pack();
-    }//GEN-LAST:event_verificationModeToggleButtonItemStateChanged
     
     private void selectAlgoButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAlgoButtonActionPerformed
         if (dialog == null) {
@@ -2277,7 +2714,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }//GEN-LAST:event_darkThemeToggleButtonItemStateChanged
 
     
-    private String readTextFile(String filename) throws IOException {
+    private static String readTextFile(String filename) throws IOException {
         StringBuilder sb = new StringBuilder();
         try ( FileReader fileReader = new FileReader(new File(filename), Charset.forName("UTF-8"));
                 BufferedReader br = new BufferedReader(fileReader)) {
@@ -2305,14 +2742,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
     }
     
-    private void help(String text, boolean strict) {
+    private void help(String text, boolean strict, String title) {
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
             helpDialog.setLocationRelativeTo(this);
         }
         try {
             helpDialog.searchHelp(text, strict);
-            helpDialog.setTitle("Help");
+            helpDialog.setTitle(title);
             helpDialog.setVisible(true);
         } catch (NothingFoundException ex) {
             JOptionPane.showMessageDialog(this, String.format("Nothing helpful found for %s", text));
@@ -2321,6 +2758,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             JOptionPane.showMessageDialog(this, "No help file found.");
             //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }        
+    }
+    
+    private void help(String text, boolean strict) {
+        help(text, strict, "Help");
     }
     
     private void help(String text) {
@@ -2384,6 +2825,170 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         viewFile(standardErrorFileTextField.getText());
     }//GEN-LAST:event_standardErrorViewButtonActionPerformed
 
+    private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
+        cancel();
+    }//GEN-LAST:event_exitMenuItemActionPerformed
+
+    private void calcMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calcMenuItemActionPerformed
+        setOperatingMode(OperatingMode.CALC);
+    }//GEN-LAST:event_calcMenuItemActionPerformed
+
+    private enum OperatingMode { CALC, VERIFY , PREFERENCES}
+    private OperatingMode operatingMode = OperatingMode.CALC;
+    private void setOperatingMode(OperatingMode mode) {
+        this.operatingMode = mode;
+        switch (mode) {
+            case CALC: setOperatingModeCalc();
+                       break;
+            case VERIFY: setOperatingModeVerify();
+                         break;
+            case PREFERENCES: setOperatingModePreferences();
+                         break;
+        }
+        this.pack();
+        com.formdev.flatlaf.FlatLaf.updateUI();
+    }
+    
+    
+    
+    private void setOperatingModeCalc() {
+        tabbedPane.removeAll();
+        tabbedPane.insertTab(PANEL_NAME_INPUT, null, inputPanel, null, 0);
+        tabbedPane.insertTab(PANEL_NAME_CALCULATION, null, calculationPanel, null, 1);
+        tabbedPane.insertTab(PANEL_NAME_OUTPUT_STYLE, null, outputStylePanel, null, 2);
+        tabbedPane.insertTab(PANEL_NAME_OUTPUT_FILES, null, outputFilesPanel, null, 3);      
+        
+        customizedFormatPanel.setVisible(true);
+        outputStylePathFormatPanel.setVisible(true);
+
+        actionButton.setText(ACTION_BUTTON_CALCULATE_HASHES);
+        actionButton.setVisible(true);
+    }
+    
+    private void setOperatingModeVerify() {
+        tabbedPane.removeAll();
+        tabbedPane.insertTab(PANEL_NAME_INPUT, null, inputPanel, null, 0);
+        tabbedPane.insertTab(PANEL_NAME_CALCULATION, null, calculationPanel, null, 1);
+        tabbedPane.insertTab(PANEL_NAME_VERIFICATION, null, verificationPanel, null, 2);
+        tabbedPane.insertTab(PANEL_NAME_OUTPUT_STYLE, null, outputStylePanel, null, 3);
+        tabbedPane.insertTab(PANEL_NAME_OUTPUT_FILES, null, outputFilesPanel, null, 4);
+
+        customizedFormatPanel.setVisible(false);
+        outputStylePathFormatPanel.setVisible(false);
+        
+        actionButton.setText(ACTION_BUTTON_VERIFY_HASHES);
+        actionButton.setVisible(true);
+    }
+    
+    private void setOperatingModePreferences() {
+        tabbedPane.removeAll();
+        tabbedPane.insertTab("GUI", null, guiOptionsPanel, null, 0);
+    
+        actionButton.setVisible(false);
+    }
+    
+    private void verifyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_verifyMenuItemActionPerformed
+        setOperatingMode(OperatingMode.VERIFY);
+    }//GEN-LAST:event_verifyMenuItemActionPerformed
+
+    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
+        JOptionPane.showMessageDialog(this, String.format("<html><body><h1>HashGarten %s</h1></body></html>\nis powered by Jacksum %s\nhttps://jacksum.net\n\nReleased under the conditions of the GPLv3.\nThis is Free/Libre Open Source Software.", AppConstants.VERSION, JacksumAPI.getVersion()), "About", JOptionPane.INFORMATION_MESSAGE);
+    }//GEN-LAST:event_aboutMenuItemActionPerformed
+
+    private void manpageJacksumMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manpageJacksumMenuItemActionPerformed
+        help("", false, "Manpage");        
+    }//GEN-LAST:event_manpageJacksumMenuItemActionPerformed
+
+    private void homepageHashGartenMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homepageHashGartenMenuItemActionPerformed
+        GUIHelper.openWebsite("https://github.com/jonelo/HashGarten");
+    }//GEN-LAST:event_homepageHashGartenMenuItemActionPerformed
+
+    private void reportIssueHashGartenMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportIssueHashGartenMenuItemActionPerformed
+        GUIHelper.openWebsite("https://github.com/jonelo/HashGarten/issues");
+    }//GEN-LAST:event_reportIssueHashGartenMenuItemActionPerformed
+
+    private void preferencesMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_preferencesMenuItemActionPerformed
+        setOperatingMode(OperatingMode.PREFERENCES);
+    }//GEN-LAST:event_preferencesMenuItemActionPerformed
+
+    private void alternativeImplementationHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_alternativeImplementationHelpButtonActionPerformed
+        help("-A");
+    }//GEN-LAST:event_alternativeImplementationHelpButtonActionPerformed
+
+    private void threadsHashingHelpButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_threadsHashingHelpButton1ActionPerformed
+        help("--threads-hashing");
+    }//GEN-LAST:event_threadsHashingHelpButton1ActionPerformed
+
+    private void homepageJacksumMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_homepageJacksumMenuItemActionPerformed
+        GUIHelper.openWebsite("https://jacksum.net");
+    }//GEN-LAST:event_homepageJacksumMenuItemActionPerformed
+
+    private void reportIssueJacksumMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportIssueJacksumMenuItemActionPerformed
+        GUIHelper.openWebsite("https://github.com/jonelo/jacksum/issues");
+    }//GEN-LAST:event_reportIssueJacksumMenuItemActionPerformed
+
+    private void outputStyleComboBox_verifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_outputStyleComboBox_verifyItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            enableCustomFormatOptions_verify(outputStyleComboBox_verify.getSelectedItem().equals("custom"));
+            pack();
+        }
+    }//GEN-LAST:event_outputStyleComboBox_verifyItemStateChanged
+
+    private void verificationStyleHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_verificationStyleHelpButtonActionPerformed
+        help("--style");
+    }//GEN-LAST:event_verificationStyleHelpButtonActionPerformed
+
+    private void hashValueEncodingCheckBox_verifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_hashValueEncodingCheckBox_verifyItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            outputStyleComboBox_verify.setSelectedItem("custom");
+        }
+    }//GEN-LAST:event_hashValueEncodingCheckBox_verifyItemStateChanged
+
+    private void hashValueEncodingHelpButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hashValueEncodingHelpButton1ActionPerformed
+        help("--encoding");
+    }//GEN-LAST:event_hashValueEncodingHelpButton1ActionPerformed
+
+    private void includeFileSizeCheckBox_verifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_includeFileSizeCheckBox_verifyItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            outputStyleComboBox_verify.setSelectedItem("custom");
+        }
+    }//GEN-LAST:event_includeFileSizeCheckBox_verifyItemStateChanged
+
+    private void filesizeHelpButton_verifiyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filesizeHelpButton_verifiyActionPerformed
+        help("--filesize");
+    }//GEN-LAST:event_filesizeHelpButton_verifiyActionPerformed
+
+    private void includeTimestampCheckBox_verifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_includeTimestampCheckBox_verifyItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            outputStyleComboBox_verify.setSelectedItem("custom");
+        }
+    }//GEN-LAST:event_includeTimestampCheckBox_verifyItemStateChanged
+
+    private void timestampFormatComboBox_verifyItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_timestampFormatComboBox_verifyItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            timestampFormatTextField_verify.setVisible(true);
+            if (evt.getItem().equals("custom")) {
+                timestampFormatTextField_verify.setText(AppConstants.TIMESTAMP_DEFAULT);
+                timestampFormatTextField_verify.setEnabled(true);
+            } else if (evt.getItem().equals("default")) {
+                timestampFormatTextField_verify.setText(AppConstants.TIMESTAMP_DEFAULT);
+                timestampFormatTextField_verify.setEnabled(false);
+            } else {
+                timestampFormatTextField_verify.setText("");
+                timestampFormatTextField_verify.setEnabled(false);
+            }
+        }
+
+    }//GEN-LAST:event_timestampFormatComboBox_verifyItemStateChanged
+
+    private void timestampHelpButton_verifyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_timestampHelpButton_verifyActionPerformed
+        help("--timestamp");
+    }//GEN-LAST:event_timestampHelpButton_verifyActionPerformed
+
+    private void fileVerificationViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileVerificationViewButtonActionPerformed
+        viewFile(fileVerificationTextField.getText());
+    }//GEN-LAST:event_fileVerificationViewButtonActionPerformed
+
     
     private void updateOutputTextField() {
         String text = Paths.get(pathRelativeToTextField.getText(), "."+algoTextField.getText().toUpperCase(Locale.US).replace(':', '=')).toString();
@@ -2391,21 +2996,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         props.setProperty(PropertyKeys.GUI_OUTPUT, text);
     }
     
-    private void setVerificationModeVisibility(boolean bool) {
-        
-        // control the visibility of the verification tab and the panels on the tab
-        tabbedPane.setEnabledAt(2, bool);     
-        integrityVerificationFilePanel.setVisible(bool);
-        integrityVerificationFilterPanel.setVisible(bool);
-        
-        prefixPathsWithLabel.setText(bool ? "Paths are relative to" : "");
-        pathRelativeToTextField.setVisible(bool ? true : pathStyleComboBox.getSelectedItem().equals("relativize paths to"));
-        
-        pathStyleLabel.setVisible(!bool);
-        pathStyleComboBox.setVisible(!bool);
-        pathStyleHelpButton.setVisible(!bool);
-    }
-
 
     private void cancel() {
         this.setVisible(false);
@@ -2414,15 +3004,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }
 
 
-    private void fillFileListModel() {
-        fileListModel.addAll(parameters.getFilenamesFromFilelist());
-
-        for (String fn : parameters.getFilenamesFromFilelist()) {
-            System.out.println(fn);
-        }
-        fileListModel.addAll(parameters.getFilenamesFromArgs());
-        fileListModel.backup();
-    }
 
     private FileListModel buildFileListModel() {
         FileListModel model = new FileListModel();
@@ -2434,50 +3015,68 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JButton actionButton;
     private javax.swing.JPanel actionPanel;
     private javax.swing.JButton addButton;
     private javax.swing.JLabel algoLabel;
     private javax.swing.JTextField algoTextField;
+    private javax.swing.JCheckBox alternativeImplemenationCheckBox;
+    private javax.swing.JButton alternativeImplementationHelpButton;
     private javax.swing.JCheckBox alwaysOnTopCheckBox;
     private javax.swing.JCheckBox bomCheckBox;
+    private javax.swing.JMenuItem calcMenuItem;
     private javax.swing.JLabel calculateHashesLabel1;
     private javax.swing.JLabel calculateHashesLabel2;
+    private javax.swing.JPanel calculationPanel;
+    private javax.swing.JCheckBox centerWindowWhereTheMouseIsCheckBox;
     private javax.swing.JButton clearButton;
     private javax.swing.JPanel customizedFormatPanel;
     private javax.swing.JCheckBox customizedPathSeparatorCheckBox;
     private javax.swing.JButton customizedPathSeparatorHelpButton;
     private javax.swing.JTextField customizedPathSpearatorTextField;
     private javax.swing.JToggleButton darkThemeToggleButton;
+    private javax.swing.JMenuItem exitMenuItem;
     private javax.swing.JPanel fileInputOptionsPanel;
     private javax.swing.JPanel fileInputPanel;
     private javax.swing.JList<String> fileList;
     private javax.swing.JScrollPane fileListScrollPane;
+    private javax.swing.JMenu fileMenu;
     private javax.swing.JComboBox<String> fileVerificationCharacterSetComboBox;
     private javax.swing.JLabel fileVerificationCharacterSetLabel;
     private javax.swing.JButton fileVerificationClearButton;
     private javax.swing.JLabel fileVerificationLabel;
     private javax.swing.JButton fileVerificationSelectFileButton;
     private javax.swing.JTextField fileVerificationTextField;
+    private javax.swing.JButton fileVerificationViewButton;
     private javax.swing.JButton filesizeHelpButton;
+    private javax.swing.JButton filesizeHelpButton_verifiy;
     private javax.swing.JCheckBox followSymlinksToDirectoriesCheckBox;
     private javax.swing.JCheckBox followSymlinksToFilesCheckBox;
-    private javax.swing.JPanel formatPanel;
     private javax.swing.JPanel guiOptionsPanel;
     private javax.swing.JPanel guiPanel;
     private javax.swing.JCheckBox hashValueEncodingCheckBox;
+    private javax.swing.JCheckBox hashValueEncodingCheckBox_verify;
     private javax.swing.JComboBox<String> hashValueEncodingComboBox;
+    private javax.swing.JComboBox<String> hashValueEncodingComboBox_verify;
     private javax.swing.JButton hashValueEncodingHelpButton;
+    private javax.swing.JButton hashValueEncodingHelpButton1;
     private javax.swing.JSpinner hashingThreadsSpinner;
     private javax.swing.JLabel headerDataIntegrityStrengthLabel;
     private javax.swing.JLabel headerDataIntegrityStrengthLabel1;
     private javax.swing.JLabel headerFileIntegrityVerificationLabel;
     private javax.swing.JLabel headerOutputFilesLabel;
     private javax.swing.JLabel headerReadFilesAndDirectoriesjLabel;
+    private javax.swing.JMenu helpMenu;
+    private javax.swing.JMenuItem homepageHashGartenMenuItem;
+    private javax.swing.JMenuItem homepageJacksumMenuItem;
     private javax.swing.JCheckBox includeFileSizeCheckBox;
+    private javax.swing.JCheckBox includeFileSizeCheckBox_verify;
     private javax.swing.JCheckBox includeTimestampCheckBox;
+    private javax.swing.JCheckBox includeTimestampCheckBox_verify;
     private javax.swing.JPanel inputPanel;
     private javax.swing.JPanel integrityStrengthPanel;
+    private javax.swing.JPanel integrityVerificationFileFormatPanel;
     private javax.swing.JPanel integrityVerificationFilePanel;
     private javax.swing.JPanel integrityVerificationFilterPanel;
     private javax.swing.JLabel jLabel1;
@@ -2485,21 +3084,32 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
+    private javax.swing.JPopupMenu.Separator jSeparator4;
     private javax.swing.JLabel levelsWhenTraversingADirectoryLabel;
     private javax.swing.JCheckBox lineFormatCheckBox;
     private javax.swing.JButton lineFormatHelpButton;
     private javax.swing.JTextField lineFormatTextField;
     private javax.swing.JPanel listModificationPanel;
     private javax.swing.JPanel listSortingPanel;
+    private javax.swing.JMenuItem manpageJacksumMenuItem;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu modeMenu;
     private javax.swing.JButton moveBottomButton;
     private javax.swing.JButton moveDownButton;
     private javax.swing.JButton moveTopButton;
     private javax.swing.JButton moveUpButton;
+    private javax.swing.JPanel outputFilesInnerPanel;
     private javax.swing.JPanel outputFilesOptionsPanel;
     private javax.swing.JPanel outputFilesPanel;
-    private javax.swing.JPanel outputPanel;
     private javax.swing.JLabel outputRespIntegrityInputFormatLabel;
     private javax.swing.JComboBox<String> outputStyleComboBox;
+    private javax.swing.JComboBox<String> outputStyleComboBox_verify;
+    private javax.swing.JPanel outputStyleHeaderPanel;
+    private javax.swing.JPanel outputStylePanel;
+    private javax.swing.JPanel outputStylePathFormatPanel;
     private javax.swing.JLabel parallelThreadsLabel;
     private javax.swing.JTextField pathRelativeToTextField;
     private javax.swing.JComboBox<String> pathStyleComboBox;
@@ -2507,16 +3117,16 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JLabel pathStyleLabel;
     private javax.swing.JLabel placeholderForOutputFilesOptionsLabel;
     private javax.swing.JLabel placeholderForReadFilesAndDirectoriesOptionsLabel;
-    private javax.swing.JLabel prefixPathsWithLabel;
+    private javax.swing.JMenuItem preferencesMenuItem;
     private javax.swing.JCheckBox printHeaderCheckBox;
     private javax.swing.JButton printHeaderHelpButton;
     private javax.swing.JPanel processingOptionsPanel;
-    private javax.swing.JPanel processingPanel;
-    private javax.swing.JButton quitButton;
     private javax.swing.JPanel readPerformancePanel;
     private javax.swing.JCheckBox readingThreadsCheckBox;
     private javax.swing.JSpinner readingThreadsSpinner;
     private javax.swing.JButton removeButton;
+    private javax.swing.JMenuItem reportIssueHashGartenMenuItem;
+    private javax.swing.JMenuItem reportIssueJacksumMenuItem;
     private javax.swing.JButton restoreButton;
     private javax.swing.JButton saveButton;
     private javax.swing.JCheckBox scanNtfsAdsCheckBox;
@@ -2539,14 +3149,20 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JCheckBox stayOpenCheckBox;
     private javax.swing.JButton styleHelpButton;
     private javax.swing.JLabel styleLabel;
+    private javax.swing.JLabel styleLabel1;
     private javax.swing.JTabbedPane tabbedPane;
     private javax.swing.JLabel themeLabel;
     private javax.swing.JPanel themePanel;
+    private javax.swing.JButton threadsHashingHelpButton1;
     private javax.swing.JComboBox<String> timestampFormatComboBox;
+    private javax.swing.JComboBox<String> timestampFormatComboBox_verify;
     private javax.swing.JTextField timestampFormatTextField;
+    private javax.swing.JTextField timestampFormatTextField_verify;
     private javax.swing.JButton timestampHelpButton;
-    private javax.swing.JToggleButton verificationModeToggleButton;
+    private javax.swing.JButton timestampHelpButton_verify;
     private javax.swing.JPanel verificationPanel;
+    private javax.swing.JButton verificationStyleHelpButton;
+    private javax.swing.JMenuItem verifyMenuItem;
     private javax.swing.JCheckBox walkingDepthCheckBox;
     private javax.swing.JSpinner walkingDepthSpinner;
     // End of variables declaration//GEN-END:variables

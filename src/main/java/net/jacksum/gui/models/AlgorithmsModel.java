@@ -35,13 +35,13 @@ import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
 public class AlgorithmsModel extends AbstractTableModel implements AlgorithmSelectionInterface {
 
     String[] columnNames = new String[]{
-        "Choose", "Algorithm Id" //, "Description", "Width in bits"
+        "Choose", "Algorithm Id", "Description" //, "Width in bits"
     };
     Class[] types = new Class[]{
-        Boolean.class, String.class //, String.class, Integer.class
+        Boolean.class, String.class, String.class //, String.class, Integer.class
     };
     boolean[] canEdit = new boolean[]{
-        true, false //, false, false
+        true, false, false
     };
 
     private List<Object[]> tableData = null;
@@ -53,12 +53,12 @@ public class AlgorithmsModel extends AbstractTableModel implements AlgorithmSele
         tableData = new ArrayList<>();
 
         for (Map.Entry<String, String> entry : idAndNames.entrySet()) {
-            tableData.add(new Object[]{Boolean.FALSE, entry.getKey()}); //, entry.getValue(), 0 });
+            tableData.add(new Object[]{Boolean.FALSE, entry.getKey(), entry.getValue()}); //, entry.getValue(), 0 });
         }
         // workaround for bug in Jacksum 3.3.0
-        if (!idAndNames.containsKey("sm3")) {
-            tableData.add(new Object[]{Boolean.FALSE, "sm3"});
-        }
+        //if (!idAndNames.containsKey("sm3")) {
+        //    tableData.add(new Object[]{Boolean.FALSE, "sm3"});
+        //}
     }
 
     @Override

@@ -24,6 +24,7 @@ import net.jacksum.gui.interfaces.AlgorithmSelectorDialogInterface;
 import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
 import net.jacksum.gui.models.AlgorithmsModel;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +65,8 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         sorter = new TableRowSorter<>(tableModel);
 
         initComponents();
+        // we hide the description
+        table.removeColumn(table.getColumnModel().getColumn(2));
         helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );     
         implTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );
         table.setRowSorter(sorter);
@@ -159,7 +162,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         for (int i = 0; i < 2; i++) {
             column = table.getColumnModel().getColumn(i);
             if (i == 0) {
-                column.setPreferredWidth(30); //third column is bigger
+                column.setPreferredWidth(30); // first column is narrower
             } else {
                 column.setPreferredWidth(100);
             }
@@ -261,7 +264,30 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private void initComponents() {
 
         tableScrollPane = new javax.swing.JScrollPane();
-        table = new javax.swing.JTable();
+        table = new javax.swing.JTable(){
+
+            //Implement table cell tool tips.           
+            public String getToolTipText(MouseEvent e) {
+
+                String tip = null;
+                java.awt.Point p = e.getPoint();
+                int rowIndex = rowAtPoint(p);
+                int colIndex = columnAtPoint(p);
+
+                try {
+                    // comment row, exclude heading
+
+                    int modelRow = table.convertRowIndexToModel(rowIndex);
+                    tip = getModel().getValueAt(modelRow, 2).toString();
+                    //tip = getValueAt(rowIndex, colIndex).toString();
+
+                } catch (RuntimeException e1) {
+                    //catch null pointer exception if mouse is over an empty line
+                }
+                return tip;
+            }
+        }
+        ;
         FilterLabel = new javax.swing.JLabel();
         algorithmCountLabel = new javax.swing.JLabel();
         filterTextField = new javax.swing.JTextField();

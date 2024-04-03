@@ -119,6 +119,9 @@
               <Connection code="tableModel" type="code"/>
             </Property>
           </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable(){&#xd;&#xa;&#xd;&#xa;    //Implement table cell tool tips.           &#xd;&#xa;    public String getToolTipText(MouseEvent e) {&#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        String tip = null;&#xd;&#xa;        java.awt.Point p = e.getPoint();&#xd;&#xa;        int rowIndex = rowAtPoint(p);&#xd;&#xa;        int colIndex = columnAtPoint(p);&#xd;&#xa;&#xd;&#xa;        try {&#xd;&#xa;            // comment row, exclude heading&#xd;&#xa;&#xd;&#xa;        &#xd;&#xa;                int modelRow = table.convertRowIndexToModel(rowIndex);&#xd;&#xa;                tip = getModel().getValueAt(modelRow, 2).toString();&#xd;&#xa;                //tip = getValueAt(rowIndex, colIndex).toString();&#xd;&#xa;&#xd;&#xa;        } catch (RuntimeException e1) {&#xd;&#xa;            //catch null pointer exception if mouse is over an empty line&#xd;&#xa;        }&#xd;&#xa;        return tip;&#xd;&#xa;    }&#xd;&#xa;}&#xd;&#xa;"/>
+          </AuxValues>
         </Component>
       </SubComponents>
     </Container>

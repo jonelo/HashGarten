@@ -19,6 +19,7 @@
 
  */
 package net.jacksum.gui;
+
 /*
 
   HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
@@ -39,9 +40,12 @@ package net.jacksum.gui;
   this program. If not, see <https://www.gnu.org/licenses/>.
 
  */
+import java.awt.Desktop;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.logging.Level;
@@ -56,6 +60,7 @@ import net.jacksum.formats.Encoding;
  * @author Johann
  */
 public class GUIHelper {
+
     public static DefaultComboBoxModel buildCharsetsComboBoxModel() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
 
@@ -66,7 +71,7 @@ public class GUIHelper {
         }
         return model;
     }
-    
+
     public static DefaultComboBoxModel getEncodingsComboBoxModel() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         Map<Encoding, String> map = JacksumAPI.getAvailableEncodings();
@@ -76,7 +81,7 @@ public class GUIHelper {
         }
         return model;
     }
-    
+
     public static DefaultComboBoxModel getAlgorithmsComboBoxModel() {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         Map<String, String> map = JacksumAPI.getAvailableAlgorithms();
@@ -91,7 +96,7 @@ public class GUIHelper {
         //}
         return model;
     }
-    
+
     public static void setIconOfToggleButton(JToggleButton toggleButton) {
         toggleButton.setIcon(toggleButton.isSelected()
                 ? new javax.swing.ImageIcon(GUIHelper.class.getResource("/net/jacksum/gui/pix32x32/toggle-on-32x32.png"))
@@ -108,4 +113,16 @@ public class GUIHelper {
         }
     }
 
+    public static void openWebsite(String address) {
+        if (Desktop.isDesktopSupported()) {
+
+            Desktop desktop = Desktop.getDesktop();
+            try {
+                URI uri = new URI(address);
+                desktop.browse(uri);
+            } catch (IOException | URISyntaxException excp) {
+                excp.printStackTrace();
+            }
+        }
+    }
 }
