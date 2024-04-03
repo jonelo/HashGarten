@@ -17,15 +17,15 @@ In a "Kindergarten" children should be cherished and cared for like young plants
 
 ### Use Cases
 
-#### Find and select algorithms
+#### Find and Select Hash Algorithms
 
-<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.16.0-select-algorithms.png" alt="HashGarten: find and select algorithms" style="vertical-align:top;margin:10px 10px" />
+<img height="100%" src="docs/images/HashGarten-0.16.0-select-algorithms.png" alt="HashGarten: find and select algorithms" style="vertical-align:top;margin:10px 10px" />
 
 Note that the algorithm list above has been filtered. Actually more than 470 algorithms are supported!
 
 #### Calculate Hash Values
 
-<img width="100%" height="100%" src="https://raw.githubusercontent.com/jonelo/HashGarten/main/docs/images/HashGarten-0.16.0.png" alt="HashGarten: calculate hashes" style="vertical-align:top;margin:10px 10px" />
+<img height="100%" src="docs/images/HashGarten-0.16.0.png" alt="HashGarten: calculate hashes" style="vertical-align:top;margin:10px 10px" />
 
 #### Verify Hash Values
 
