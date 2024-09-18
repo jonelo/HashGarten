@@ -5,9 +5,9 @@
 A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of [Jacksum](https://github.com/jonelo/jacksum) by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
 
 HashGarten is also part of the Jacksum File Browser Integration. See also
-- https://github.com/jonelo/jacksum-fbi-windows
-- https://github.com/jonelo/jacksum-fbi-macos
-- https://github.com/jonelo/jacksum-fbi-linux
+- https://github.com/jonelo/jacksum-for-windows
+- https://github.com/jonelo/jacksum-for-macos
+- https://github.com/jonelo/jacksum-for-linux
 
 ## Trivia
 
