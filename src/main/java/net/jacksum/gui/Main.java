@@ -2114,8 +2114,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // happended already at buildFileListModel()
 
         // walking depth
-        walkingDepthCheckBox.setSelected(parameters.isRecursive());
-        walkingDepthSpinner.setValue(parameters.isRecursive() ? parameters.getDepth() : 1);
+        if (parameters.isRecursive()) {
+            walkingDepthCheckBox.setSelected(true);
+            walkingDepthSpinner.setValue(parameters.getDepth());
+        } else {
+            walkingDepthCheckBox.setSelected(false);
+            walkingDepthSpinner.setValue(1);
+        }
 
         // follow symlinks to directories
         followSymlinksToDirectoriesCheckBox.setSelected(!parameters.isDontFollowSymlinksToDirectories());
@@ -2145,9 +2150,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         parameters.setFilenamesFromFilelist(list);
         
         // walking depth
-        parameters.setRecursive(walkingDepthCheckBox.isSelected());
         if (walkingDepthCheckBox.isSelected()) {
+            parameters.setRecursive(true);
             parameters.setDepth((int) walkingDepthSpinner.getValue());
+        } else {
+            parameters.setRecursive(false);
+            parameters.setDepth(Integer.MAX_VALUE);
         }
 
         // follow symlinks to directories        
@@ -2155,9 +2163,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         // follow symlinks to files
         parameters.setDontFollowSymlinksToFiles(!followSymlinksToFilesCheckBox.isSelected());
-        if (walkingDepthCheckBox.isSelected()) {
-            parameters.setDepth(Integer.parseInt((String) walkingDepthSpinner.getValue().toString()));
-        }
 
         // find Alternate Datea Streams
         parameters.setScanNtfsAds(scanNtfsAdsCheckBox.isSelected());
