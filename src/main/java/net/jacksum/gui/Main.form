@@ -150,7 +150,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,60,0,0,2,63"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,66,0,0,2,53"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
@@ -354,7 +354,7 @@
                               <Component id="restoreButton" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="clearButton" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace pref="47" max="32767" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
                           </Group>
                       </Group>
                     </DimensionLayout>
@@ -440,20 +440,29 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="placeholderForReadFilesAndDirectoriesOptionsLabel" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="walkingDepthCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="walkingDepthSpinner" min="-2" pref="69" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="levelsWhenTraversingADirectoryLabel" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="recursiveDepthHelpButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="followSymlinksToDirectoriesCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="followSymlinksToDirectoriesHelpButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="followSymlinksToFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="followSymlinksToFilesHelpButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
                               <Group type="102" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="followSymlinksToFilesCheckBox" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="followSymlinksToDirectoriesCheckBox" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="scanNtfsAdsCheckBox" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="walkingDepthCheckBox" min="-2" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="walkingDepthSpinner" min="-2" pref="69" max="-2" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="levelsWhenTraversingADirectoryLabel" min="-2" max="-2" attributes="0"/>
-                                      </Group>
-                                  </Group>
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                  <Component id="scanNtfsAdsCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="findADSHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -470,13 +479,23 @@
                               <Component id="walkingDepthCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="levelsWhenTraversingADirectoryLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="walkingDepthSpinner" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="recursiveDepthHelpButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="followSymlinksToDirectoriesCheckBox" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="followSymlinksToDirectoriesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="followSymlinksToDirectoriesHelpButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="followSymlinksToFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="followSymlinksToFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="followSymlinksToFilesHelpButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="scanNtfsAdsCheckBox" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="findADSHelpButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="scanNtfsAdsCheckBox" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
@@ -525,6 +544,46 @@
                     <Property name="text" type="java.lang.String" value="Find Alternate Data Streams (ADS) at both files and directories (Windows only)"/>
                   </Properties>
                 </Component>
+                <Component class="javax.swing.JButton" name="recursiveDepthHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="recursiveDepthHelpButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="followSymlinksToDirectoriesHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="followSymlinksToDirectoriesHelpButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="followSymlinksToFilesHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="followSymlinksToFilesHelpButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="findADSHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="findADSHelpButtonActionPerformed"/>
+                  </Events>
+                </Component>
               </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="readPerformancePanel">
@@ -542,7 +601,8 @@
                                   <Component id="readingThreadsSpinner" min="-2" pref="69" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="parallelThreadsLabel" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace min="0" pref="38" max="32767" attributes="0"/>
+                                  <EmptySpace pref="16" max="32767" attributes="0"/>
+                                  <Component id="threadsReadingHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -555,10 +615,13 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="readingThreadsCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="readingThreadsSpinner" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="parallelThreadsLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="threadsReadingHelpButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="readingThreadsCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="readingThreadsSpinner" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="parallelThreadsLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -590,6 +653,16 @@
                     </Property>
                     <Property name="text" type="java.lang.String" value="Read Performance"/>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="threadsReadingHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="threadsReadingHelpButtonActionPerformed"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>
@@ -624,7 +697,7 @@
                       <Component id="integrityStrengthPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="processingOptionsPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="284" max="32767" attributes="0"/>
+                      <EmptySpace pref="290" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -841,8 +914,8 @@
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="integrityVerificationFileFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="integrityVerificationFilterPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="105" max="32767" attributes="0"/>
+                      <Component id="integrityVerificationFilterPanel" min="-2" pref="83" max="-2" attributes="0"/>
+                      <EmptySpace pref="103" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1216,22 +1289,25 @@
                       <Group type="102" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
-                                  <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
-                                  <Component id="showOkFilesCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="showFailedFilesCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="showMissingFilesCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace type="separate" max="-2" attributes="0"/>
-                                  <Component id="showNewFilesCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="32767" attributes="0"/>
-                              </Group>
-                              <Group type="102" attributes="0">
-                                  <Component id="showFilesLabel" pref="528" max="32767" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Group type="102" attributes="0">
+                                          <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                                          <Component id="showOkFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="showFailedFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="showMissingFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="showNewFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="32767" attributes="0"/>
+                                          <Component id="listFilterButton" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Component id="showFilesLabel" pref="528" max="32767" attributes="0"/>
+                                  </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                               </Group>
-                              <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
                           </Group>
                       </Group>
                   </Group>
@@ -1244,12 +1320,16 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="showFilesLabel" min="-2" pref="23" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="showOkFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="showFailedFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="showMissingFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="showNewFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="1" attributes="0">
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="showOkFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="showFailedFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="showMissingFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="showNewFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="listFilterButton" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -1296,6 +1376,16 @@
                     <Property name="text" type="java.lang.String" value="Integrity Verification Filter"/>
                   </Properties>
                 </Component>
+                <Component class="javax.swing.JButton" name="listFilterButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="listFilterButtonActionPerformed"/>
+                  </Events>
+                </Component>
               </SubComponents>
             </Container>
           </SubComponents>
@@ -1332,7 +1422,7 @@
                       <Component id="customizedFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="outputStylePathFormatPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="72" max="32767" attributes="0"/>
+                      <EmptySpace pref="78" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1852,7 +1942,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="outputFilesInnerPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="outputFilesOptionsPanel" min="-2" pref="46" max="-2" attributes="0"/>
+                      <Component id="outputFilesOptionsPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -2027,7 +2117,8 @@
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
                                   <Component id="bomCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="bomHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="placeholderForOutputFilesOptionsLabel" max="32767" attributes="0"/>
                           </Group>
@@ -2041,7 +2132,10 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="placeholderForOutputFilesOptionsLabel" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
-                          <Component id="bomCheckBox" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="bomCheckBox" alignment="1" min="-2" max="-2" attributes="0"/>
+                              <Component id="bomHelpButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -2060,6 +2154,16 @@
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Insert a Byte Order Mark (BOM), even if it is optional for a charset"/>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="bomHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bomHelpButtonActionPerformed"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>
@@ -2237,7 +2341,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="actionButton" pref="563" max="32767" attributes="0"/>
+                  <Component id="actionButton" pref="553" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>

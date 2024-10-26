@@ -25,7 +25,7 @@ package net.jacksum.gui.constants;
  * @author Johann
  */
 public class AppConstants {
-    public final static String VERSION = "0.17.0";
+    public final static String VERSION = "0.18.0";
     public final static String PROPERTIES_FILE = String.format("%s/.HashGarten.properties", System.getProperty("user.home"));
     public final static String TIMESTAMP_DEFAULT = "yyyyMMddHHmmssSSS";
 }
