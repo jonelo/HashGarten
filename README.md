@@ -52,4 +52,4 @@ Note that the algorithm list above has been filtered. Actually more than 470 alg
 - It uses Jacksum as a lib and calls its API, it does not call Jacksum by the command line
 - It requires FlatLaF to get a modern look and feel. See also https://github.com/JFormDesigner/FlatLaf
 - The GUI supports the same program options as Jacksum does, so you can initialize the GUI even by the command line
-- It reads and stores GUI properties from/to $HOME/.HashGarten.properties
+- It reads and stores GUI properties from/to `$HOME/.HashGarten.properties`
