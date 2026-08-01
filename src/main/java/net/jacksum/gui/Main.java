@@ -255,6 +255,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 // it to null, because we want to control verification mode at the GUI by command line args
                 // (at the file browser integration)
                 parametersFromProps.setCheckFile(null);
+                // make sure that the filenames to be checked are removed from a previous run
+                parametersFromProps.setFilenamesFromCheckFile(null);
                 parametersFromProps.getVerbose().setDefault();
 
                 // parametersFromProps.setParameterModifiedByAPI(true);
@@ -2325,6 +2327,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
             // check file
             parameters.setCheckFile(fileVerificationTextField.getText());
+            
+            // make sure that the filenames are removed from a previous run after setting a new verification file
+            // or changing the content of the verification file (without restarting HashGarten)
+            parameters.setFilenamesFromCheckFile(null);
+
             parameters.setCharsetCheckFile(fileVerificationCharacterSetComboBox.getSelectedItem().toString());
             
             customStylePanel2parameters(
