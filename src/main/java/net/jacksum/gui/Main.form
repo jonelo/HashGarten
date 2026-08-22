@@ -1095,7 +1095,7 @@
                 <Component class="javax.swing.JComboBox" name="interactiveInputTypeComboBox">
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="11">
+                      <StringArray count="13">
                         <StringItem index="0" value="Text"/>
                         <StringItem index="1" value="Password"/>
                         <StringItem index="2" value="Formatted Text"/>
@@ -1105,8 +1105,10 @@
                         <StringItem index="6" value="Base64"/>
                         <StringItem index="7" value="Base64 for URL"/>
                         <StringItem index="8" value="Binary"/>
-                        <StringItem index="9" value="Decimal"/>
-                        <StringItem index="10" value="Z85"/>
+                        <StringItem index="9" value="BubbleBabble"/>
+                        <StringItem index="10" value="Decimal"/>
+                        <StringItem index="11" value="z-base-32"/>
+                        <StringItem index="12" value="Z85"/>
                       </StringArray>
                     </Property>
                   </Properties>

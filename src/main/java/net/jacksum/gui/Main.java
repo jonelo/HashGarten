@@ -854,7 +854,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addComponent(readingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(parallelThreadsLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(threadsReadingHelpButton)))
                 .addContainerGap())
         );
@@ -1049,7 +1049,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(hashingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(calculateHashesLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, 340, Short.MAX_VALUE)
+                        .addComponent(calculateHashesLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(threadsHashingHelpButton1))
                     .addGroup(processingOptionsPanelLayout.createSequentialGroup()
@@ -1082,7 +1082,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         interactiveInputTypeLabel.setText("Input Type:");
 
-        interactiveInputTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Text", "Password", "Formatted Text", "Hex", "Base32", "Base32hex", "Base64", "Base64 for URL", "Binary", "Decimal", "Z85" }));
+        interactiveInputTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Text", "Password", "Formatted Text", "Hex", "Base32", "Base32hex", "Base64", "Base64 for URL", "Binary", "BubbleBabble", "Decimal", "z-base-32", "Z85" }));
         interactiveInputTypeComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 interactiveInputTypeComboBoxItemStateChanged(evt);
@@ -3616,6 +3616,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 case "Binary": sequenceType = Sequence.Type.BIN; break;
                 case "Octal": sequenceType = Sequence.Type.OCT; break;
                 case "Z85": sequenceType = Sequence.Type.Z85; break;
+                case "BubbleBabble": sequenceType = Sequence.Type.BUBBLEBABBLE; break;
+                case "z-base-32": sequenceType = Sequence.Type.ZBASE32; break;
             }
             if (sequenceType == null) throw new IllegalArgumentException();
             // Text, Password, Formatted Text, Hex, Base32, Base32hex, Base64, Base64 for URL, Binary, Decimal, Z85
