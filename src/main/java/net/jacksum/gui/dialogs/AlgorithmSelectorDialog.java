@@ -22,7 +22,7 @@ package net.jacksum.gui.dialogs;
 
 import net.jacksum.gui.interfaces.AlgorithmSelectorDialogInterface;
 import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
-import net.jacksum.gui.models.AlgorithmsModel;
+import net.jacksum.gui.models.AlgorithmsTableModel;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -42,6 +42,8 @@ import net.jacksum.actions.info.algo.AlgoInfoActionParameters;
 import net.jacksum.actions.info.help.Help;
 import net.jacksum.actions.info.help.NothingFoundException;
 import net.jacksum.cli.Verbose;
+import net.jacksum.gui.models.CustomizedAlgorithmsTableModel;
+import net.jacksum.parameters.Sequence;
 import net.loefflmann.sugar.util.ExitException;
 
 /**
@@ -50,8 +52,9 @@ import net.loefflmann.sugar.util.ExitException;
  */
 public class AlgorithmSelectorDialog extends javax.swing.JDialog implements AlgorithmSelectionInterface, TableModelListener {
 
-    private final AlgorithmsModel tableModel;
-    private final TableRowSorter<AlgorithmsModel> sorter;
+    private final AlgorithmsTableModel algorithmsTableModel;
+    private final CustomizedAlgorithmsTableModel customizedAlgorithmsTableModel;
+    private final TableRowSorter<AlgorithmsTableModel> altorithmsTableRowSorter;
 
     /**
      * Creates a new Dialog to select algorithms.
@@ -60,22 +63,29 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
      */
     public AlgorithmSelectorDialog(AlgorithmSelectorDialogInterface dialogInterface, boolean modal) {
         super(dialogInterface.getFrame(), modal);
-        tableModel = new AlgorithmsModel();
-        tableModel.addTableModelListener((TableModelListener)this);
-        sorter = new TableRowSorter<>(tableModel);
+        algorithmsTableModel = new AlgorithmsTableModel();
+        algorithmsTableModel.addTableModelListener((TableModelListener)this);
+        altorithmsTableRowSorter = new TableRowSorter<>(algorithmsTableModel);
+        
+        customizedAlgorithmsTableModel = new CustomizedAlgorithmsTableModel();
 
         initComponents();
         // we hide the description
-        table.removeColumn(table.getColumnModel().getColumn(2));
+        algorithmsTable.removeColumn(algorithmsTable.getColumnModel().getColumn(2));
         helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );     
         implTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );
-        table.setRowSorter(sorter);
+        algorithmsTable.setRowSorter(altorithmsTableRowSorter);
         //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         adjustColumnWidths();
         registerManpages();
         registerImplDetails();
         registerFilter();
+    }
+
+    @Override
+    public int getSelectedCount() {
+          return algorithmsTableModel.getSelectedCount();
     }
 
     interface AlgoInfoActionParametersExtended extends AlgoInfoActionParameters {
@@ -116,6 +126,23 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             public void setAlgorithmIdentifier(String identifier) {
                 this.identifier = identifier;
             }
+
+   
+
+            @Override
+            public Sequence getSequence() {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+
+            @Override
+            public void setSequence(Sequence sequence) {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+
+            @Override
+            public boolean isSequence() {
+                return false;
+            }
         };
 
     }
@@ -146,58 +173,75 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }
 
     private void newFilter() {
-        RowFilter<AlgorithmsModel, Object> rf;
-        //If current expression doesn't parse, don't update.
+        RowFilter<AlgorithmsTableModel, Object> rf;
+        // If current expression doesn't parse, don't update.
         try {
             rf = RowFilter.regexFilter(filterTextField.getText());
         } catch (java.util.regex.PatternSyntaxException e) {
             return;
         }
-        sorter.setRowFilter(rf);
+        altorithmsTableRowSorter.setRowFilter(rf);
+        updateAlgorithmCountLabel();
+    }
+    
+    private void updateAlgorithmCountLabel() {
+        algorithmCountLabel.setText(String.format("total: %d, visible: %d, checked: %d",
+                getDataSize(),
+                algorithmsTable.getRowCount(),
+                algorithmsTableModel.getSelectedCount()
+                
+        ));
     }
 
     private void adjustColumnWidths() {
         // column widths
         TableColumn column;
         for (int i = 0; i < 2; i++) {
-            column = table.getColumnModel().getColumn(i);
+            column = algorithmsTable.getColumnModel().getColumn(i);
             if (i == 0) {
                 column.setPreferredWidth(30); // first column is narrower
             } else {
                 column.setPreferredWidth(100);
-            }
-        }
+            } 
+       }
 
     }
 
     private void registerManpages() {
         // show the help dependent on the algorithm
-        table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        algorithmsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent event) {
                 // System.out.println(event);
 
-                int viewRow = table.getSelectedRow();
+                int viewRow = algorithmsTable.getSelectedRow();
                 if (viewRow < 0) {
                     // Selection got filtered away.
                     helpTextArea.setText("");
                     implTextArea.setText("");
                 } else {
-                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    int modelRow = algorithmsTable.convertRowIndexToModel(viewRow);
 
                     boolean isAdjusting = event.getValueIsAdjusting();
                     // do some actions here, for example
                     // print first column value from selected row
                     if (!isAdjusting) {
-                        String algoSelected = tableModel.getValueAt(modelRow, 1).toString();
+                        String algoSelected = algorithmsTableModel.getValueAt(modelRow, 1).toString();
                         if (algoSelected.equalsIgnoreCase("blake3")) {
                             algoSelected = "blake3-256"; // required for the Help search to not match blake384 by accident
                         }
-                        //System.out.println(algoSelected);
+
+                        //System.out.println(algoSelected);                        
                         try {
-                            helpTextArea.setText(Help.searchHelp("en", algoSelected, true));
+                            // fill the help area
+                            if (algoSelected.startsWith("hmac:")) {
+                                helpTextArea.setText(Help.searchHelp("en", "hmac", false));
+                            } else {                            
+                                helpTextArea.setText(Help.searchHelp("en", algoSelected, true));
+                            }                                                        
                             helpTextArea.setCaretPosition(0);
-                                                        
+                            
+                            // fill the AlgoInfo
                             StringBuilder buffer = new StringBuilder();
                             params.setAlgorithmIdentifier(algoSelected);
                             AlgoInfoAction action = new AlgoInfoAction(params);
@@ -222,19 +266,19 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
 
     @Override
     public String getSelection() {
-        return tableModel.getSelection();
+        return algorithmsTableModel.getSelection();
     }
 
     @Override
     public void setSelection(String algos) {
-        tableModel.setSelection(algos);
+        algorithmsTableModel.setSelection(algos);
 
         // make sure that the first enabled row is selected
-        int row = tableModel.getFirstTrue();
+        int row = algorithmsTableModel.getFirstTrue();
         if (row > -1) {
-            int viewRow = table.convertRowIndexToView(row);
-            table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
-            table.scrollRectToVisible(new Rectangle(table.getCellRect(viewRow, 1, true)));
+            int viewRow = algorithmsTable.convertRowIndexToView(row);
+            algorithmsTable.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+            algorithmsTable.scrollRectToVisible(new Rectangle(algorithmsTable.getCellRect(viewRow, 1, true)));
         }
     }
 
@@ -246,12 +290,13 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         //String columnName = model.getColumnName(column);
         //Object data = tableModel.getValueAt(row, column);
 
-        algorithmCountLabel.setText(String.format("%d / %d algorithms picked", tableModel.getSelectedCount(), getDataSize()));
+        updateAlgorithmCountLabel();
+        //algorithmCountLabel.setText(String.format("%d visible, %d checked, %d total", algorithmsTable.getRowCount(), ((AlgorithmSelectionInterface)evt.getSource()).getSelectedCount(), getDataSize()));
     }
 
     @Override
     public int getDataSize() {
-        return tableModel.getDataSize();
+        return algorithmsTableModel.getDataSize();
     }
 
     /**
@@ -264,11 +309,10 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private void initComponents() {
 
         tableScrollPane = new javax.swing.JScrollPane();
-        table = new javax.swing.JTable(){
+        algorithmsTable = new javax.swing.JTable(){
 
-            //Implement table cell tool tips.           
+            //Implement algorithmsTable cell tool tips.           
             public String getToolTipText(MouseEvent e) {
-
                 String tip = null;
                 java.awt.Point p = e.getPoint();
                 int rowIndex = rowAtPoint(p);
@@ -276,11 +320,8 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
 
                 try {
                     // comment row, exclude heading
-
-                    int modelRow = table.convertRowIndexToModel(rowIndex);
+                    int modelRow = algorithmsTable.convertRowIndexToModel(rowIndex);
                     tip = getModel().getValueAt(modelRow, 2).toString();
-                    //tip = getValueAt(rowIndex, colIndex).toString();
-
                 } catch (RuntimeException e1) {
                     //catch null pointer exception if mouse is over an empty line
                 }
@@ -309,13 +350,16 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         implPanel = new javax.swing.JPanel();
         implScrollPane = new javax.swing.JScrollPane();
         implTextArea = new javax.swing.JTextArea();
+        jLabel1 = new javax.swing.JLabel();
+        customizedAlgorithmsScrollPane = new javax.swing.JScrollPane();
+        customizedAlgorithmsTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Select algorithms");
 
-        table.setAutoCreateRowSorter(true);
-        table.setModel(tableModel);
-        tableScrollPane.setViewportView(table);
+        algorithmsTable.setAutoCreateRowSorter(true);
+        algorithmsTable.setModel(algorithmsTableModel);
+        tableScrollPane.setViewportView(algorithmsTable);
 
         FilterLabel.setText("Filter:");
 
@@ -421,20 +465,20 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         helpPanel.setLayout(helpPanelLayout);
         helpPanelLayout.setHorizontalGroup(
             helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 690, Short.MAX_VALUE)
+            .addGap(0, 651, Short.MAX_VALUE)
             .addGroup(helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(helpPanelLayout.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 678, Short.MAX_VALUE)
+                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 639, Short.MAX_VALUE)
                     .addContainerGap()))
         );
         helpPanelLayout.setVerticalGroup(
             helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 369, Short.MAX_VALUE)
+            .addGap(0, 395, Short.MAX_VALUE)
             .addGroup(helpPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, helpPanelLayout.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 357, Short.MAX_VALUE)
+                    .addComponent(helpScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
                     .addContainerGap()))
         );
 
@@ -449,24 +493,40 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         implPanel.setLayout(implPanelLayout);
         implPanelLayout.setHorizontalGroup(
             implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 690, Short.MAX_VALUE)
+            .addGap(0, 651, Short.MAX_VALUE)
             .addGroup(implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(implPanelLayout.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 678, Short.MAX_VALUE)
+                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 639, Short.MAX_VALUE)
                     .addContainerGap()))
         );
         implPanelLayout.setVerticalGroup(
             implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 369, Short.MAX_VALUE)
+            .addGap(0, 395, Short.MAX_VALUE)
             .addGroup(implPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, implPanelLayout.createSequentialGroup()
                     .addContainerGap()
-                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 357, Short.MAX_VALUE)
+                    .addComponent(implScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 383, Short.MAX_VALUE)
                     .addContainerGap()))
         );
 
         jTabbedPane1.addTab("Implementation Details", implPanel);
+
+        jLabel1.setText("Standard Algorithms:");
+
+        customizedAlgorithmsTable.setAutoCreateRowSorter(true);
+        customizedAlgorithmsTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        customizedAlgorithmsScrollPane.setViewportView(customizedAlgorithmsTable);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -474,15 +534,16 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                            .addComponent(FilterLabel)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addComponent(filterTextField))
-                        .addComponent(tableScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 229, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(algorithmCountLabel))
-                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel1)
+                    .addComponent(algorithmCountLabel)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(FilterLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(filterTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE))
+                    .addComponent(tableScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(customizedAlgorithmsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addGap(12, 12, 12)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -516,15 +577,20 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(tableScrollPane)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tableScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE))
                     .addComponent(jTabbedPane1))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(FilterLabel)
-                    .addComponent(filterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(showAllButton)
-                    .addComponent(showCheckedButton)
-                    .addComponent(showUncheckedButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(showAllButton)
+                        .addComponent(showCheckedButton)
+                        .addComponent(showUncheckedButton)
+                        .addComponent(FilterLabel)
+                        .addComponent(filterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(customizedAlgorithmsScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, 0, 0, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(okButton)
@@ -555,18 +621,18 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_showAllButtonActionPerformed
 
     private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
-        int[] selectedRows = table.getSelectedRows();
+        int[] selectedRows = algorithmsTable.getSelectedRows();
         for (int selectedRow : selectedRows) {
-            int modelRow = table.convertRowIndexToModel(selectedRow);
-            tableModel.setValueAt(Boolean.TRUE, modelRow, 0);
+            int modelRow = algorithmsTable.convertRowIndexToModel(selectedRow);
+            algorithmsTableModel.setValueAt(Boolean.TRUE, modelRow, 0);
         }
     }//GEN-LAST:event_checkButtonActionPerformed
 
     private void uncheckButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uncheckButtonActionPerformed
-        int[] selectedRows = table.getSelectedRows();
+        int[] selectedRows = algorithmsTable.getSelectedRows();
         for (int selectedRow : selectedRows) {
-            int modelRow = table.convertRowIndexToModel(selectedRow);
-            tableModel.setValueAt(Boolean.FALSE, modelRow, 0);
+            int modelRow = algorithmsTable.convertRowIndexToModel(selectedRow);
+            algorithmsTableModel.setValueAt(Boolean.FALSE, modelRow, 0);
         }
     }//GEN-LAST:event_uncheckButtonActionPerformed
 
@@ -579,34 +645,37 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_showUncheckedButtonActionPerformed
 
     private void selectAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllButtonActionPerformed
-        table.selectAll();
+        algorithmsTable.selectAll();
     }//GEN-LAST:event_selectAllButtonActionPerformed
 
     private void selectNoneButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectNoneButtonActionPerformed
-        table.clearSelection();
+        algorithmsTable.clearSelection();
     }//GEN-LAST:event_selectNoneButtonActionPerformed
 
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
         filterTextField.setText("");
-        table.clearSelection();
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            tableModel.setValueAt(Boolean.FALSE, i, 0);
+        algorithmsTable.clearSelection();
+        for (int i = 0; i < algorithmsTableModel.getRowCount(); i++) {
+            algorithmsTableModel.setValueAt(Boolean.FALSE, i, 0);
         }
     }//GEN-LAST:event_resetButtonActionPerformed
 
     private void toggleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleButtonActionPerformed
-        int[] selectedRows = table.getSelectedRows();
+        int[] selectedRows = algorithmsTable.getSelectedRows();
         for (int selectedRow : selectedRows) {
-            int modelRow = table.convertRowIndexToModel(selectedRow);            
-            tableModel.setValueAt(!(Boolean)tableModel.getValueAt(modelRow, 0), modelRow, 0);
+            int modelRow = algorithmsTable.convertRowIndexToModel(selectedRow);            
+            algorithmsTableModel.setValueAt(!(Boolean)algorithmsTableModel.getValueAt(modelRow, 0), modelRow, 0);
         }
     }//GEN-LAST:event_toggleButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel FilterLabel;
     private javax.swing.JLabel algorithmCountLabel;
+    private javax.swing.JTable algorithmsTable;
     private javax.swing.JButton cancelButton;
     private javax.swing.JButton checkButton;
+    private javax.swing.JScrollPane customizedAlgorithmsScrollPane;
+    private javax.swing.JTable customizedAlgorithmsTable;
     private javax.swing.JTextField filterTextField;
     private javax.swing.JPanel helpPanel;
     private javax.swing.JScrollPane helpScrollPane;
@@ -614,6 +683,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private javax.swing.JPanel implPanel;
     private javax.swing.JScrollPane implScrollPane;
     private javax.swing.JTextArea implTextArea;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton okButton;
     private javax.swing.JButton resetButton;
@@ -622,7 +692,6 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private javax.swing.JButton showAllButton;
     private javax.swing.JButton showCheckedButton;
     private javax.swing.JButton showUncheckedButton;
-    private javax.swing.JTable table;
     private javax.swing.JScrollPane tableScrollPane;
     private javax.swing.JButton toggleButton;
     private javax.swing.JButton uncheckButton;

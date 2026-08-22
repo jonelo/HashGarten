@@ -2,6 +2,16 @@
 
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <NonVisualComponents>
+    <Component class="javax.swing.JButton" name="threadsHashingHelpButton2">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+        </Property>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="threadsHashingHelpButton2ActionPerformed"/>
+      </Events>
+    </Component>
     <Menu class="javax.swing.JMenuBar" name="menuBar">
       <SubComponents>
         <Menu class="javax.swing.JMenu" name="fileMenu">
@@ -36,7 +46,7 @@
           <SubComponents>
             <MenuItem class="javax.swing.JMenuItem" name="calcMenuItem">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Calculate hash values"/>
+                <Property name="text" type="java.lang.String" value="Calculate File Hash Values"/>
                 <Property name="actionCommand" type="java.lang.String" value="Calculate Hash Values"/>
               </Properties>
               <Events>
@@ -45,11 +55,19 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="verifyMenuItem">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Verify hash values"/>
+                <Property name="text" type="java.lang.String" value="Verify File Hash Values"/>
                 <Property name="actionCommand" type="java.lang.String" value="Verify Hash Values"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="verifyMenuItemActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="interactiveMenuItem">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Simple Interactive"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="interactiveMenuItemActionPerformed"/>
               </Events>
             </MenuItem>
           </SubComponents>
@@ -150,7 +168,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,66,0,0,2,53"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,75,0,0,2,66"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
@@ -158,7 +176,7 @@
     <Container class="javax.swing.JTabbedPane" name="tabbedPane">
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-          <GridBagConstraints gridX="0" gridY="0" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="11" weightX="0.1" weightY="0.1"/>
+          <GridBagConstraints gridX="-1" gridY="-1" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="10" weightX="0.0" weightY="0.0"/>
         </Constraint>
       </Constraints>
 
@@ -524,13 +542,13 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="levelsWhenTraversingADirectoryLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="level(s) when traversing a directory"/>
+                    <Property name="text" type="java.lang.String" value="level(s) if traversing a directory"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="followSymlinksToDirectoriesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Follow symlinks to directories (with file system cycle detection!)"/>
+                    <Property name="text" type="java.lang.String" value="Follow symlinks to directories (don&apos;t worry, file system cycle detection is supported)"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="followSymlinksToFilesCheckBox">
@@ -541,7 +559,7 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="scanNtfsAdsCheckBox">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Find Alternate Data Streams (ADS) at both files and directories (Windows only)"/>
+                    <Property name="text" type="java.lang.String" value="Find Alternate Data Streams (ADS) for both files and directories (Windows only)"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="recursiveDepthHelpButton">
@@ -601,7 +619,7 @@
                                   <Component id="readingThreadsSpinner" min="-2" pref="69" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="parallelThreadsLabel" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace pref="16" max="32767" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
                                   <Component id="threadsReadingHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
@@ -643,7 +661,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="parallelThreadsLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="parallel threads (activate only if all files are stored on SSDs!)"/>
+                    <Property name="text" type="java.lang.String" value="parallel threads (activate only if all files are stored on SSDs)"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel2">
@@ -685,19 +703,21 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="processingOptionsPanel" max="32767" attributes="0"/>
                           <Component id="integrityStrengthPanel" max="32767" attributes="0"/>
+                          <Component id="interactivePanel" alignment="0" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
+                  <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="integrityStrengthPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="processingOptionsPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="290" max="32767" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="interactivePanel" min="-2" pref="144" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -708,19 +728,43 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
+                      <Group type="102" attributes="0">
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="headerDataIntegrityStrengthLabel" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
-                                  <Component id="algoLabel" min="-2" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="algoLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel8" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel9" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <EmptySpace min="-2" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="keyTypeComboBox" max="32767" attributes="0"/>
+                                                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                                                  <Component id="keyTypeHelpButton" min="-2" max="-2" attributes="0"/>
+                                              </Group>
+                                              <Group type="102" attributes="0">
+                                                  <Group type="103" groupAlignment="0" attributes="0">
+                                                      <Component id="keyPasswordField" max="32767" attributes="0"/>
+                                                      <Component id="algoTextField" max="32767" attributes="0"/>
+                                                  </Group>
+                                                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                                      <Component id="selectAlgoButton" max="32767" attributes="0"/>
+                                                      <Component id="keyFileButton" max="32767" attributes="0"/>
+                                                  </Group>
+                                              </Group>
+                                          </Group>
+                                      </Group>
+                                      <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                                   <EmptySpace min="-2" max="-2" attributes="0"/>
-                                  <Component id="algoTextField" max="32767" attributes="0"/>
-                                  <EmptySpace min="-2" max="-2" attributes="0"/>
-                                  <Component id="selectAlgoButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
-                          <EmptySpace min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -735,7 +779,23 @@
                               <Component id="algoTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="selectAlgoButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                          <Component id="jLabel10" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="jLabel8" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="keyTypeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="keyTypeHelpButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
+                              <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                                  <Component id="keyFileButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="keyPasswordField" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
+                          <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -767,6 +827,71 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="selectAlgoButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JLabel" name="jLabel8">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Key Type:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JComboBox" name="keyTypeComboBox">
+                  <Properties>
+                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                      <StringArray count="4">
+                        <StringItem index="0" value="Text"/>
+                        <StringItem index="1" value="Password"/>
+                        <StringItem index="2" value="Hex"/>
+                        <StringItem index="3" value="File"/>
+                      </StringArray>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="keyTypeComboBoxItemStateChanged"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JLabel" name="jLabel9">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Key:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="keyFileButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="..."/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="keyFileButtonActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="keyFileButton.setVisible(false);"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JPasswordField" name="keyPasswordField">
+                  <Events>
+                    <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="keyPasswordFieldKeyReleased"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="maskChar = keyPasswordField.getEchoChar(); keyPasswordField.setEchoChar((char)0);"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JLabel" name="jLabel10">
+                  <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Tahoma" size="11" style="1"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="HMAC Options"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="keyTypeHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="keyTypeHelpButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>
@@ -881,6 +1006,182 @@
                 </Component>
               </SubComponents>
             </Container>
+            <Container class="javax.swing.JPanel" name="interactivePanel">
+
+              <Layout>
+                <DimensionLayout dim="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" attributes="0">
+                          <EmptySpace min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="interactiveUserInputHeaderLabel" min="-2" max="-2" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Component id="interactiveOutputTypeLabel" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                                  <Component id="interactiveOutputTypeComboBox" max="32767" attributes="0"/>
+                                  <EmptySpace min="-2" max="-2" attributes="0"/>
+                                  <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="interactiveInputTypeLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Component id="interactiveInputLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                      <Component id="interactiveOutputLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  </Group>
+                                  <EmptySpace min="16" pref="16" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Group type="102" attributes="0">
+                                          <Component id="interactiveInputTypeComboBox" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Component id="interactiveInputTextField" max="32767" attributes="0"/>
+                                      <Component id="interactiveOutputTextField" max="32767" attributes="0"/>
+                                  </Group>
+                              </Group>
+                          </Group>
+                          <EmptySpace min="-2" max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                </DimensionLayout>
+                <DimensionLayout dim="1">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="interactiveUserInputHeaderLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="interactiveInputTypeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="interactiveInputTypeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="interactiveInputLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="interactiveInputTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="interactiveOutputTypeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="interactiveOutputTypeLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="interactiveOutputTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="interactiveOutputLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+                </DimensionLayout>
+              </Layout>
+              <SubComponents>
+                <Component class="javax.swing.JLabel" name="interactiveUserInputHeaderLabel">
+                  <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Tahoma" size="11" style="1"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="Interactive"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JLabel" name="interactiveInputTypeLabel">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Input Type:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JComboBox" name="interactiveInputTypeComboBox">
+                  <Properties>
+                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                      <StringArray count="11">
+                        <StringItem index="0" value="Text"/>
+                        <StringItem index="1" value="Password"/>
+                        <StringItem index="2" value="Formatted Text"/>
+                        <StringItem index="3" value="Hex"/>
+                        <StringItem index="4" value="Base32"/>
+                        <StringItem index="5" value="Base32hex"/>
+                        <StringItem index="6" value="Base64"/>
+                        <StringItem index="7" value="Base64 for URL"/>
+                        <StringItem index="8" value="Binary"/>
+                        <StringItem index="9" value="Decimal"/>
+                        <StringItem index="10" value="Z85"/>
+                      </StringArray>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="interactiveInputTypeComboBoxItemStateChanged"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JLabel" name="interactiveInputLabel">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Input:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JPasswordField" name="interactiveInputTextField">
+                  <Events>
+                    <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="interactiveInputTextFieldKeyReleased"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="interactiveInputTextField.setEchoChar((char)0);"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JLabel" name="interactiveOutputTypeLabel">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Output Type:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JComboBox" name="interactiveOutputTypeComboBox">
+                  <Properties>
+                    <Property name="maximumRowCount" type="int" value="20"/>
+                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getComboBoxModel(JacksumAPI.getAvailableEncodings())" type="code"/>
+                    </Property>
+                    <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="(Encoding)Encoding.HEX_UPPERCASE" type="code"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="interactiveOutputTypeComboBoxItemStateChanged"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_CreateCodePost" type="java.lang.String" value="interactiveOutputTypeComboBox.setRenderer(new EncodingRenderer());"/>
+                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+                  </AuxValues>
+                </Component>
+                <Component class="javax.swing.JTextField" name="interactiveOutputTextField">
+                </Component>
+                <Component class="javax.swing.JLabel" name="interactiveOutputLabel">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Output:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="jButton1">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="jButton2">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+                  </Events>
+                </Component>
+              </SubComponents>
+            </Container>
           </SubComponents>
         </Container>
         <Container class="javax.swing.JPanel" name="verificationPanel">
@@ -914,8 +1215,8 @@
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="integrityVerificationFileFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="integrityVerificationFilterPanel" min="-2" pref="83" max="-2" attributes="0"/>
-                      <EmptySpace pref="103" max="32767" attributes="0"/>
+                      <Component id="integrityVerificationFilterPanel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="40" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1060,7 +1361,7 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="timestampFormatComboBox_verify" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="timestampFormatTextField_verify" pref="153" max="32767" attributes="0"/>
+                                          <Component id="timestampFormatTextField_verify" pref="179" max="32767" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="timestampHelpButton_verify" min="-2" max="-2" attributes="0"/>
                                       </Group>
@@ -1144,20 +1445,29 @@
                 </Component>
                 <Component class="javax.swing.JComboBox" name="outputStyleComboBox_verify">
                   <Properties>
-                    <Property name="maximumRowCount" type="int" value="16"/>
+                    <Property name="maximumRowCount" type="int" value="25"/>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="11">
+                      <StringArray count="20">
                         <StringItem index="0" value="default"/>
-                        <StringItem index="1" value="custom"/>
-                        <StringItem index="2" value="bsd"/>
-                        <StringItem index="3" value="bsd-r"/>
-                        <StringItem index="4" value="sfv"/>
-                        <StringItem index="5" value="gnu-linux"/>
-                        <StringItem index="6" value="fciv"/>
-                        <StringItem index="7" value="openssl-dgst"/>
-                        <StringItem index="8" value="openssl-dgst-r"/>
+                        <StringItem index="1" value="bsd"/>
+                        <StringItem index="2" value="bsd-r"/>
+                        <StringItem index="3" value="fciv"/>
+                        <StringItem index="4" value="gnu-linux"/>
+                        <StringItem index="5" value="hdb"/>
+                        <StringItem index="6" value="openssl-dgst"/>
+                        <StringItem index="7" value="openssl-dgst-r"/>
+                        <StringItem index="8" value="sfv"/>
                         <StringItem index="9" value="solaris-digest"/>
                         <StringItem index="10" value="solaris-digest-v"/>
+                        <StringItem index="11" value="full"/>
+                        <StringItem index="12" value="without-sizes"/>
+                        <StringItem index="13" value="without-timestamps"/>
+                        <StringItem index="14" value="without-hashes"/>
+                        <StringItem index="15" value="sizes-and-names"/>
+                        <StringItem index="16" value="timestamps-and-names"/>
+                        <StringItem index="17" value="names-only"/>
+                        <StringItem index="18" value="hexhashes-only"/>
+                        <StringItem index="19" value="custom"/>
                       </StringArray>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="What style/format should be used?"/>
@@ -1245,12 +1555,14 @@
                 <Component class="javax.swing.JComboBox" name="timestampFormatComboBox_verify">
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="5">
+                      <StringArray count="7">
                         <StringItem index="0" value="default"/>
-                        <StringItem index="1" value="custom"/>
-                        <StringItem index="2" value="unixtime"/>
-                        <StringItem index="3" value="unixtime-ms"/>
-                        <StringItem index="4" value="iso8601"/>
+                        <StringItem index="1" value="default-utc"/>
+                        <StringItem index="2" value="iso8601"/>
+                        <StringItem index="3" value="iso8601utc"/>
+                        <StringItem index="4" value="unixtime"/>
+                        <StringItem index="5" value="unixtime-ms"/>
+                        <StringItem index="6" value="custom"/>
                       </StringArray>
                     </Property>
                   </Properties>
@@ -1292,8 +1604,12 @@
                               <Component id="jLabel1" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
                                   <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="showFilesLabel" alignment="0" pref="554" max="32767" attributes="0"/>
                                       <Group type="102" attributes="0">
-                                          <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                                          <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
                                           <Component id="showOkFilesCheckBox" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace type="separate" max="-2" attributes="0"/>
                                           <Component id="showFailedFilesCheckBox" min="-2" max="-2" attributes="0"/>
@@ -1304,7 +1620,15 @@
                                           <EmptySpace max="32767" attributes="0"/>
                                           <Component id="listFilterButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <Component id="showFilesLabel" pref="528" max="32767" attributes="0"/>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="ignoreHashesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="ignoreSizesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="ignoreTimestampsCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="32767" attributes="0"/>
+                                          <Component id="ignoreHelpButton" min="-2" max="-2" attributes="0"/>
+                                      </Group>
                                   </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                               </Group>
@@ -1318,18 +1642,27 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
+                          <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="ignoreHashesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="ignoreSizesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="ignoreTimestampsCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="ignoreHelpButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Component id="showFilesLabel" min="-2" pref="23" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="1" attributes="0">
-                              <Group type="103" groupAlignment="3" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="103" alignment="1" groupAlignment="3" attributes="0">
                                   <Component id="showOkFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="showFailedFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="showMissingFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="showNewFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
-                              <Component id="listFilterButton" min="-2" max="-2" attributes="0"/>
+                              <Component id="listFilterButton" alignment="1" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -1337,21 +1670,21 @@
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="showFilesLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Show only files that match status:"/>
+                    <Property name="text" type="java.lang.String" value="Only display files that match status:"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showOkFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="OK"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files with an expected hash?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files with an expected hash value?"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showFailedFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="FAILED"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files with an unexpected hash?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files with an unexpected hash value?"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showMissingFilesCheckBox">
@@ -1384,6 +1717,39 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="listFilterButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JLabel" name="jLabel7">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Ignore these values if they are present in the Verification File:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="ignoreHashesCheckBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Hashes"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Ignore hash values?"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="ignoreSizesCheckBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Sizes"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Ignore the sizes of files?"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="ignoreTimestampsCheckBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Timestamps"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Ignore the timestamps of files?"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="ignoreHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ignoreHelpButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>
@@ -1535,7 +1901,7 @@
                                               <Group type="102" alignment="0" attributes="0">
                                                   <Component id="lineFormatCheckBox" min="-2" max="-2" attributes="0"/>
                                                   <EmptySpace max="-2" attributes="0"/>
-                                                  <Component id="lineFormatTextField" pref="379" max="32767" attributes="0"/>
+                                                  <Component id="lineFormatTextField" pref="405" max="32767" attributes="0"/>
                                               </Group>
                                           </Group>
                                           <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -1601,20 +1967,29 @@
                 </Component>
                 <Component class="javax.swing.JComboBox" name="outputStyleComboBox">
                   <Properties>
-                    <Property name="maximumRowCount" type="int" value="16"/>
+                    <Property name="maximumRowCount" type="int" value="25"/>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="11">
+                      <StringArray count="20">
                         <StringItem index="0" value="default"/>
-                        <StringItem index="1" value="custom"/>
-                        <StringItem index="2" value="bsd"/>
-                        <StringItem index="3" value="bsd-r"/>
-                        <StringItem index="4" value="sfv"/>
-                        <StringItem index="5" value="gnu-linux"/>
-                        <StringItem index="6" value="fciv"/>
-                        <StringItem index="7" value="openssl-dgst"/>
-                        <StringItem index="8" value="openssl-dgst-r"/>
+                        <StringItem index="1" value="bsd"/>
+                        <StringItem index="2" value="bsd-r"/>
+                        <StringItem index="3" value="fciv"/>
+                        <StringItem index="4" value="gnu-linux"/>
+                        <StringItem index="5" value="hdb"/>
+                        <StringItem index="6" value="openssl-dgst"/>
+                        <StringItem index="7" value="openssl-dgst-r"/>
+                        <StringItem index="8" value="sfv"/>
                         <StringItem index="9" value="solaris-digest"/>
                         <StringItem index="10" value="solaris-digest-v"/>
+                        <StringItem index="11" value="full"/>
+                        <StringItem index="12" value="without-sizes"/>
+                        <StringItem index="13" value="without-timestamps"/>
+                        <StringItem index="14" value="without-hashes"/>
+                        <StringItem index="15" value="sizes-and-names"/>
+                        <StringItem index="16" value="timestamps-and-names"/>
+                        <StringItem index="17" value="names-only"/>
+                        <StringItem index="18" value="hexhashes-only"/>
+                        <StringItem index="19" value="custom"/>
                       </StringArray>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="What style/format should be used?"/>
@@ -1668,12 +2043,14 @@
                 <Component class="javax.swing.JComboBox" name="timestampFormatComboBox">
                   <Properties>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="5">
+                      <StringArray count="7">
                         <StringItem index="0" value="default"/>
-                        <StringItem index="1" value="custom"/>
-                        <StringItem index="2" value="unixtime"/>
-                        <StringItem index="3" value="unixtime-ms"/>
-                        <StringItem index="4" value="iso8601"/>
+                        <StringItem index="1" value="default-utc"/>
+                        <StringItem index="2" value="iso8601"/>
+                        <StringItem index="3" value="iso8601utc"/>
+                        <StringItem index="4" value="unixtime"/>
+                        <StringItem index="5" value="unixtime-ms"/>
+                        <StringItem index="6" value="custom"/>
                       </StringArray>
                     </Property>
                   </Properties>
@@ -1791,7 +2168,7 @@
                                           <Component id="customizedPathSeparatorCheckBox" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="customizedPathSpearatorTextField" min="-2" pref="71" max="-2" attributes="0"/>
-                                          <EmptySpace min="0" pref="195" max="32767" attributes="0"/>
+                                          <EmptySpace min="0" pref="221" max="32767" attributes="0"/>
                                       </Group>
                                       <Component id="pathRelativeToTextField" alignment="0" max="32767" attributes="0"/>
                                   </Group>
@@ -1927,12 +2304,17 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <EmptySpace min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="outputFilesInnerPanel" max="32767" attributes="0"/>
-                          <Component id="outputFilesOptionsPanel" max="32767" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="outputFilesInnerPanel" max="32767" attributes="0"/>
+                              <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="outputFilesOptionsPanel" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                          </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1959,33 +2341,23 @@
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="headerOutputFilesLabel" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="standardOutputFileLabel" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="standardErrorFileLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                      <Component id="standardOutputFileLabel" pref="165" max="32767" attributes="0"/>
+                                      <Component id="standardErrorFileLabel" alignment="0" max="32767" attributes="0"/>
                                   </Group>
-                                  <EmptySpace min="-2" pref="76" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
-                                      <Group type="102" attributes="0">
-                                          <Component id="standardOutputFileTextField" pref="281" max="32767" attributes="0"/>
-                                          <EmptySpace min="-2" max="-2" attributes="0"/>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="standardOutputFileTextField" pref="301" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
                                           <Component id="standardOutputViewButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
-                                      <Group type="102" attributes="0">
+                                      <Group type="102" alignment="0" attributes="0">
                                           <Component id="standardErrorFileTextField" max="32767" attributes="0"/>
-                                          <EmptySpace min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
                                           <Component id="standardErrorViewButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="standardOutputFileCharacterSetLabel" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="standardOutputFileCharacterSetComboBox" max="32767" attributes="0"/>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="standardErrorFileCharacterSetLabel" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace min="-2" pref="47" max="-2" attributes="0"/>
-                                  <Component id="standardErrorFileCharacterSetComboBox" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -2005,19 +2377,9 @@
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="standardOutputFileCharacterSetLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="standardOutputFileCharacterSetComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="standardErrorFileLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardErrorFileTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardErrorViewButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="standardErrorFileCharacterSetLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="standardErrorFileCharacterSetComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
@@ -2053,7 +2415,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="standardErrorFileLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Error log:"/>
+                    <Property name="text" type="java.lang.String" value="Standard error:"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JTextField" name="standardErrorFileTextField">
@@ -2067,6 +2429,87 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="standardErrorViewButtonActionPerformed"/>
+                  </Events>
+                </Component>
+              </SubComponents>
+            </Container>
+            <Container class="javax.swing.JPanel" name="outputFilesOptionsPanel">
+
+              <Layout>
+                <DimensionLayout dim="0">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" attributes="0">
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" attributes="0">
+                                  <Component id="bomCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace pref="167" max="32767" attributes="0"/>
+                                  <Component id="bomHelpButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="placeholderForOutputFilesOptionsLabel" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                                      <Component id="standardErrorFileCharacterSetLabel" max="32767" attributes="0"/>
+                                      <Component id="standardOutputFileCharacterSetLabel" pref="165" max="32767" attributes="0"/>
+                                  </Group>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="standardOutputFileCharacterSetComboBox" max="32767" attributes="0"/>
+                                      <Component id="standardErrorFileCharacterSetComboBox" max="32767" attributes="0"/>
+                                  </Group>
+                              </Group>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                      </Group>
+                  </Group>
+                </DimensionLayout>
+                <DimensionLayout dim="1">
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="1" attributes="0">
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="placeholderForOutputFilesOptionsLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="bomCheckBox" alignment="1" min="-2" max="-2" attributes="0"/>
+                              <Component id="bomHelpButton" alignment="1" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="standardOutputFileCharacterSetLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="standardOutputFileCharacterSetComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="standardErrorFileCharacterSetLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="standardErrorFileCharacterSetComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+                </DimensionLayout>
+              </Layout>
+              <SubComponents>
+                <Component class="javax.swing.JLabel" name="placeholderForOutputFilesOptionsLabel">
+                  <Properties>
+                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+                      <Font name="Tahoma" size="11" style="1"/>
+                    </Property>
+                    <Property name="text" type="java.lang.String" value="Output Files Customization"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="bomCheckBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Insert a Byte Order Mark (BOM), even if it is optional for a charset"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="bomHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bomHelpButtonActionPerformed"/>
                   </Events>
                 </Component>
                 <Component class="javax.swing.JLabel" name="standardOutputFileCharacterSetLabel">
@@ -2089,7 +2532,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="standardErrorFileCharacterSetLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Error log character set:"/>
+                    <Property name="text" type="java.lang.String" value="Standard error character set:"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JComboBox" name="standardErrorFileCharacterSetComboBox">
@@ -2104,66 +2547,6 @@
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
                   </AuxValues>
-                </Component>
-              </SubComponents>
-            </Container>
-            <Container class="javax.swing.JPanel" name="outputFilesOptionsPanel">
-
-              <Layout>
-                <DimensionLayout dim="0">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" attributes="0">
-                                  <Component id="bomCheckBox" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="32767" attributes="0"/>
-                                  <Component id="bomHelpButton" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Component id="placeholderForOutputFilesOptionsLabel" max="32767" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                </DimensionLayout>
-                <DimensionLayout dim="1">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="placeholderForOutputFilesOptionsLabel" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="32767" attributes="0"/>
-                          <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="bomCheckBox" alignment="1" min="-2" max="-2" attributes="0"/>
-                              <Component id="bomHelpButton" alignment="1" min="-2" max="-2" attributes="0"/>
-                          </Group>
-                          <EmptySpace max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                </DimensionLayout>
-              </Layout>
-              <SubComponents>
-                <Component class="javax.swing.JLabel" name="placeholderForOutputFilesOptionsLabel">
-                  <Properties>
-                    <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                      <Font name="Tahoma" size="11" style="1"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="Advanced Options"/>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JCheckBox" name="bomCheckBox">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Insert a Byte Order Mark (BOM), even if it is optional for a charset"/>
-                  </Properties>
-                </Component>
-                <Component class="javax.swing.JButton" name="bomHelpButton">
-                  <Properties>
-                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
-                    </Property>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bomHelpButtonActionPerformed"/>
-                  </Events>
                 </Component>
               </SubComponents>
             </Container>
@@ -2215,7 +2598,7 @@
                               <Component id="themeLabel" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="darkThemeToggleButton" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace min="0" pref="399" max="32767" attributes="0"/>
+                                  <EmptySpace min="0" pref="424" max="32767" attributes="0"/>
                               </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -2266,7 +2649,7 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="jLabel5" max="32767" attributes="0"/>
-                              <Component id="stayOpenCheckBox" alignment="0" pref="528" max="32767" attributes="0"/>
+                              <Component id="stayOpenCheckBox" alignment="0" pref="554" max="32767" attributes="0"/>
                               <Component id="alwaysOnTopCheckBox" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="centerWindowWhereTheMouseIsCheckBox" min="-2" max="-2" attributes="0"/>
@@ -2299,7 +2682,7 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="11" style="1"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Window behavior"/>
+                    <Property name="text" type="java.lang.String" value="Window Behavior"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="alwaysOnTopCheckBox">
@@ -2341,7 +2724,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="actionButton" pref="553" max="32767" attributes="0"/>
+                  <Component id="actionButton" pref="566" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -2366,7 +2749,7 @@
               <Image iconType="3" name="/net/jacksum/gui/pix32x32/jacksum-32x32.png"/>
             </Property>
             <Property name="mnemonic" type="int" value="74"/>
-            <Property name="text" type="java.lang.String" value="  Calculate hash values"/>
+            <Property name="text" type="java.lang.String" value="  Calculate File Hash Values"/>
             <Property name="toolTipText" type="java.lang.String" value="Action!"/>
             <Property name="iconTextGap" type="int" value="20"/>
           </Properties>

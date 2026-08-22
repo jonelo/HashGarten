@@ -26,18 +26,18 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="FilterLabel" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="filterTextField" max="32767" attributes="0"/>
-                      </Group>
-                      <Component id="tableScrollPane" min="-2" pref="229" max="-2" attributes="0"/>
-                  </Group>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="jLabel1" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Component id="algorithmCountLabel" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="FilterLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="filterTextField" pref="257" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="tableScrollPane" alignment="0" pref="0" max="32767" attributes="0"/>
+                  <Component id="customizedAlgorithmsScrollPane" alignment="0" pref="0" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -79,16 +79,23 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="tableScrollPane" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="tableScrollPane" pref="408" max="32767" attributes="0"/>
+                  </Group>
                   <Component id="jTabbedPane1" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="FilterLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="filterTextField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="showAllButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="showCheckedButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="showUncheckedButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" alignment="1" groupAlignment="3" attributes="0">
+                      <Component id="showAllButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="showCheckedButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="showUncheckedButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="FilterLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="filterTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="customizedAlgorithmsScrollPane" alignment="1" min="0" pref="0" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -112,15 +119,15 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTable" name="table">
+        <Component class="javax.swing.JTable" name="algorithmsTable">
           <Properties>
             <Property name="autoCreateRowSorter" type="boolean" value="true"/>
             <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
-              <Connection code="tableModel" type="code"/>
+              <Connection code="algorithmsTableModel" type="code"/>
             </Property>
           </Properties>
           <AuxValues>
-            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable(){&#xd;&#xa;&#xd;&#xa;    //Implement table cell tool tips.           &#xd;&#xa;    public String getToolTipText(MouseEvent e) {&#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        &#xd;&#xa;        String tip = null;&#xd;&#xa;        java.awt.Point p = e.getPoint();&#xd;&#xa;        int rowIndex = rowAtPoint(p);&#xd;&#xa;        int colIndex = columnAtPoint(p);&#xd;&#xa;&#xd;&#xa;        try {&#xd;&#xa;            // comment row, exclude heading&#xd;&#xa;&#xd;&#xa;        &#xd;&#xa;                int modelRow = table.convertRowIndexToModel(rowIndex);&#xd;&#xa;                tip = getModel().getValueAt(modelRow, 2).toString();&#xd;&#xa;                //tip = getValueAt(rowIndex, colIndex).toString();&#xd;&#xa;&#xd;&#xa;        } catch (RuntimeException e1) {&#xd;&#xa;            //catch null pointer exception if mouse is over an empty line&#xd;&#xa;        }&#xd;&#xa;        return tip;&#xd;&#xa;    }&#xd;&#xa;}&#xd;&#xa;"/>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JTable(){&#xd;&#xa;&#xd;&#xa;    //Implement algorithmsTable cell tool tips.           &#xd;&#xa;    public String getToolTipText(MouseEvent e) {&#xd;&#xa;        String tip = null;&#xd;&#xa;        java.awt.Point p = e.getPoint();&#xd;&#xa;        int rowIndex = rowAtPoint(p);&#xd;&#xa;        int colIndex = columnAtPoint(p);&#xd;&#xa;&#xd;&#xa;        try {&#xd;&#xa;            // comment row, exclude heading&#xd;&#xa;            int modelRow = algorithmsTable.convertRowIndexToModel(rowIndex);&#xd;&#xa;            tip = getModel().getValueAt(modelRow, 2).toString();&#xd;&#xa;        } catch (RuntimeException e1) {&#xd;&#xa;            //catch null pointer exception if mouse is over an empty line&#xd;&#xa;        }&#xd;&#xa;        return tip;&#xd;&#xa;    }&#xd;&#xa;}&#xd;&#xa;"/>
           </AuxValues>
         </Component>
       </SubComponents>
@@ -258,11 +265,11 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="690" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="651" max="32767" attributes="0"/>
                   <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="helpScrollPane" pref="678" max="32767" attributes="0"/>
+                          <Component id="helpScrollPane" pref="639" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -270,11 +277,11 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="369" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="395" max="32767" attributes="0"/>
                   <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="1" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="helpScrollPane" pref="357" max="32767" attributes="0"/>
+                          <Component id="helpScrollPane" pref="383" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -308,11 +315,11 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="690" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="651" max="32767" attributes="0"/>
                   <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="implScrollPane" pref="678" max="32767" attributes="0"/>
+                          <Component id="implScrollPane" pref="639" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -320,11 +327,11 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="369" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="395" max="32767" attributes="0"/>
                   <Group type="103" rootIndex="1" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="1" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="implScrollPane" pref="357" max="32767" attributes="0"/>
+                          <Component id="implScrollPane" pref="383" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
                   </Group>
@@ -347,6 +354,30 @@
             </Container>
           </SubComponents>
         </Container>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Standard Algorithms:"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="customizedAlgorithmsScrollPane">
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTable" name="customizedAlgorithmsTable">
+          <Properties>
+            <Property name="autoCreateRowSorter" type="boolean" value="true"/>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="4" rowCount="4">
+                <Column editable="true" title="Title 1" type="java.lang.Object"/>
+                <Column editable="true" title="Title 2" type="java.lang.Object"/>
+                <Column editable="true" title="Title 3" type="java.lang.Object"/>
+                <Column editable="true" title="Title 4" type="java.lang.Object"/>
+              </Table>
+            </Property>
+          </Properties>
+        </Component>
       </SubComponents>
     </Container>
   </SubComponents>

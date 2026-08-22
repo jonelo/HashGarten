@@ -118,9 +118,18 @@ public class HelpDialog extends javax.swing.JDialog {
     public void searchHelp(String text) throws NothingFoundException, IOException {
         searchHelp(text, false);
     }
-    
+
     public void searchHelp(String text, boolean strict) throws NothingFoundException, IOException {
         helpTextArea.setText(Help.searchHelp("en", text, strict));
+        helpTextArea.setCaretPosition(0);
+    }
+    
+    public void searchHelp(boolean strict, String... texte) throws NothingFoundException, IOException {
+        StringBuilder sb = new StringBuilder();
+        for (String s : texte) {
+            sb.append(Help.searchHelp("en", s, strict));
+        }
+        helpTextArea.setText(sb.toString());
         helpTextArea.setCaretPosition(0);
     }
     

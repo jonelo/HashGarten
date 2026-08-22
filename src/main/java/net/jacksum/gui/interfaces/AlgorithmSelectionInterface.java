@@ -29,6 +29,8 @@ public interface AlgorithmSelectionInterface {
     public String getSelection();
 
     public void setSelection(String algos);
+    
+    public int getSelectedCount();
 
     public int getDataSize();
 }
