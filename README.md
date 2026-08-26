@@ -21,7 +21,7 @@ In a "Kindergarten" children should be cherished and cared for like young plants
 
 ![Find and Select Hash Algorithms](https://github.com/user-attachments/assets/41e54f70-591a-4a94-b38c-6cf25282d17e)
 
-Note that the algorithm list above has been filtered. Actually more than 480 algorithms are supported!
+Note that the algorithm list above has been filtered. For now 586 algorithms are supported!
 
 #### Calculate Hash Values
 
@@ -31,6 +31,9 @@ Note that the algorithm list above has been filtered. Actually more than 480 alg
 
 ![Verify Hash Values](https://github.com/user-attachments/assets/537ddd9d-d202-4f1f-be95-0605b04d8492)
 
+### Simple Interactive
+
+![Simple Interactive](https://github.com/user-attachments/assets/6c4c87b2-4253-43be-bab4-edad6c4b51e2)
 
 #### Set Preferences
 
