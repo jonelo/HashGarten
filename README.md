@@ -31,6 +31,9 @@ Note that the algorithm list above has been filtered. For now 586 algorithms are
 
 ![Verify Hash Values](https://github.com/user-attachments/assets/537ddd9d-d202-4f1f-be95-0605b04d8492)
 
+### Simple Interactive
+
+![Simple Interactive](https://github.com/user-attachments/assets/6c4c87b2-4253-43be-bab4-edad6c4b51e2)
 
 #### Set Preferences
 
