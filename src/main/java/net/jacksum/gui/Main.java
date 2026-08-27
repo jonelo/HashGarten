@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -312,7 +314,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
 
         try {
-            parameters = parameters.checked(false);
+            checkParameters(false);
             // adjust the object again, no stdin for the GUI
             parameters.setStdinForFilenamesFromArgs(false);
 
@@ -329,6 +331,74 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
    debug("algorithm:\n" + parameters.getAlgorithm());
    debug("algorithmIdentifier:\n" + parameters.getAlgorithmIdentifier());
          */
+    }
+
+    /**
+     * Validates the parameter object, and repairs the path options if they are the reason why the
+     * validation failed.
+     *
+     * HashGarten keeps one long living parameter object and calls checked() on it again and again
+     * (at startup, on every keystroke in the Simple Interface, and when the action button is
+     * pressed). Up to and including Jacksum 4.0.0 that is not always possible: checked() derives
+     * --path-relative-to from --path-relative-to-entry without clearing the entry, so every
+     * subsequent call is rejected with "Only one of the following options is allowed: ...".
+     * A path that has been remembered from a previous run can also have gone away in the meantime
+     * (e.g. an unmounted volume), which lets checked() fail as well.
+     *
+     * Therefore the failing call is retried once with normalized path options. Newer Jacksum
+     * versions that keep checked() repeatable are not affected by the workaround, they keep the
+     * path options that the user resp. the file browser integration has specified.
+     *
+     * @param setupStreams whether the output and error streams should be set up, see Jacksum's
+     *                     Parameters.checked(boolean)
+     * @throws ParameterException if the parameters are invalid for a different reason
+     * @throws ExitException if Jacksum requests an exit
+     */
+    private void checkParameters(boolean setupStreams) throws ParameterException, ExitException {
+        try {
+            parameters = parameters.checked(setupStreams);
+        } catch (ParameterException pe) {
+            if (!normalizePathOptions()) {
+                throw pe;
+            }
+            debug("Retrying to check the parameters with normalized path options, because of: " + pe.getMessage());
+            parameters = parameters.checked(setupStreams);
+        }
+    }
+
+    /**
+     * Makes sure that at most one of the mutually exclusive path options
+     * (--no-path, --path-absolute, --path-relative-to, --path-relative-to-entry) is set,
+     * and that a path that is set actually exists.
+     *
+     * @return true if the parameter object has been changed
+     */
+    private boolean normalizePathOptions() {
+        if (parameters == null) {
+            return false;
+        }
+        boolean changed = false;
+        String pathRelativeTo = parameters.getPathRelativeToAsString();
+        if (pathRelativeTo != null) {
+            boolean exists;
+            try {
+                exists = Files.exists(Paths.get(pathRelativeTo));
+            } catch (InvalidPathException ipe) {
+                exists = false;
+            }
+            if (!exists) {
+                // the path is gone (e.g. an unmounted volume), don't insist on it
+                parameters.setPathRelativeToAsString(null);
+                parameters.setPathRelativeTo(null);
+                changed = true;
+            }
+        }
+        if (parameters.getPathRelativeToEntry() > 0 && parameters.getPathRelativeToAsString() != null) {
+            // the entry has already been resolved to a concrete path, so keep the path only
+            parameters.setPathRelativeToEntry(0);
+            changed = true;
+        }
+        return changed;
     }
 
     // Read values from the parameters object and update the properties object
@@ -2684,8 +2754,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             pathStyleComboBox.setSelectedItem("omit paths");
         } else if (parameters.isPathAbsolute()) {
             pathStyleComboBox.setSelectedItem("absolute paths");
-        } else if (parameters.getPathRelativeTo() != null) {
-            pathRelativeToTextField.setText(parameters.getPathRelativeTo().toString());
+        } else if (parameters.getPathRelativeToAsString() != null) {
+            // show the resolved path if Jacksum was able to resolve it, the raw value otherwise,
+            // so that the user can see and correct it instead of getting "default" silently
+            pathRelativeToTextField.setText(parameters.getPathRelativeTo() != null
+                    ? parameters.getPathRelativeTo().toString()
+                    : parameters.getPathRelativeToAsString());
             pathStyleComboBox.setSelectedItem("relativize paths to");
         } else {
             pathStyleComboBox.setSelectedItem("default");
@@ -3624,7 +3698,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
             String s = new String(interactiveInputTextField.getPassword());
             parameters.setSequence(new Sequence(sequenceType, s));
-            parameters = parameters.checked(false);
+            checkParameters(false);
 
             
             if (interactiveNewAlgo) {
