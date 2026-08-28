@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.13.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -46,14 +46,14 @@ public class SwingUtils {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            UIManager.setLookAndFeel(
-                    UIManager.getSystemLookAndFeelClassName());
-             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
+                    return;
                 }
             }
+            // Nimbus is not available, so fall back to the look and feel of the system
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
@@ -174,18 +174,25 @@ public class SwingUtils {
         }
     }
 
+    /**
+     * Removes all selected items, not just the first one: the file list allows a multi selection.
+     *
+     * @param jList the list
+     * @param model the model of the list
+     */
     public static void removeSelectedJListItem(JList jList, DefaultListModel model) {
-        if (!jList.isSelectionEmpty()) {
-            // DefaultListModel<String> model = (DefaultListModel) fileList.getModel();
-            int pos = jList.getSelectedIndex();
-            model.remove(pos);
-            // it was the last item
-            if (pos == model.getSize()) {
-                pos--;
-            }
-            if (model.getSize() > 0) {
-                jList.setSelectedIndex(pos);
-            }
+        int[] selected = jList.getSelectedIndices();
+        if (selected.length == 0) {
+            return;
+        }
+        // remove from the end, otherwise the remaining indices would shift away
+        for (int i = selected.length - 1; i >= 0; i--) {
+            model.remove(selected[i]);
+        }
+        // select what has taken the place of the first removed item
+        int pos = Math.min(selected[0], model.getSize() - 1);
+        if (pos >= 0) {
+            jList.setSelectedIndex(pos);
         }
     }
 

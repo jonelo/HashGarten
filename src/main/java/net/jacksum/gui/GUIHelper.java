@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -22,7 +22,7 @@ package net.jacksum.gui;
 
 /*
 
-  HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -121,7 +121,7 @@ public class GUIHelper {
                 URI uri = new URI(address);
                 desktop.browse(uri);
             } catch (IOException | URISyntaxException excp) {
-                excp.printStackTrace();
+                debug(String.format("Could not open %s: %s", address, excp));
             }
         }
     }

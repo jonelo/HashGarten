@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.9.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -31,6 +31,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JTextField;
 import javax.swing.TransferHandler;
+import net.jacksum.gui.GUIHelper;
 
 public class DropTransferHandler extends TransferHandler {
     //private static final long serialVersionUID = 1L;
@@ -79,7 +80,9 @@ public class DropTransferHandler extends TransferHandler {
                 }
 
             } catch (Exception e) {
-                System.out.println(e);
+                // never write to System.out here: Jacksum controls the standard streams and may
+                // have redirected them to the user's output file
+                GUIHelper.debug(e.toString());
             }
 
         }

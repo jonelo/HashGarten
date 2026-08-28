@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.15.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -27,8 +27,10 @@ package net.jacksum.gui.constants;
 public class PropertyKeys {
     public final static String JACKSUM_PARAMETERS_BASE64 = "jacksum.parameters.base64";
     public final static String GUI_THEME = "gui.theme";
-    public final static String GUI_OUTPUT = "gui.output";
     public final static String GUI_SMARTPOSITIONED = "gui.smartpositioned";
     public final static String GUI_ALWAYSONTOP = "gui.alwaysontop";
     public final static String GUI_STAYOPEN = "gui.stayopen";
+    // Jacksum maps both key types "Text" and "Password" onto Sequence.Type.TXT,
+    // so which one the user has picked has to be remembered by the GUI itself
+    public final static String GUI_KEYTYPE = "gui.keytype";
 }

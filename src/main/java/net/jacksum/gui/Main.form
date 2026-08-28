@@ -64,7 +64,7 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="interactiveMenuItem">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Simple Interactive"/>
+                <Property name="text" type="java.lang.String" value="Interactive"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="interactiveMenuItemActionPerformed"/>
@@ -920,7 +920,7 @@
                                   <Component id="threadsHashingHelpButton1" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
-                                  <Component id="alternativeImplemenationCheckBox" max="32767" attributes="0"/>
+                                  <Component id="alternativeImplementationCheckBox" max="32767" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="alternativeImplementationHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
@@ -944,7 +944,7 @@
                                       <Component id="threadsHashingHelpButton1" alignment="3" min="-2" max="-2" attributes="0"/>
                                   </Group>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="alternativeImplemenationCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <Component id="alternativeImplementationCheckBox" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="alternativeImplementationHelpButton" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -979,7 +979,7 @@
                     <Property name="text" type="java.lang.String" value="parallel threads (if multiple algorithms have been selected)"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JCheckBox" name="alternativeImplemenationCheckBox">
+                <Component class="javax.swing.JCheckBox" name="alternativeImplementationCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Use alternative implementation(s) if available"/>
                   </Properties>

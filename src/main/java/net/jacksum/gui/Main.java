@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.19.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2026 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -20,8 +20,8 @@
  */
 package net.jacksum.gui;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.util.SystemInfo;
-import java.awt.Color;
 import java.awt.Desktop;
 import net.jacksum.gui.constants.AppConstants;
 import net.jacksum.gui.constants.PropertyKeys;
@@ -47,6 +47,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +74,7 @@ import net.jacksum.algorithms.AbstractChecksum;
 import net.jacksum.cli.CLIParameters;
 import net.jacksum.cli.StatisticsElapsedTime;
 import net.jacksum.formats.Encoding;
+import net.jacksum.formats.TimestampFormatter;
 import net.jacksum.gui.dialogs.HelpDialog;
 import net.jacksum.gui.util.IO;
 import net.jacksum.multicore.ThreadControl;
@@ -239,10 +241,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     // Read properties
     private void readProperties() {
         props = new Properties();
-        try ( InputStream input = new FileInputStream(AppConstants.PROPERTIES_FILE)) {
+        File file = new File(AppConstants.PROPERTIES_FILE);
+        if (!file.exists()) {
+            // the normal case on the very first run, nothing worth reporting
+            return;
+        }
+        try ( InputStream input = new FileInputStream(file)) {
             props.load(input);
         } catch (IOException io) {
-            System.err.println(io.getMessage());
+            debug(String.format("Could not read %s: %s", AppConstants.PROPERTIES_FILE, io.getMessage()));
         }
     }
 
@@ -251,7 +258,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         try ( OutputStream output = new FileOutputStream(AppConstants.PROPERTIES_FILE)) {
             props.store(output, null);
         } catch (IOException io) {
-            System.err.println(io.getMessage());
+            debug(String.format("Could not write %s: %s", AppConstants.PROPERTIES_FILE, io.getMessage()));
         }
     }
 
@@ -338,10 +345,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
      * validation failed.
      *
      * HashGarten keeps one long living parameter object and calls checked() on it again and again
-     * (at startup, on every keystroke in the Simple Interface, and when the action button is
-     * pressed). Up to and including Jacksum 4.0.0 that is not always possible: checked() derives
-     * --path-relative-to from --path-relative-to-entry without clearing the entry, so every
-     * subsequent call is rejected with "Only one of the following options is allowed: ...".
+     * (at startup, on every keystroke in the Interactive operating mode, and when the action
+     * button is pressed). Up to and including Jacksum 4.0.0 that is not always possible:
+     * checked() derives --path-relative-to from --path-relative-to-entry without clearing the
+     * entry, so every subsequent call is rejected with "Only one of the following options is
+     * allowed: ...".
      * A path that has been remembered from a previous run can also have gone away in the meantime
      * (e.g. an unmounted volume), which lets checked() fail as well.
      *
@@ -474,7 +482,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         calculateHashesLabel1 = new javax.swing.JLabel();
         hashingThreadsSpinner = new javax.swing.JSpinner();
         calculateHashesLabel2 = new javax.swing.JLabel();
-        alternativeImplemenationCheckBox = new javax.swing.JCheckBox();
+        alternativeImplementationCheckBox = new javax.swing.JCheckBox();
         alternativeImplementationHelpButton = new javax.swing.JButton();
         threadsHashingHelpButton1 = new javax.swing.JButton();
         interactivePanel = new javax.swing.JPanel();
@@ -1090,7 +1098,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         calculateHashesLabel2.setText("parallel threads (if multiple algorithms have been selected)");
 
-        alternativeImplemenationCheckBox.setText("Use alternative implementation(s) if available");
+        alternativeImplementationCheckBox.setText("Use alternative implementation(s) if available");
 
         alternativeImplementationHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
         alternativeImplementationHelpButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1123,7 +1131,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(threadsHashingHelpButton1))
                     .addGroup(processingOptionsPanelLayout.createSequentialGroup()
-                        .addComponent(alternativeImplemenationCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(alternativeImplementationCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(alternativeImplementationHelpButton)))
                 .addContainerGap())
@@ -1142,7 +1150,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                             .addComponent(calculateHashesLabel2)
                             .addComponent(threadsHashingHelpButton1))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(alternativeImplemenationCheckBox))
+                        .addComponent(alternativeImplementationCheckBox))
                     .addComponent(alternativeImplementationHelpButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -2310,7 +2318,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
         modeMenu.add(verifyMenuItem);
 
-        interactiveMenuItem.setText("Simple Interactive");
+        interactiveMenuItem.setText("Interactive");
         interactiveMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 interactiveMenuItemActionPerformed(evt);
@@ -2403,8 +2411,36 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         props.setProperty(PropertyKeys.GUI_SMARTPOSITIONED, centerWindowWhereTheMouseIsCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_ALWAYSONTOP, alwaysOnTopCheckBox.isSelected() ? PropertyValues.TRUE : PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_STAYOPEN, stayOpenCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
+        props.setProperty(PropertyKeys.GUI_KEYTYPE, keyTypeComboBox.getSelectedItem().toString());
     }
 
+
+    /**
+     * Maps a timestamp format that Jacksum understands onto the corresponding item of the
+     * timestamp format combo boxes.
+     *
+     * The value cannot simply be compared with the items of the combo box: Jacksum knows aliases
+     * ("iso" for "iso8601", "iso-utc" for "iso8601utc") and its set of keywords may grow. Treating
+     * a keyword as a custom pattern would put it into the pattern text field, and the next run
+     * would fail, because Jacksum feeds a custom pattern to SimpleDateFormat.
+     *
+     * @param timestampFormat the value of Jacksum's --timestamp option
+     * @return the item of the combo box, or null if the format is a custom pattern
+     */
+    private static String timestampKeyword2comboItem(String timestampFormat) {
+        if (timestampFormat == null || !TimestampFormatter.isFormatASupportedKeyword(timestampFormat)) {
+            // it is a SimpleDateFormat pattern, not a keyword
+            return null;
+        }
+        switch (timestampFormat) {
+            case TimestampFormatter.KEY_ISO:
+                return TimestampFormatter.KEY_ISO8601;
+            case TimestampFormatter.KEY_ISO_UTC:
+                return TimestampFormatter.KEY_ISO8601_UTC;
+            default:
+                return timestampFormat;
+        }
+    }
 
     // for both the verify panel (verification mode) and the output style panel (calculation mode)
     private void parameters2customStylePanel(
@@ -2432,8 +2468,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             if (parameters.isTimestampWanted()) {
                 includeTimestampCheckBox.setSelected(true);
                 String timestampCode = parameters.getTimestampFormat();
-                if (timestampCode.equals("default") || timestampCode.equals("unixtime") || timestampCode.equals("unixtime-ms") || timestampCode.equals("iso8601")) {
-                    timestampFormatComboBox.setSelectedItem(timestampCode);
+                String comboItem = timestampKeyword2comboItem(timestampCode);
+                if (comboItem != null) {
+                    timestampFormatComboBox.setSelectedItem(comboItem);
                 } else {
                     timestampFormatComboBox.setSelectedItem("custom");
                     timestampFormatTextField.setText(timestampCode);
@@ -2600,6 +2637,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // read files with n threads
         if (readingThreadsCheckBox.isSelected()) {
             parameters.setThreadsReading((int) readingThreadsSpinner.getValue());
+        } else {
+            // reset it, otherwise a value that has been remembered from a previous run
+            // could never be switched off again
+            parameters.setThreadsReading(1);
         }
 
     }
@@ -2612,7 +2653,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // algorithm string can become very long, and we have to restore the original
         // preferred size of the text field component before the long text has been set
         Dimension dimensionBackup = algoTextField.getPreferredSize();
-        algoTextField.setText(parameters.getAlgorithm());
+        // getAlgorithm() reports what the user has entered, and that is null if neither -a has
+        // been given nor an algorithm has been remembered from an earlier run. Jacksum would use
+        // its default algorithm in that case, so show that one instead of leaving the field empty
+        // and making the user pick an algorithm from the list first.
+        algoTextField.setText(parameters.isAlgorithmSetByUser()
+                ? parameters.getAlgorithm()
+                : parameters.getAlgorithmIdentifier());
         algoTextField.setPreferredSize(dimensionBackup);
 
         // Calculate hashes with n threads
@@ -2621,18 +2668,28 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             hashingThreadsSpinner.setValue(parameters.getThreadsHashing());
         }
 
-        // Use alternative implemenation if available
-        alternativeImplemenationCheckBox.setSelected(parameters.isAlternateImplementationWanted());
+        // Use alternative implementation if available
+        alternativeImplementationCheckBox.setSelected(parameters.isAlternateImplementationWanted());
 
         // HMAC Options
+        // Jacksum maps both key types "Text" and "Password" onto Sequence.Type.TXT, so the
+        // distinction is a GUI-only setting that is remembered separately. Restore it first, an
+        // unknown value is ignored by setSelectedItem(). Without this the key would be shown
+        // unmasked after a restart.
+        String keyType = props.getProperty(PropertyKeys.GUI_KEYTYPE);
+        if (keyType != null) {
+            keyTypeComboBox.setSelectedItem(keyType);
+        }
+        // a remembered key overrules the restored type, unless it is a TXT key, because that one
+        // can be either "Text" or "Password"
         if (parameters.isKey()) {
             keyPasswordField.setText(parameters.getKey().getPayload());
-            if (parameters.isKey() && parameters.getKey().getType().equals(Sequence.Type.TXT)) {
-                keyTypeComboBox.setSelectedItem("Text");
-            } else if (parameters.isKey() && parameters.getKey().getType().equals(Sequence.Type.HEX)) {
+            if (parameters.getKey().getType().equals(Sequence.Type.HEX)) {
                 keyTypeComboBox.setSelectedItem("Hex");
-            } else if (parameters.isKey() && parameters.getKey().getType().equals(Sequence.Type.FILE)) {
+            } else if (parameters.getKey().getType().equals(Sequence.Type.FILE)) {
                 keyTypeComboBox.setSelectedItem("File");
+            } else if (!"Password".equals(keyTypeComboBox.getSelectedItem())) {
+                keyTypeComboBox.setSelectedItem("Text");
             }
         }
     }
@@ -2645,7 +2702,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         // HMAC Options
         String key = new String(keyPasswordField.getPassword());
-        if (keyTypeComboBox.getSelectedItem().equals("Text")
+        if (key.isEmpty()) {
+            // an empty key is no key at all: it would make Parameters.isKey() return true, and
+            // Jacksum would then put "-k txt:" into the header of the output file, even if the
+            // selected algorithm is not an HMAC at all
+            parameters.setKey((Sequence) null);
+        } else if (keyTypeComboBox.getSelectedItem().equals("Text")
                 || keyTypeComboBox.getSelectedItem().equals("Password")) {
             parameters.setKey(new Sequence("txt:" + key));
         } else if (keyTypeComboBox.getSelectedItem().equals("File")) {
@@ -2655,14 +2717,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
 
         // Calculate hashes with n threads
-        if ((int) hashingThreadsSpinner.getValue() > 1) {
-            parameters.setThreadsHashing((int) hashingThreadsSpinner.getValue());
-        }
+        // set it unconditionally, otherwise going back to a single thread would not stick
+        parameters.setThreadsHashing((int) hashingThreadsSpinner.getValue());
 
-        // Use alternative implemenation if available
-        if (alternativeImplemenationCheckBox.isSelected()) {
-            parameters.setAlternateImplementationWanted(true);
-        }
+        // Use alternative implementation if available
+        // set it unconditionally, otherwise unticking the checkbox would not stick
+        parameters.setAlternateImplementationWanted(alternativeImplementationCheckBox.isSelected());
     }
     
 
@@ -2681,7 +2741,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 hashValueEncodingCheckBox_verify, hashValueEncodingComboBox_verify,
                 includeFileSizeCheckBox_verify, outputStyleComboBox_verify,
                 includeTimestampCheckBox_verify, timestampFormatComboBox_verify, timestampFormatTextField_verify, null, null);
-            enableCustomFormatOptions_verify(outputStyleComboBox.getSelectedItem().equals("custom"));
+            enableCustomFormatOptions_verify(outputStyleComboBox_verify.getSelectedItem().equals("custom"));
         
             // ignore these fields if they are present in a check file
             ignoreHashesCheckBox.setSelected(parameters.isIgnoreHashes());
@@ -2782,6 +2842,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // Header
         parameters.setHeaderWanted(printHeaderCheckBox.isSelected());
 
+        // In verification mode this panel contributes the header option only: its custom format
+        // and path style controls are hidden (see setOperatingModeVerify()), the format of the
+        // check file is controlled by the verification panel instead. Without this guard we would
+        // overwrite what verificationPanel2Parameters() has just set, and we would also destroy
+        // path options that the GUI cannot represent (e.g. --path-relative-to-entry).
+        if (operatingMode != OperatingMode.CALC) {
+            return;
+        }
+
         // Custom style
         customStylePanel2parameters(
             hashValueEncodingCheckBox, hashValueEncodingComboBox,
@@ -2826,14 +2895,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     // OUTPUT FILES PANEL
     
     private void parameters2outputFilesPanel() {
-        // Standard output        
-        if (parameters.getOutputFile() != null) {
-            if (parameters.getOutputFile().equals("relative")) { // special meaning
-                updateOutputTextField();
-            } else {
-                standardOutputFileTextField.setText(parameters.getOutputFile());
-            }
-        }        
+        // Standard output
+        if (parameters.getOutputFile() != null && !parameters.getOutputFile().equals("relative")) {
+            standardOutputFileTextField.setText(parameters.getOutputFile());
+        } else {
+            // "relative" has a special meaning, and without an output file at all Jacksum writes
+            // to System.out, which a GUI user never gets to see, so suggest a file in both cases
+            updateOutputTextField();
+        }
+        
         if (parameters.getCharsetOutputFile() != null) {
             standardOutputFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetOutputFile());
         }
@@ -2891,8 +2961,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         } else {
             setOperatingMode(OperatingMode.VERIFY);
             if (parameters.getCheckFile().equals("relative")) {
-                String text = Paths.get(pathRelativeToTextField.getText(), "."+algoTextField.getText().toUpperCase(Locale.US)).toString();
-                fileVerificationTextField.setText(text);
+                fileVerificationTextField.setText(buildRelativeFilename());
             } else {
                 fileVerificationTextField.setText(parameters.getCheckFile());
             }
@@ -3030,11 +3099,18 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 setVisible(true);
             }
 
-            JOptionPane.showMessageDialog(this, String.format("HashGarten task has been finished.%n%n"
-                    + "Output has been saved to%n%s%n%nError log has been saved to%n%s",
-                    parameters.getOutputFile(), parameters.getErrorFile()));
+            StringBuilder message = new StringBuilder("HashGarten task has been finished.");
+            if (parameters.getOutputFile() != null) {
+                message.append(String.format("%n%nOutput has been saved to%n%s", parameters.getOutputFile()));
+            } else {
+                message.append(String.format("%n%nOutput has been written to standard output."));
+            }
+            if (parameters.getErrorFile() != null) {
+                message.append(String.format("%n%nError log has been saved to%n%s", parameters.getErrorFile()));
+            }
+            JOptionPane.showMessageDialog(this, message.toString());
 
-            if (stayOpenCheckBox.isSelected()) {
+            if (stayOpenCheckBox.isSelected() && !standardOutputFileTextField.getText().isEmpty()) {
                 viewFile(standardOutputFileTextField.getText());
             }
 
@@ -3102,7 +3178,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void fileVerificationSelectFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileVerificationSelectFileButtonActionPerformed
         JFileChooser chooser = new JFileChooser();
         if (fileVerificationTextField.getText().trim().length() > 0) {
-            chooser.setCurrentDirectory(Paths.get(fileVerificationTextField.getText()).getParent().toFile());
+            try {
+                Path parent = Paths.get(fileVerificationTextField.getText()).getParent();
+                // a filename without a directory (e.g. "check.txt") has no parent
+                if (parent != null) {
+                    chooser.setCurrentDirectory(parent.toFile());
+                }
+            } catch (InvalidPathException ipe) {
+                // keep the default directory of the file chooser
+            }
         }
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int state = chooser.showOpenDialog(this);
@@ -3203,9 +3287,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         dialog.setSelection(algoTextField.getText());
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
-        // TODO if not cancelled
+        if (!dialog.isOkPressed()) {
+            // cancelled resp. closed, so keep the algorithms that have been selected before
+            return;
+        }
         algoTextField.setText(dialog.getSelection());
-        interactiveNewAlgo = true;
         
         //parameters.setAlgorithm(algoTextField.getText());
         
@@ -3242,7 +3328,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             javax.swing.UIManager.setLookAndFeel(lookAndFeel);
             com.formdev.flatlaf.FlatLaf.updateUI();
         } catch (UnsupportedLookAndFeelException ex) {
-            System.err.println(ex);
+            debug(ex.toString());
         }
     }
 
@@ -3654,7 +3740,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         setOperatingMode(OperatingMode.INTERACTIVE);
     }//GEN-LAST:event_interactiveMenuItemActionPerformed
 
-    boolean interactiveNewAlgo = true;
     AbstractChecksum interactiveChecksum = null;
     
     private void interactiveInputTypeComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_interactiveInputTypeComboBoxItemStateChanged
@@ -3670,69 +3755,135 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     
     
+    // the tooltips the components carry while there is no error, so that they can be restored
+    private final Map<javax.swing.JComponent, String> toolTipBackup = new java.util.HashMap<>();
+
+    /**
+     * Flags a component as the cause of a user input error: FlatLaf paints an error outline around
+     * it and the reason becomes its tooltip.
+     *
+     * No color is set explicitly, so the mark follows the current theme - FlatLaf resolves it to
+     * Component.error.borderColor, which is defined separately for the light and the dark theme.
+     *
+     * @param component the component that the user has to correct
+     * @param message the reason, may be null
+     */
+    private void markInputError(javax.swing.JComponent component, String message) {
+        toolTipBackup.putIfAbsent(component, component.getToolTipText());
+        component.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_ERROR);
+        component.setToolTipText(message == null || message.isEmpty()
+                ? "The input is not valid." : message);
+    }
+
+    /**
+     * Removes the error mark and restores the tooltip that the component had before.
+     *
+     * @param component the component that is fine again
+     */
+    private void clearInputError(javax.swing.JComponent component) {
+        component.putClientProperty(FlatClientProperties.OUTLINE, null);
+        if (toolTipBackup.containsKey(component)) {
+            component.setToolTipText(toolTipBackup.get(component));
+        }
+    }
+
+    // all components that the Interactive operating mode can blame for an error
+    private void clearInteractiveErrors() {
+        clearInputError(interactiveInputTextField);
+        clearInputError(keyPasswordField);
+        clearInputError(algoTextField);
+    }
+
+    /**
+     * Reports an invalid interactive input at the component that caused it.
+     *
+     * The output field is cleared on purpose: it would otherwise keep the hash of an earlier input,
+     * which the user could copy without noticing that it does not belong to the current input.
+     *
+     * @param culprit the component the user has to correct
+     * @param message the reason, may be null
+     */
+    private void interactiveInvalid(javax.swing.JComponent culprit, String message) {
+        interactiveOutputTextField.setText("");
+        markInputError(culprit, message);
+        parameters.setSequence((Sequence) null);
+    }
+
+    /**
+     * Maps the selection of the input type combo box onto the Sequence type that Jacksum expects.
+     *
+     * @return the Sequence type
+     * @throws IllegalArgumentException if the selected item is not mapped, which is a defect
+     */
+    private Sequence.Type interactiveInputType() throws IllegalArgumentException {
+        String selected = String.valueOf(interactiveInputTypeComboBox.getSelectedItem());
+        switch (selected) {
+            case "Text": return Sequence.Type.TXT;
+            case "Password": return Sequence.Type.TXT;
+            case "Formatted Text": return Sequence.Type.TXTF;
+            case "Hex": return Sequence.Type.HEX;
+            case "Base32": return Sequence.Type.BASE32;
+            case "Base32hex": return Sequence.Type.BASE32HEX;
+            case "Base64": return Sequence.Type.BASE64;
+            case "Base64 for URL": return Sequence.Type.BASE64URL;
+            case "Decimal": return Sequence.Type.DEC;
+            case "Binary": return Sequence.Type.BIN;
+            case "Octal": return Sequence.Type.OCT;
+            case "Z85": return Sequence.Type.Z85;
+            case "BubbleBabble": return Sequence.Type.BUBBLEBABBLE;
+            case "z-base-32": return Sequence.Type.ZBASE32;
+            default:
+                throw new IllegalArgumentException(String.format("Unsupported input type: %s", selected));
+        }
+    }
+
     private void interactiveInputTextFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_interactiveInputTextFieldKeyReleased
+        // The component the user would have to correct. It is moved on as we go, so that the error
+        // outline ends up on the field that actually caused the problem rather than on the output.
+        javax.swing.JComponent culprit = keyPasswordField;
         try {
-            interactiveOutputTextField.setBackground(Color.white);
+            clearInteractiveErrors();
             calculationPanel2parameters();
 
-            Sequence.Type sequenceType = null;
-            // TODO: implement JComboBox renderer
-            switch (interactiveInputTypeComboBox.getSelectedItem().toString()) {
-                case "Text": sequenceType = Sequence.Type.TXT; break;
-                case "Password": sequenceType = Sequence.Type.TXT; break;
-                case "Formatted Text": sequenceType = Sequence.Type.TXTF; break;
-                case "Hex": sequenceType = Sequence.Type.HEX; break;
-                case "Base32": sequenceType = Sequence.Type.BASE32; break;
-                case "Base32hex": sequenceType = Sequence.Type.BASE32HEX; break;
-                case "Base64": sequenceType = Sequence.Type.BASE64; break;
-                case "Base64 for URL": sequenceType = Sequence.Type.BASE64URL; break;
-                case "Decimal": sequenceType = Sequence.Type.DEC; break;
-                case "Binary": sequenceType = Sequence.Type.BIN; break;
-                case "Octal": sequenceType = Sequence.Type.OCT; break;
-                case "Z85": sequenceType = Sequence.Type.Z85; break;
-                case "BubbleBabble": sequenceType = Sequence.Type.BUBBLEBABBLE; break;
-                case "z-base-32": sequenceType = Sequence.Type.ZBASE32; break;
+            // Decode the key on its own. Parameters.checked() decodes it too, so without this a
+            // key that cannot be decoded would be blamed on the algorithm field.
+            if (parameters.isKey()) {
+                parameters.getKey().asBytes();
             }
-            if (sequenceType == null) throw new IllegalArgumentException();
-            // Text, Password, Formatted Text, Hex, Base32, Base32hex, Base64, Base64 for URL, Binary, Decimal, Z85
 
-            String s = new String(interactiveInputTextField.getPassword());
-            parameters.setSequence(new Sequence(sequenceType, s));
+            culprit = interactiveInputTextField;
+            Sequence.Type sequenceType = interactiveInputType();
+            Sequence sequence = new Sequence(sequenceType,
+                    new String(interactiveInputTextField.getPassword()));
+            // Sequence keeps its payload undecoded, and Actions.getChecksumInstance() decodes it
+            // later on, so decode it here to have an invalid input blamed on the input field.
+            // The bytes are reused below, that also avoids decoding the same input twice.
+            byte[] inputBytes = sequence.asBytes();
+            parameters.setSequence(sequence);
+
+            culprit = algoTextField;
             checkParameters(false);
-
-            
-            if (interactiveNewAlgo) {
-                interactiveChecksum = Actions.getChecksumInstance(parameters);
-                interactiveNewAlgo = false;
-            } else {
-                interactiveChecksum = Actions.getChecksumInstance(parameters);
-                //interactiveChecksum.reset();                
-            }
+            interactiveChecksum = Actions.getChecksumInstance(parameters);
 
             interactiveChecksum.setFilename("");
-            interactiveChecksum.update(parameters.getSequence().asBytes());
-            interactiveOutputTextField.setBackground(Color.WHITE);
+            interactiveChecksum.update(inputBytes);
 
             Encoding enc = (Encoding) interactiveOutputTypeComboBox.getSelectedItem();
-            if (enc == null) throw new IllegalArgumentException();
+            if (enc == null) {
+                throw new IllegalArgumentException("No output type has been selected.");
+            }
             interactiveOutputTextField.setText(interactiveChecksum.getValueFormatted(enc));
-            parameters.setSequence((Sequence)null);
+            parameters.setSequence((Sequence) null);
 
-            
         } catch (ExitException | ParameterException | IllegalArgumentException ex) {
-            // oops, an unexpected error occurred, make the GUI visible again
-            setVisible(true);
-            JOptionPane.showMessageDialog(this, ex.getMessage());
-            interactiveOutputTextField.setBackground(Color.red);
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            // An error the user can fix. This method runs on every keystroke, so it must not open a
+            // dialog; the outline plus the tooltip report it right at the field instead.
+            interactiveInvalid(culprit, ex.getMessage());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.toString() + "\n" + Arrays.toString(e.getStackTrace()));
+            // not a user input error but a defect, so keep the details in the log
+            debug(String.format("Interactive mode: %s", e));
+            interactiveInvalid(culprit, "Unexpected error, see hashgarten.log");
         }
-            
-
-//            interactiveOutputTextField.setBackground(Color.RED);
-//            interactiveOutputTextField.setText(ex.toString());
-
     }//GEN-LAST:event_interactiveInputTextFieldKeyReleased
 
     private void interactiveOutputTypeComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_interactiveOutputTypeComboBoxItemStateChanged
@@ -3763,13 +3914,43 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         return cb.getModel();
     }
     
+    /**
+     * Builds the filename that Jacksum's special value "relative" stands for: a hidden file that
+     * is named after the algorithm and that is located next to the files that are being processed.
+     *
+     * @return the filename
+     */
+    private String buildRelativeFilename() {
+        String directory = pathRelativeToTextField.getText();
+        if (directory.isEmpty()) {
+            // a relative filename would end up in the current working directory, and that is not
+            // predictable for a GUI that has been started from a desktop or from a file browser
+            directory = System.getProperty("user.home");
+        }
+        // a colon (as in hmac:sha3-256) is not a valid character for a filename on all platforms
+        String algorithm = algoTextField.getText().toUpperCase(Locale.US).replace(':', '=');
+        return Paths.get(directory, "." + algorithm).toString();
+    }
+
+    // the filename that updateOutputTextField() has generated most recently; it is used to find
+    // out whether the user has edited the text field in the meantime
+    private String generatedOutputFilename = null;
+
     private void updateOutputTextField() {
-        String text = Paths.get(pathRelativeToTextField.getText(), "."+algoTextField.getText().toUpperCase(Locale.US).replace(':', '=')).toString();
-        standardOutputFileTextField.setText(text);
-        props.setProperty(PropertyKeys.GUI_OUTPUT, text);
+        String current = standardOutputFileTextField.getText();
+        if (!current.isEmpty() && !current.equals(generatedOutputFilename)) {
+            // the user has typed or dropped a filename, don't overrule it
+            return;
+        }
+        generatedOutputFilename = buildRelativeFilename();
+        standardOutputFileTextField.setText(generatedOutputFilename);
     }
     
     private void cancel() {
+        // the properties are written to disk here and in actionButtonActionPerformed() only,
+        // so don't throw away preferences that the user has changed but not used for a task yet
+        updatePropertiesFromGUI();
+        saveProperties();
         this.setVisible(false);
         this.dispose();
     }
@@ -3792,7 +3973,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JButton addButton;
     private javax.swing.JLabel algoLabel;
     private javax.swing.JTextField algoTextField;
-    private javax.swing.JCheckBox alternativeImplemenationCheckBox;
+    private javax.swing.JCheckBox alternativeImplementationCheckBox;
     private javax.swing.JButton alternativeImplementationHelpButton;
     private javax.swing.JCheckBox alwaysOnTopCheckBox;
     private javax.swing.JCheckBox bomCheckBox;

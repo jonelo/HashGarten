@@ -3,10 +3,10 @@
 The release notes of all released versions are also published at
 https://github.com/jonelo/HashGarten/releases - including the hash values of the released jar files.
 
-## HashGarten Next Release TBD
+## HashGarten 0.20, August 28, 2026
 
 - Bug fixes
-  - the Simple Interface operating mode is no longer blocked by a parameter error dialog that
+  - the Interactive operating mode is no longer blocked by a parameter error dialog that
     reappeared on every keystroke: HashGarten keeps one long living Jacksum Parameters object and
     validates it again and again, but up to and including Jacksum 4.0.0 a repeated validation fails
     if the Jacksum File Browser Integration has started HashGarten with `--path-relative-to-entry`,
@@ -16,6 +16,57 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - the Output Style tab shows the path that `--path-relative-to` has been set to even if Jacksum
     could not resolve it, so that it can be seen and corrected instead of being reported as
     "default" while it is still in effect
+  - Interactive: an invalid input is no longer reported by a dialog that reappeared on every
+    keystroke, and no longer by painting the output field red resp. white, which did not fit the
+    dark theme; the field that has to be corrected - the input, the key or the algorithm - is
+    marked with an error outline that follows the current theme, the reason becomes its tooltip,
+    and the output field is cleared, so that a hash that belongs to an earlier input can no longer
+    be copied by mistake
+  - preferences are saved when the window is closed as well: theme, always on top, stay open and
+    the window positioning were only written to the properties file after a task had been run, so
+    closing the window by the window decoration, by File -> Exit or by the Quit menu on macOS
+    threw them away, and in the Interactive operating mode they were never saved at all
+  - Verification: the settings of the Integrity Verification File Format are no longer discarded;
+    the hidden controls of the Output Style tab overwrote the style, the hash value encoding, the
+    file size and the timestamp of the verification file right after they had been read
+  - Verification: the controls of a customized verification file format are visible at startup if
+    the format of the verification file actually is a customized one
+  - the timestamp formats `default-utc` and `iso8601utc` are remembered: they ended up in the
+    text field for a customized timestamp format, and the next run then failed with an
+    "Illegal pattern character" error
+  - unticking "Use alternative implementation(s) if available", unticking the parallel reading
+    threads and going back to a single hashing thread sticks now; once such a setting had been
+    remembered from an earlier run it could never be switched off again
+  - Select algorithms: Cancel keeps the algorithms that have been selected before; both Cancel and
+    closing the dialog acted like Ok
+  - Select algorithms: an algorithm alias resp. an algorithm id that is not spelled in lower case
+    (e.g. `sha1` instead of `sha-1`) is ticked now; no algorithm was ticked at all in that case,
+    and pressing Ok then cleared the algorithm selection silently
+  - Calculation: the algorithm that Jacksum uses by default (sha3-256) is preselected if neither
+    `-a` has been given nor an algorithm has been remembered from an earlier run; the field was
+    empty, so a task could not be started before an algorithm had been picked from the list
+  - Output Files: an output file is suggested if none has been set, so that the result of a task
+    can no longer get lost on standard output, which a GUI user never gets to see
+  - the dialog that reports a finished task does not print "null" anymore as the name of the
+    output resp. the error log file if no such file has been set, and the viewer is not opened
+    for a file that has not been set either
+  - an output file that has been typed or dropped in is not overruled anymore when the algorithm
+    or the relative path is changed
+  - no key is handed over to Jacksum if the key field is empty; an empty key made Jacksum print
+    `-k txt:` to the header of the output file, even for algorithms that are not HMACs at all
+  - the key type "Password" is remembered, so that the key field stays masked after a restart
+  - the button to select a verification file also works if the text field contains a filename
+    without a directory
+  - a colon (as in `hmac:sha3-256`) is replaced by an equals sign for the name of the verification
+    file that `relative` stands for as well; that was done for the output file only
+  - Remove removes all selected lines of the file list, not just the first one
+  - Select algorithms: "Show checked" and "Show unchecked" no longer match algorithms that have
+    the word "true" resp. "false" in their description
+  - diagnostic messages are appended to `hashgarten.log` instead of being printed to the standard
+    streams, because those are controlled by Jacksum and can point to the user's own output file
+
+- Enhancements
+  - requires Jacksum 4.0.1
 
 ## HashGarten 0.19, August 22, 2026
 
@@ -43,7 +94,7 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - added Set Preferences, and Exit to the File menu
   - added "Calculate Hash Values", and "Verify Hash Values" to the "Operating Mode" menu
   - added "HashGarten Homepage", "Report Issue for Hashgarten", "Jacksum Manpage", "Jacksum Homepage", "Report Isssue for Jacksum", and About to the Help menu
-  - added the alternative implemenation option to the Calculation tab
+  - added the alternative implementation option to the Calculation tab
   - added tooltips with the name of the algorithm to the algorithm id colum at the dialog "Select algorithms"
   - verification tab is now invisible in calculation mode (before that it was just greyed out)
   - added a drop handler to the file textfields

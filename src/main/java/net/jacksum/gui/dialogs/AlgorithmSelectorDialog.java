@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.13.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -51,6 +51,9 @@ import net.loefflmann.sugar.util.ExitException;
  * @author Johann N. Löfflmann
  */
 public class AlgorithmSelectorDialog extends javax.swing.JDialog implements AlgorithmSelectionInterface, TableModelListener {
+
+    // whether the dialog has been left by pressing Ok; false means cancelled resp. closed
+    private boolean okPressed = false;
 
     private final AlgorithmsTableModel algorithmsTableModel;
     private final CustomizedAlgorithmsTableModel customizedAlgorithmsTableModel;
@@ -254,7 +257,8 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                             }
 
                         } catch (NothingFoundException | IOException e) {
-                            System.err.println(e);
+                            // Jacksum controls the standard streams, so don't print there
+                            net.jacksum.gui.GUIHelper.debug(e.toString());
                         }
                     }
 
@@ -269,8 +273,21 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         return algorithmsTableModel.getSelection();
     }
 
+    /**
+     * Whether the user has confirmed the selection by pressing Ok.
+     *
+     * The dialog instance is reused, so the flag is reset by every setSelection() call. Cancelling
+     * and closing the dialog both leave it false.
+     *
+     * @return true if Ok has been pressed since the last setSelection() call
+     */
+    public boolean isOkPressed() {
+        return okPressed;
+    }
+
     @Override
     public void setSelection(String algos) {
+        okPressed = false;
         algorithmsTableModel.setSelection(algos);
 
         // make sure that the first enabled row is selected
@@ -609,6 +626,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }// </editor-fold>//GEN-END:initComponents
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
+        okPressed = true;
         setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
@@ -637,11 +655,12 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_uncheckButtonActionPerformed
 
     private void showCheckedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showCheckedButtonActionPerformed
-        filterTextField.setText("true");
+        // anchored, otherwise a description that contains the word "true" would match as well
+        filterTextField.setText("^true$");
     }//GEN-LAST:event_showCheckedButtonActionPerformed
 
     private void showUncheckedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showUncheckedButtonActionPerformed
-        filterTextField.setText("false");
+        filterTextField.setText("^false$");
     }//GEN-LAST:event_showUncheckedButtonActionPerformed
 
     private void selectAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllButtonActionPerformed

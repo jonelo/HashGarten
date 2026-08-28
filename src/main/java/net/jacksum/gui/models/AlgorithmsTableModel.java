@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.9.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
@@ -21,9 +21,11 @@
 package net.jacksum.gui.models;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.table.AbstractTableModel;
 import net.jacksum.JacksumAPI;
 import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
@@ -111,7 +113,7 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
     public String getSelection() {
         List<String> list = new ArrayList<>();
         for (Object[] row : tableData) {
-            if (row[0] == Boolean.TRUE) {
+            if (Boolean.TRUE.equals(row[0])) {
                 list.add((String) row[1]);
             }
         }
@@ -121,20 +123,55 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
     @Override
     public void setSelection(String algosString) {
         firstTrue = -1;
-        String[] algos = algosString.split("\\+");
-        Map<String, Boolean> map = new HashMap<>();
-        for (String name : algos) {
-            map.put(name, null);
+        Set<String> wanted = new HashSet<>();
+        for (String algo : algosString.split("\\+")) {
+            String canonical = toCanonicalAlgorithmId(algo.trim());
+            if (canonical != null) {
+                wanted.add(canonical);
+            }
         }
         for (int row = 0; row < tableData.size(); row++) {
 
-            Boolean value = map.containsKey(tableData.get(row)[1]);
-            if (firstTrue == -1 && value.equals(true)) {
+            boolean value = wanted.contains(tableData.get(row)[1]);
+            if (firstTrue == -1 && value) {
                 firstTrue = row;
             }
             setValueAt(value, row, 0);
         }
 
+    }
+
+    /**
+     * Resolves an algorithm id as it can appear on the command line onto the canonical id that
+     * this model uses as the key of its rows.
+     *
+     * Jacksum's Parameters.getAlgorithm() reports what the user resp. the file browser integration
+     * has entered, and that can be an alias ("sha1" for "sha-1") or it can differ in case, while
+     * this model is keyed by the canonical ids of JacksumAPI.getAvailableAlgorithms(). Without
+     * resolving them no row would be ticked at all, and pressing Ok would then silently wipe the
+     * algorithm selection.
+     *
+     * @param algorithm the algorithm id, an alias is allowed
+     * @return the canonical algorithm id, or null if the algorithm is unknown
+     */
+    private String toCanonicalAlgorithmId(String algorithm) {
+        if (algorithm.isEmpty()) {
+            return null;
+        }
+        // Jacksum resolves algorithm ids in lower case only
+        String candidate = algorithm.toLowerCase(Locale.US);
+        for (Object[] row : tableData) {
+            if (candidate.equals(row[1])) {
+                return candidate;
+            }
+        }
+        // it is not a canonical id, so let Jacksum find out whether it is an alias
+        try {
+            return JacksumAPI.getChecksumInstance(candidate).getName();
+        } catch (Exception e) {
+            // an unknown algorithm cannot be ticked
+            return null;
+        }
     }
 
     public int getFirstTrue() {
@@ -145,7 +182,7 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
     public int getSelectedCount() {
         int selected = 0;
         for (Object[] row : tableData) {
-            if (row[0] == Boolean.TRUE) {
+            if (Boolean.TRUE.equals(row[0])) {
                 selected++;
             }
         }
