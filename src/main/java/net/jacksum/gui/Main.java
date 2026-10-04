@@ -278,6 +278,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 parametersFromProps.setCheckFile(null);
                 // make sure that the filenames to be checked are removed from a previous run
                 parametersFromProps.setFilenamesFromCheckFile(null);
+                // a file list is usually a temporary file that has been created by the file browser
+                // integration for a previous run, and it is gone by now; if a file list is required,
+                // the file browser integration passes a fresh one by command line args
+                parametersFromProps.setFilelistFilename(null);
                 parametersFromProps.getVerbose().setDefault();
 
                 // parametersFromProps.setParameterModifiedByAPI(true);
@@ -932,7 +936,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addComponent(readingThreadsSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(parallelThreadsLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 8, Short.MAX_VALUE)
                         .addComponent(threadsReadingHelpButton)))
                 .addContainerGap())
         );
@@ -1005,7 +1009,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel9.setText("Key:");
 
         keyFileButton.setText("...");
-        keyFileButton.setVisible(false);
+        keyFileButton.setEnabled(false);
         keyFileButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 keyFileButtonActionPerformed(evt);
@@ -1462,7 +1466,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(timestampFormatComboBox_verify, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(timestampFormatTextField_verify, javax.swing.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE)
+                                .addComponent(timestampFormatTextField_verify, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(timestampHelpButton_verify))
                             .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
@@ -1568,7 +1572,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(integrityVerificationFilterPanelLayout.createSequentialGroup()
                         .addGroup(integrityVerificationFilterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(showFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
+                            .addComponent(showFilesLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 568, Short.MAX_VALUE)
                             .addGroup(integrityVerificationFilterPanelLayout.createSequentialGroup()
                                 .addComponent(jLabel7)
                                 .addGap(0, 0, Short.MAX_VALUE))
@@ -1821,7 +1825,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, customizedFormatPanelLayout.createSequentialGroup()
                                         .addComponent(lineFormatCheckBox)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(lineFormatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)))
+                                        .addComponent(lineFormatTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(customizedFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                     .addComponent(lineFormatHelpButton)
@@ -1921,7 +1925,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addComponent(customizedPathSeparatorCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 221, Short.MAX_VALUE))
+                                .addGap(0, 210, Short.MAX_VALUE))
                             .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -2017,7 +2021,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
-                                .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
+                                .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(standardOutputViewButton))
                             .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
@@ -2075,13 +2079,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(outputFilesOptionsPanelLayout.createSequentialGroup()
                         .addComponent(bomCheckBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 167, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 140, Short.MAX_VALUE)
                         .addComponent(bomHelpButton))
                     .addComponent(placeholderForOutputFilesOptionsLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(outputFilesOptionsPanelLayout.createSequentialGroup()
                         .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(standardErrorFileCharacterSetLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(standardOutputFileCharacterSetLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE))
+                            .addComponent(standardOutputFileCharacterSetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(standardOutputFileCharacterSetComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2156,7 +2160,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(themeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(themePanelLayout.createSequentialGroup()
                         .addComponent(darkThemeToggleButton)
-                        .addGap(0, 424, Short.MAX_VALUE)))
+                        .addGap(0, 432, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         themePanelLayout.setVerticalGroup(
@@ -2194,7 +2198,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(guiPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(stayOpenCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, 554, Short.MAX_VALUE)
+                    .addComponent(stayOpenCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, 568, Short.MAX_VALUE)
                     .addComponent(alwaysOnTopCheckBox, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(guiPanelLayout.createSequentialGroup()
                         .addComponent(centerWindowWhereTheMouseIsCheckBox)
@@ -2258,7 +2262,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             actionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(actionPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 566, Short.MAX_VALUE)
+                .addComponent(actionButton, javax.swing.GroupLayout.DEFAULT_SIZE, 580, Short.MAX_VALUE)
                 .addContainerGap())
         );
         actionPanelLayout.setVerticalGroup(
@@ -3701,14 +3705,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         if (evt.getStateChange() == ItemEvent.SELECTED) {     
             if (evt.getItem().equals("Password")) {
                 keyPasswordField.setEchoChar(maskChar);
-                keyFileButton.setVisible(false);
+                keyFileButton.setEnabled(false);
             } else
             if (evt.getItem().equals("File")) {
                 keyPasswordField.setEchoChar((char)0);
-                keyFileButton.setVisible(true);
+                keyFileButton.setEnabled(true);
             } else { // Text, Hex
                 keyPasswordField.setEchoChar((char)0);
-                keyFileButton.setVisible(false);                
+                keyFileButton.setEnabled(false);                
             }
                 
         }
@@ -3773,6 +3777,22 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         component.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_ERROR);
         component.setToolTipText(message == null || message.isEmpty()
                 ? "The input is not valid." : message);
+    }
+
+    /**
+     * Flags a component whose input is valid, but has no effect: FlatLaf paints a warning outline
+     * around it and the reason becomes its tooltip. It is removed by clearInputError().
+     *
+     * No color is set explicitly, so the mark follows the current theme - FlatLaf resolves it to
+     * Component.warning.borderColor, which is defined separately for the light and the dark theme.
+     *
+     * @param component the component that the user should have a look at
+     * @param message the reason
+     */
+    private void markInputWarning(javax.swing.JComponent component, String message) {
+        toolTipBackup.putIfAbsent(component, component.getToolTipText());
+        component.putClientProperty(FlatClientProperties.OUTLINE, FlatClientProperties.OUTLINE_WARNING);
+        component.setToolTipText(message);
     }
 
     /**
@@ -3874,6 +3894,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
             interactiveOutputTextField.setText(interactiveChecksum.getValueFormatted(enc));
             parameters.setSequence((Sequence) null);
+
+            // Jacksum uses the key for HMAC algorithms only and ignores it silently otherwise, so
+            // without a hint typing a key would seem to have no effect at all
+            if (parameters.isKey() && !algoTextField.getText().toLowerCase().contains("hmac:")) {
+                markInputWarning(keyPasswordField, "The key has no effect, because it is used by HMAC "
+                        + "algorithms only (e.g. hmac:sha-256), and none of the selected algorithms is one.");
+            }
 
         } catch (ExitException | ParameterException | IllegalArgumentException ex) {
             // An error the user can fix. This method runs on every keystroke, so it must not open a

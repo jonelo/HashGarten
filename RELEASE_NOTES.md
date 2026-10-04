@@ -3,7 +3,7 @@
 The release notes of all released versions are also published at
 https://github.com/jonelo/HashGarten/releases - including the hash values of the released jar files.
 
-## HashGarten 0.20, August 28, 2026
+## HashGarten 0.20, Oct 5, 2026
 
 - Bug fixes
   - the Interactive operating mode is no longer blocked by a parameter error dialog that
@@ -64,6 +64,17 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
     the word "true" resp. "false" in their description
   - diagnostic messages are appended to `hashgarten.log` instead of being printed to the standard
     streams, because those are controlled by Jacksum and can point to the user's own output file
+  - Interactive: a key that has no effect, because none of the selected algorithms is an HMAC, is
+    marked with a warning outline that follows the current theme, and the reason becomes its
+    tooltip; Jacksum ignores such a key silently, so typing it seemed to have no effect on the
+    output at all
+  - a file list that has been remembered from a previous run is discarded at startup; it usually
+    was a temporary file of the Jacksum File Browser Integration that does not exist anymore, which
+    caused a parameter error at every start; a file list that is given by command line args is
+    still used
+  - `mvn package` copies the jacksum and flatlaf jars next to the HashGarten jar, where the
+    `Class-Path` of its manifest expects them; `java -jar target/HashGarten-0.20.0.jar` failed with
+    a `NoClassDefFoundError` otherwise
 
 - Enhancements
   - requires Jacksum 4.0.1

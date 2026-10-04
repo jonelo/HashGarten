@@ -44,6 +44,7 @@ import net.jacksum.actions.info.help.NothingFoundException;
 import net.jacksum.cli.Verbose;
 import net.jacksum.gui.models.CustomizedAlgorithmsTableModel;
 import net.jacksum.parameters.Sequence;
+import net.jacksum.parameters.ParameterException;
 import net.loefflmann.sugar.util.ExitException;
 
 /**
@@ -252,7 +253,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                                 action.perform(buffer);
                                 implTextArea.setText(buffer.toString());
                                 implTextArea.setCaretPosition(0);    
-                            } catch (ExitException ex) {
+                            } catch (ExitException | ParameterException ex) {
                                 Logger.getLogger(AlgorithmSelectorDialog.class.getName()).log(Level.SEVERE, null, ex);
                             }
 
