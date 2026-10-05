@@ -3,6 +3,12 @@
 The release notes of all released versions are also published at
 https://github.com/jonelo/HashGarten/releases - including the hash values of the released jar files.
 
+## HashGarten 0.21, unreleased
+
+- Bug fixes
+
+- Enhancements
+
 ## HashGarten 0.20, Oct 5, 2026
 
 - Bug fixes

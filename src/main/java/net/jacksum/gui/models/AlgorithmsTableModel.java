@@ -1,6 +1,6 @@
 /*
 
-  HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
+  HashGarten 0.21.0 - a GUI to calculate and verify hashes, powered by Jacksum
   Copyright (c) 2022-2026 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
