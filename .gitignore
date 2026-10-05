@@ -1,3 +1,4 @@
 target/
 hashgarten.log
 java.desktop/
+.idea
