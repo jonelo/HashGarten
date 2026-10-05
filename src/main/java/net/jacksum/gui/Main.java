@@ -3295,7 +3295,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 dispose();
                 System.exit(0);
             }
-        } catch (ExitException | ParameterException | IllegalArgumentException | UserInputError ex) {
+        } catch (UserInputError ex) {
+            // the user has already been told what to correct, so just stay in the GUI
+            setVisible(true);
+        } catch (ExitException | ParameterException | IllegalArgumentException ex) {
             // oops, an unexpected error occurred, make the GUI visible again
             setVisible(true);
             JOptionPane.showMessageDialog(this, ex.getMessage());

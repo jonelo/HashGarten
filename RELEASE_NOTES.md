@@ -11,6 +11,8 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
     always the case in the Interactive operating mode with an empty key field
   - Interactive: the output field is read-only, so the hash value can be selected and copied,
     but no longer changed by mistake
+  - an incomplete input (e.g. an empty file list, no algorithm, no verification file) is reported
+    once; after the message an empty dialog appeared, and an error was printed to the terminal
 
 - Enhancements
   - Interactive: the output field has a context menu to copy the hash value to the clipboard
