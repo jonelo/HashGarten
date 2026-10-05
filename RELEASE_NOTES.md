@@ -13,6 +13,7 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
     but no longer changed by mistake
 
 - Enhancements
+  - Interactive: the output field has a context menu to copy the hash value to the clipboard
 
 ## HashGarten 0.20, Oct 5, 2026
 

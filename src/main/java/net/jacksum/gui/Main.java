@@ -265,6 +265,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     private void finishLookAndFeel() {
         installDropHandlers();
+        installOutputContextMenu();
         darkThemeToggleButton.setSelected(theme.equals(PropertyValues.THEME_DARK));
         setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
     }
@@ -3098,7 +3099,38 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         standardOutputFileTextField.setTransferHandler(dropHandler);
         standardErrorFileTextField.setTransferHandler(dropHandler);
     }
-    
+
+    /**
+     * Gives the output field of the Interactive mode a context menu to copy the whole hash value,
+     * so that it does not have to be selected first.
+     */
+    private void installOutputContextMenu() {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        javax.swing.JMenuItem copyItem = new javax.swing.JMenuItem("Copy to Clipboard");
+        copyItem.addActionListener(e -> {
+            String text = interactiveOutputTextField.getText();
+            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(new java.awt.datatransfer.StringSelection(text), null);
+        });
+        menu.add(copyItem);
+        // there is nothing to copy as long as no hash has been calculated (e.g. invalid input)
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                copyItem.setEnabled(!interactiveOutputTextField.getText().isEmpty());
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        interactiveOutputTextField.setComponentPopupMenu(menu);
+    }
+
     private void parameters2modeSelection() {
         if (parameters.getCheckFile() == null) {
             fileVerificationTextField.setText("");
