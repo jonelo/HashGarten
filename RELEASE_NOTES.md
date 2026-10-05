@@ -6,6 +6,9 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
 ## HashGarten 0.21, unreleased
 
 - Bug fixes
+  - Select algorithms: the implementation details of an HMAC are shown; selecting e.g.
+    `hmac:sha-256` failed with "Key must not be null" if no key had been entered, which was
+    always the case in the Interactive operating mode with an empty key field
 
 - Enhancements
 

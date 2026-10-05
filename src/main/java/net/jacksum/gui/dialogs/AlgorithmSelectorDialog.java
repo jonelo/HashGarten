@@ -26,8 +26,6 @@ import net.jacksum.gui.models.AlgorithmsTableModel;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.RowFilter;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -37,6 +35,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
+import net.jacksum.HashFunctionFactory;
 import net.jacksum.actions.info.algo.AlgoInfoAction;
 import net.jacksum.actions.info.algo.AlgoInfoActionParameters;
 import net.jacksum.actions.info.help.Help;
@@ -249,12 +248,37 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                             StringBuilder buffer = new StringBuilder();
                             params.setAlgorithmIdentifier(algoSelected);
                             AlgoInfoAction action = new AlgoInfoAction(params);
+
+                            // An HMAC is initialized with the process wide key of the
+                            // HashFunctionFactory, which Parameters.checked() wipes if no key has
+                            // been given (e.g. an empty key field in the Interactive mode). The
+                            // details don't depend on the key, so use an empty key for them and
+                            // restore the previous state afterwards.
+                            boolean hmac = algoSelected.startsWith("hmac:");
+                            byte[] previousKey = null;
+                            if (hmac) {
+                                // setKey() wipes the stored array, so keep a copy of it
+                                previousKey = HashFunctionFactory.getKey();
+                                previousKey = previousKey == null ? null : previousKey.clone();
+                                HashFunctionFactory.setKey(new byte[0]);
+                            }
                             try {
                                 action.perform(buffer);
                                 implTextArea.setText(buffer.toString());
-                                implTextArea.setCaretPosition(0);    
+                                implTextArea.setCaretPosition(0);
                             } catch (ExitException | ParameterException ex) {
-                                Logger.getLogger(AlgorithmSelectorDialog.class.getName()).log(Level.SEVERE, null, ex);
+                                implTextArea.setText(ex.getMessage());
+                                net.jacksum.gui.GUIHelper.debug(ex.toString());
+                            } finally {
+                                if (hmac) {
+                                    if (previousKey == null) {
+                                        HashFunctionFactory.wipeKey();
+                                    } else {
+                                        // setKey() stores a copy, so our copy can be wiped
+                                        HashFunctionFactory.setKey(previousKey);
+                                        java.util.Arrays.fill(previousKey, (byte) 0x00);
+                                    }
+                                }
                             }
 
                         } catch (NothingFoundException | IOException e) {
