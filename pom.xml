@@ -5,11 +5,17 @@
     <artifactId>HashGarten</artifactId>
     <version>0.20.0</version>
     <packaging>jar</packaging>
+    <licenses>
+        <license>
+            <name>GPL-3.0 or any later version</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+        </license>
+    </licenses>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <maven.compiler.release>25</maven.compiler.release>
     </properties>
     
     <build>
@@ -24,6 +30,10 @@
                             <addClasspath>true</addClasspath>
                             <mainClass>net.jacksum.gui.Main</mainClass>
                         </manifest>
+                        <manifestEntries>
+                            <!-- MacAppMenu and FlatLaf call native code, without this java -jar warns about it -->
+                            <Enable-Native-Access>ALL-UNNAMED</Enable-Native-Access>
+                        </manifestEntries>
                     </archive>
                 </configuration>
             </plugin>

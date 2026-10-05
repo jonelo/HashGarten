@@ -1,7 +1,7 @@
 /*
 
   HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022-2023 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  Copyright (c) 2022-2026 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -373,17 +373,18 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         customizedAlgorithmsTable = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Select algorithms");
+        setTitle("Select Algorithms");
 
         algorithmsTable.setAutoCreateRowSorter(true);
         algorithmsTable.setModel(algorithmsTableModel);
+        algorithmsTable.setToolTipText("Tick the algorithms to be used, select a row to see its details");
         tableScrollPane.setViewportView(algorithmsTable);
 
         FilterLabel.setText("Filter:");
 
         algorithmCountLabel.setText("xxx/xxx algorithms picked");
 
-        filterTextField.setToolTipText("Regular expressions are allowed!");
+        filterTextField.setToolTipText("Filter the algorithms, regular expressions are supported (e.g. ^sha3-)");
 
         showAllButton.setText("Show all");
         showAllButton.setToolTipText("Show all available algorithms");
@@ -410,7 +411,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         selectAllButton.setText("Select all");
-        selectAllButton.setToolTipText("Select all algorithms");
+        selectAllButton.setToolTipText("Select all rows of the table");
         selectAllButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 selectAllButtonActionPerformed(evt);
@@ -418,7 +419,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         selectNoneButton.setText("Select none");
-        selectNoneButton.setToolTipText("Select none of the algorithms");
+        selectNoneButton.setToolTipText("Clear the selection of rows");
         selectNoneButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 selectNoneButtonActionPerformed(evt);
@@ -426,7 +427,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         checkButton.setText("Check");
-        checkButton.setToolTipText("Tick all checkboxes of the current selection");
+        checkButton.setToolTipText("Tick the checkboxes of the selected rows");
         checkButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 checkButtonActionPerformed(evt);
@@ -434,7 +435,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         uncheckButton.setText("Uncheck");
-        uncheckButton.setToolTipText("Erase all checks in the checkboxes of the current selection");
+        uncheckButton.setToolTipText("Untick the checkboxes of the selected rows");
         uncheckButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uncheckButtonActionPerformed(evt);
@@ -442,7 +443,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         toggleButton.setText("Toggle");
-        toggleButton.setToolTipText("Toglggle all checks on all checkboxes of the current selection");
+        toggleButton.setToolTipText("Invert the checkboxes of the selected rows");
         toggleButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 toggleButtonActionPerformed(evt);
@@ -450,7 +451,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         resetButton.setText("Reset");
-        resetButton.setToolTipText("Reset both selection and ticks");
+        resetButton.setToolTipText("Clear the filter, the selection and all ticks");
         resetButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 resetButtonActionPerformed(evt);
@@ -458,15 +459,15 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
 
         cancelButton.setText("Cancel");
-        cancelButton.setToolTipText("Do yo want to cancel this operation?");
+        cancelButton.setToolTipText("Close the dialog without changing the algorithms");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelButtonActionPerformed(evt);
             }
         });
 
-        okButton.setText("Ok");
-        okButton.setToolTipText("Return all algorithms that have been checked");
+        okButton.setText("OK");
+        okButton.setToolTipText("Use all algorithms that have been ticked");
         okButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 okButtonActionPerformed(evt);
@@ -477,6 +478,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
 
         helpTextArea.setEditable(false);
         helpTextArea.setColumns(20);
+        helpTextArea.setToolTipText("Description of the selected algorithm from the Jacksum manpage");
         helpScrollPane.setViewportView(helpTextArea);
 
         javax.swing.GroupLayout helpPanelLayout = new javax.swing.GroupLayout(helpPanel);
@@ -505,6 +507,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         implTextArea.setEditable(false);
         implTextArea.setColumns(20);
         implTextArea.setRows(5);
+        implTextArea.setToolTipText("Implementation details of the selected algorithm");
         implScrollPane.setViewportView(implTextArea);
 
         javax.swing.GroupLayout implPanelLayout = new javax.swing.GroupLayout(implPanel);

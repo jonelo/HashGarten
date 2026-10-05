@@ -1,7 +1,7 @@
 /*
 
   HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022-2024 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  Copyright (c) 2022-2026 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -57,6 +57,7 @@ public class HelpDialog extends javax.swing.JDialog {
         setTitle("Help");
 
         cancelButton.setText("Close");
+        cancelButton.setToolTipText("Close this window");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelButtonActionPerformed(evt);
@@ -66,6 +67,7 @@ public class HelpDialog extends javax.swing.JDialog {
         helpTextArea.setEditable(false);
         helpTextArea.setColumns(20);
         helpTextArea.setRows(5);
+        helpTextArea.setToolTipText("Help text from the Jacksum manpage");
         helpScrollPane.setViewportView(helpTextArea);
 
         javax.swing.GroupLayout helpPanelLayout = new javax.swing.GroupLayout(helpPanel);

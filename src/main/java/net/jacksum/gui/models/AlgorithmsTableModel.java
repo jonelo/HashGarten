@@ -1,7 +1,7 @@
 /*
 
   HashGarten 0.20.0 - a GUI to calculate and verify hashes, powered by Jacksum
-  Copyright (c) 2022 Dipl.-Inf. (FH) Johann N. Löfflmann,
+  Copyright (c) 2022-2026 Dipl.-Inf. (FH) Johann N. Löfflmann,
   All Rights Reserved, <https://jacksum.net>.
 
   This program is free software: you can redistribute it and/or modify it under
@@ -37,7 +37,7 @@ import net.jacksum.gui.interfaces.AlgorithmSelectionInterface;
 public class AlgorithmsTableModel extends AbstractTableModel implements AlgorithmSelectionInterface {
 
     String[] columnNames = new String[]{
-        "Choose", "Algorithm Id", "Description" //, "Width in bits"
+        "Choose", "Algorithm ID", "Description" //, "Width in bits"
     };
     Class[] types = new Class[]{
         Boolean.class, String.class, String.class //, String.class, Integer.class

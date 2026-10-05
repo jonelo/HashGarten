@@ -77,6 +77,7 @@ import net.jacksum.formats.Encoding;
 import net.jacksum.formats.TimestampFormatter;
 import net.jacksum.gui.dialogs.HelpDialog;
 import net.jacksum.gui.util.IO;
+import net.jacksum.gui.util.MacAppMenu;
 import net.jacksum.multicore.ThreadControl;
 import net.jacksum.parameters.ParameterException;
 import net.jacksum.parameters.Parameters;
@@ -132,29 +133,70 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     
     private void patchTheGUIonMacOS() {
         if (SystemInfo.isMacOS) {
+            // Menus and items that move into the application menu are removed rather than hidden:
+            // the screen menu bar does not cope with an invisible JMenu, it would not draw the menus
+            // that follow it until the mouse is moved over the menu bar.
             Desktop desktop = Desktop.getDesktop();
             if (desktop.isSupported(Desktop.Action.APP_ABOUT)) {
-                aboutMenuItem.setVisible(false);
-                aboutMenuSeparator.setVisible(false);
+                helpMenu.remove(aboutMenuItem);
+                helpMenu.remove(aboutMenuSeparator);
                 desktop.setAboutHandler(e -> {
                     showAboutDialog();
                 });
             }
+            boolean preferencesInAppMenu = false;
             if (desktop.isSupported(Desktop.Action.APP_PREFERENCES)) {
-                fileMenu.setVisible(false);
                 desktop.setPreferencesHandler(e -> {
                     setOperatingMode(OperatingMode.PREFERENCES);
                 });
+                preferencesInAppMenu = true;
+                // the JDK's Settings item would be indented on macOS 26+, see the method
+                MacAppMenu.removeSettingsImage();
             }
+            boolean quitInAppMenu = false;
             if (desktop.isSupported(Desktop.Action.APP_QUIT_HANDLER)) {
-                fileMenu.setVisible(false);
                 desktop.setQuitHandler((e, response) -> {
                     cancel();
                     response.performQuit();
                 });
+                quitInAppMenu = true;
             }
-            
+            // the File menu holds nothing but "Set Preferences" and "Exit"
+            if (preferencesInAppMenu && quitInAppMenu) {
+                menuBar.remove(fileMenu);
+            }
+            if (Boolean.getBoolean("apple.laf.useScreenMenuBar")) {
+                redrawMenuBarAfterFirstActivation();
+            }
         }
+    }
+
+    /**
+     * On a slow start, macOS sometimes does not draw the menus of the screen menu bar, see
+     * MacAppMenu.redrawMenuBar(). So once the frame has been activated for the first time, and the
+     * menus have arrived in the native main menu (the application menu plus ours), the menu bar is
+     * redrawn once. Waiting for the menus is limited to a few seconds, it is redrawn in any case.
+     */
+    private void redrawMenuBarAfterFirstActivation() {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowActivated(java.awt.event.WindowEvent e) {
+                removeWindowListener(this);
+                long expected = getJMenuBar().getMenuCount() + 1;
+                long start = System.currentTimeMillis();
+                javax.swing.Timer poll = new javax.swing.Timer(50, null);
+                poll.addActionListener(ev -> {
+                    if (MacAppMenu.mainMenuItemCount() >= expected
+                            || System.currentTimeMillis() - start > 3000) {
+                        poll.stop();
+                        javax.swing.Timer redraw = new javax.swing.Timer(100, ev2 -> MacAppMenu.redrawMenuBar());
+                        redraw.setRepeats(false);
+                        redraw.start();
+                    }
+                });
+                poll.start();
+            }
+        });
     }
 
     private static void beforeTheGUIonMacOS() {
@@ -415,10 +457,16 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     // Read values from the parameters object and update the properties object
     private void updatePropertiesFromParameters() {
+        // pathRelativeTo is a java.nio.file.Path, which is not serializable; Parameters.checked()
+        // derives it from pathRelativeToAsString, so it is left out and put back afterwards
+        java.nio.file.Path pathRelativeTo = parameters.getPathRelativeTo();
+        parameters.setPathRelativeTo(null);
         try {
             props.setProperty(PropertyKeys.JACKSUM_PARAMETERS_BASE64, IO.objectToBase64String(parameters));
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            parameters.setPathRelativeTo(pathRelativeTo);
         }
     }
 
@@ -462,6 +510,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         followSymlinksToDirectoriesHelpButton = new javax.swing.JButton();
         followSymlinksToFilesHelpButton = new javax.swing.JButton();
         findADSHelpButton = new javax.swing.JButton();
+        scanAllUnixFileTypesCheckBox = new javax.swing.JCheckBox();
+        scanAllUnixFileTypesHelpButton = new javax.swing.JButton();
         readPerformancePanel = new javax.swing.JPanel();
         readingThreadsCheckBox = new javax.swing.JCheckBox();
         readingThreadsSpinner = new javax.swing.JSpinner();
@@ -646,7 +696,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         fileListScrollPane.setViewportView(fileList);
 
         moveTopButton.setText("Top");
-        moveTopButton.setToolTipText("Move selected line to the top of the list");
+        moveTopButton.setToolTipText("Move the selected line to the top of the list");
         moveTopButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveTopButtonActionPerformed(evt);
@@ -654,7 +704,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         moveUpButton.setText("Up");
-        moveUpButton.setToolTipText("Move selected line up");
+        moveUpButton.setToolTipText("Move the selected line up");
         moveUpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveUpButtonActionPerformed(evt);
@@ -662,7 +712,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         moveDownButton.setText("Down");
-        moveDownButton.setToolTipText("Move selected line down");
+        moveDownButton.setToolTipText("Move the selected line down");
         moveDownButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveDownButtonActionPerformed(evt);
@@ -670,7 +720,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         moveBottomButton.setText("Bottom");
-        moveBottomButton.setToolTipText("Move selected line to the bottom of the list");
+        moveBottomButton.setToolTipText("Move the selected line to the bottom of the list");
         moveBottomButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 moveBottomButtonActionPerformed(evt);
@@ -703,7 +753,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         );
 
         addButton.setText("Add");
-        addButton.setToolTipText("Add files and directories that should be read");
+        addButton.setToolTipText("Add files and directories to be read");
         addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addButtonActionPerformed(evt);
@@ -711,7 +761,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         removeButton.setText("Remove");
-        removeButton.setToolTipText("Remove selected lines from the list");
+        removeButton.setToolTipText("Remove the selected lines from the list");
         removeButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 removeButtonActionPerformed(evt);
@@ -719,7 +769,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         saveButton.setText("Save");
-        saveButton.setToolTipText("Save the current list to memory");
+        saveButton.setToolTipText("Save the current list, it is also remembered after a restart");
         saveButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 saveButtonActionPerformed(evt);
@@ -727,7 +777,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         restoreButton.setText("Restore");
-        restoreButton.setToolTipText("Restore the list from memory");
+        restoreButton.setToolTipText("Go back to the list that has been saved last");
         restoreButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 restoreButtonActionPerformed(evt);
@@ -808,21 +858,27 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         placeholderForReadFilesAndDirectoriesOptionsLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         placeholderForReadFilesAndDirectoriesOptionsLabel.setText("Traversal Options");
 
-        walkingDepthCheckBox.setText("Go down max.");
+        walkingDepthCheckBox.setText("Descend at most");
+        walkingDepthCheckBox.setToolTipText("Limit how deep subdirectories are read");
 
         walkingDepthSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
+        walkingDepthSpinner.setToolTipText("Maximum number of directory levels to descend");
 
-        levelsWhenTraversingADirectoryLabel.setText("level(s) if traversing a directory");
+        levelsWhenTraversingADirectoryLabel.setText("level(s) when traversing a directory");
 
         followSymlinksToDirectoriesCheckBox.setSelected(true);
-        followSymlinksToDirectoriesCheckBox.setText("Follow symlinks to directories (don't worry, file system cycle detection is supported)");
+        followSymlinksToDirectoriesCheckBox.setText("Follow symlinks to directories (file system cycles are detected)");
+        followSymlinksToDirectoriesCheckBox.setToolTipText("Read the directories that symbolic links point to");
 
         followSymlinksToFilesCheckBox.setSelected(true);
         followSymlinksToFilesCheckBox.setText("Follow symlinks to files");
+        followSymlinksToFilesCheckBox.setToolTipText("Read the files that symbolic links point to");
 
         scanNtfsAdsCheckBox.setText("Find Alternate Data Streams (ADS) for both files and directories (Windows only)");
+        scanNtfsAdsCheckBox.setToolTipText("Also read NTFS Alternate Data Streams (Windows only)");
 
         recursiveDepthHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        recursiveDepthHelpButton.setToolTipText("What does that mean?");
         recursiveDepthHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 recursiveDepthHelpButtonActionPerformed(evt);
@@ -830,6 +886,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         followSymlinksToDirectoriesHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        followSymlinksToDirectoriesHelpButton.setToolTipText("What does that mean?");
         followSymlinksToDirectoriesHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 followSymlinksToDirectoriesHelpButtonActionPerformed(evt);
@@ -837,6 +894,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         followSymlinksToFilesHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        followSymlinksToFilesHelpButton.setToolTipText("What does that mean?");
         followSymlinksToFilesHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 followSymlinksToFilesHelpButtonActionPerformed(evt);
@@ -844,9 +902,21 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         findADSHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        findADSHelpButton.setToolTipText("What does that mean?");
         findADSHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 findADSHelpButtonActionPerformed(evt);
+            }
+        });
+
+        scanAllUnixFileTypesCheckBox.setText("Find all Unix file types (Unix-like OS only)");
+        scanAllUnixFileTypesCheckBox.setToolTipText("Also read devices, named pipes and sockets (Unix-like OS only)");
+
+        scanAllUnixFileTypesHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        scanAllUnixFileTypesHelpButton.setToolTipText("What does that mean?");
+        scanAllUnixFileTypesHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                scanAllUnixFileTypesHelpButtonActionPerformed(evt);
             }
         });
 
@@ -877,7 +947,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addGroup(fileInputOptionsPanelLayout.createSequentialGroup()
                         .addComponent(scanNtfsAdsCheckBox)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(findADSHelpButton)))
+                        .addComponent(findADSHelpButton))
+                    .addGroup(fileInputOptionsPanelLayout.createSequentialGroup()
+                        .addComponent(scanAllUnixFileTypesCheckBox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(scanAllUnixFileTypesHelpButton)))
                 .addContainerGap())
         );
         fileInputOptionsPanelLayout.setVerticalGroup(
@@ -903,19 +977,26 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(fileInputOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(findADSHelpButton)
                     .addComponent(scanNtfsAdsCheckBox))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(fileInputOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(scanAllUnixFileTypesHelpButton)
+                    .addComponent(scanAllUnixFileTypesCheckBox))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         readingThreadsCheckBox.setText("Read files with");
+        readingThreadsCheckBox.setToolTipText("Read several files at the same time");
 
         readingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(2, 2, null, 1));
+        readingThreadsSpinner.setToolTipText("Number of threads that read files in parallel");
 
-        parallelThreadsLabel.setText("parallel threads (activate only if all files are stored on SSDs)");
+        parallelThreadsLabel.setText("parallel threads (enable only if all files are stored on SSDs)");
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel2.setText("Read Performance");
 
         threadsReadingHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        threadsReadingHelpButton.setToolTipText("What does that mean?");
         threadsReadingHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 threadsReadingHelpButtonActionPerformed(evt);
@@ -1000,6 +1081,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel8.setText("Key Type:");
 
         keyTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Text", "Password", "Hex", "File" }));
+        keyTypeComboBox.setToolTipText("How the key is given: as text, as masked text, as hex or by a file");
         keyTypeComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 keyTypeComboBoxItemStateChanged(evt);
@@ -1009,6 +1091,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel9.setText("Key:");
 
         keyFileButton.setText("...");
+        keyFileButton.setToolTipText("Select the file that contains the key");
         keyFileButton.setEnabled(false);
         keyFileButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1027,6 +1110,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel10.setText("HMAC Options");
 
         keyTypeHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        keyTypeHelpButton.setToolTipText("What does that mean?");
         keyTypeHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 keyTypeHelpButtonActionPerformed(evt);
@@ -1094,17 +1178,20 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         processingOptionsPanel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
 
         headerDataIntegrityStrengthLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        headerDataIntegrityStrengthLabel1.setText("Compute Performance");
+        headerDataIntegrityStrengthLabel1.setText("Calculation Performance");
 
         calculateHashesLabel1.setText("Calculate hashes with");
 
         hashingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
+        hashingThreadsSpinner.setToolTipText("Number of threads that calculate the selected algorithms in parallel");
 
         calculateHashesLabel2.setText("parallel threads (if multiple algorithms have been selected)");
 
-        alternativeImplementationCheckBox.setText("Use alternative implementation(s) if available");
+        alternativeImplementationCheckBox.setText("Use alternative implementations if available");
+        alternativeImplementationCheckBox.setToolTipText("Use another implementation of an algorithm if Jacksum provides one");
 
         alternativeImplementationHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        alternativeImplementationHelpButton.setToolTipText("What does that mean?");
         alternativeImplementationHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 alternativeImplementationHelpButtonActionPerformed(evt);
@@ -1112,6 +1199,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         threadsHashingHelpButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        threadsHashingHelpButton1.setToolTipText("What does that mean?");
         threadsHashingHelpButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 threadsHashingHelpButton1ActionPerformed(evt);
@@ -1165,6 +1253,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         interactiveInputTypeLabel.setText("Input Type:");
 
         interactiveInputTypeComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Text", "Password", "Formatted Text", "Hex", "Base32", "Base32hex", "Base64", "Base64 for URL", "Binary", "BubbleBabble", "Decimal", "z-base-32", "Z85" }));
+        interactiveInputTypeComboBox.setToolTipText("How the input is to be decoded, e.g. as text, hex or Base64");
         interactiveInputTypeComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 interactiveInputTypeComboBoxItemStateChanged(evt);
@@ -1173,6 +1262,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         interactiveInputLabel.setText("Input:");
 
+        interactiveInputTextField.setToolTipText("The input to be hashed, in the format that has been selected as input type (e.g. text, hex or Base64). The hash is updated as you type, an empty input has a hash as well.");
         interactiveInputTextField.setEchoChar((char)0);
         interactiveInputTextField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
@@ -1185,15 +1275,19 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         interactiveOutputTypeComboBox.setMaximumRowCount(20);
         interactiveOutputTypeComboBox.setModel(getComboBoxModel(JacksumAPI.getAvailableEncodings()));
         interactiveOutputTypeComboBox.setSelectedItem((Encoding)Encoding.HEX_UPPERCASE);
+        interactiveOutputTypeComboBox.setToolTipText("The encoding of the hash value");
         interactiveOutputTypeComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 interactiveOutputTypeComboBoxItemStateChanged(evt);
             }
         });
 
+        interactiveOutputTextField.setToolTipText("The hash value of the input, updated as you type");
+
         interactiveOutputLabel.setText("Output:");
 
         jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        jButton1.setToolTipText("What does that mean?");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -1201,6 +1295,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         jButton2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        jButton2.setToolTipText("What does that mean?");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -1283,7 +1378,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addComponent(processingOptionsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(interactivePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(78, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Calculation", calculationPanel);
@@ -1293,9 +1388,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         fileVerificationLabel.setText("Verification file:");
 
-        fileVerificationTextField.setToolTipText("Where did you store hashes?");
+        fileVerificationTextField.setToolTipText("Which file contains the expected hash values?");
 
         fileVerificationSelectFileButton.setText("...");
+        fileVerificationSelectFileButton.setToolTipText("Select the verification file");
         fileVerificationSelectFileButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileVerificationSelectFileButtonActionPerformed(evt);
@@ -1303,6 +1399,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         fileVerificationClearButton.setText("Clear");
+        fileVerificationClearButton.setToolTipText("Clear the verification file");
         fileVerificationClearButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileVerificationClearButtonActionPerformed(evt);
@@ -1313,8 +1410,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         fileVerificationCharacterSetComboBox.setModel(net.jacksum.gui.GUIHelper.buildCharsetsComboBoxModel());
         fileVerificationCharacterSetComboBox.setSelectedItem("UTF-8");
+        fileVerificationCharacterSetComboBox.setToolTipText("The character set of the verification file");
 
         fileVerificationViewButton.setText("View");
+        fileVerificationViewButton.setToolTipText("Show the content of the verification file");
         fileVerificationViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileVerificationViewButtonActionPerformed(evt);
@@ -1390,6 +1489,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         hashValueEncodingCheckBox_verify.setText("Hash value encoding:");
+        hashValueEncodingCheckBox_verify.setToolTipText("The hash values in the verification file are not hex encoded");
         hashValueEncodingCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 hashValueEncodingCheckBox_verifyItemStateChanged(evt);
@@ -1399,6 +1499,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         hashValueEncodingComboBox_verify.setMaximumRowCount(16);
         hashValueEncodingComboBox_verify.setModel(net.jacksum.gui.GUIHelper.getEncodingsComboBoxModel());
         hashValueEncodingComboBox_verify.setSelectedItem("hex");
+        hashValueEncodingComboBox_verify.setToolTipText("The encoding of the hash values in the verification file");
 
         hashValueEncodingHelpButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
         hashValueEncodingHelpButton1.setToolTipText("What does that mean?");
@@ -1409,7 +1510,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         includeFileSizeCheckBox_verify.setText("File size in bytes is included");
-        includeFileSizeCheckBox_verify.setToolTipText("");
+        includeFileSizeCheckBox_verify.setToolTipText("The verification file contains the size of each file");
         includeFileSizeCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 includeFileSizeCheckBox_verifyItemStateChanged(evt);
@@ -1425,7 +1526,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         includeTimestampCheckBox_verify.setText("Timestamp is included, format:");
-        includeTimestampCheckBox_verify.setToolTipText("");
+        includeTimestampCheckBox_verify.setToolTipText("The verification file contains the timestamp of each file");
         includeTimestampCheckBox_verify.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 includeTimestampCheckBox_verifyItemStateChanged(evt);
@@ -1433,6 +1534,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         timestampFormatComboBox_verify.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "default-utc", "iso8601", "iso8601utc", "unixtime", "unixtime-ms", "custom" }));
+        timestampFormatComboBox_verify.setToolTipText("The format of the timestamps in the verification file");
         timestampFormatComboBox_verify.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 timestampFormatComboBox_verifyItemStateChanged(evt);
@@ -1440,6 +1542,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         timestampFormatTextField_verify.setText(AppConstants.TIMESTAMP_DEFAULT);
+        timestampFormatTextField_verify.setToolTipText("A custom timestamp format, e.g. yyyyMMddHHmmssSSS");
 
         timestampHelpButton_verify.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
         timestampHelpButton_verify.setToolTipText("What does that mean?");
@@ -1516,35 +1619,36 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        showFilesLabel.setText("Only display files that match status:");
+        showFilesLabel.setText("Only show files with the status:");
 
         showOkFilesCheckBox.setSelected(true);
         showOkFilesCheckBox.setText("OK");
-        showOkFilesCheckBox.setToolTipText("Files with an expected hash value?");
+        showOkFilesCheckBox.setToolTipText("Files whose hash value matches");
 
         showFailedFilesCheckBox.setSelected(true);
         showFailedFilesCheckBox.setText("FAILED");
-        showFailedFilesCheckBox.setToolTipText("Files with an unexpected hash value?");
+        showFailedFilesCheckBox.setToolTipText("Files whose hash value does not match");
 
         showMissingFilesCheckBox.setSelected(true);
         showMissingFilesCheckBox.setText("MISSING");
-        showMissingFilesCheckBox.setToolTipText("Files that are not there anymore?");
+        showMissingFilesCheckBox.setToolTipText("Files that no longer exist");
 
         showNewFilesCheckBox.setSelected(true);
         showNewFilesCheckBox.setText("NEW");
-        showNewFilesCheckBox.setToolTipText("Files that have been added?");
+        showNewFilesCheckBox.setToolTipText("Files that are not listed in the verification file");
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel1.setText("Integrity Verification Filter");
 
         listFilterButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        listFilterButton.setToolTipText("What does that mean?");
         listFilterButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 listFilterButtonActionPerformed(evt);
             }
         });
 
-        jLabel7.setText("Ignore these values if they are present in the Verification File:");
+        jLabel7.setText("Ignore these values if they are present in the verification file:");
 
         ignoreHashesCheckBox.setText("Hashes");
         ignoreHashesCheckBox.setToolTipText("Ignore hash values?");
@@ -1556,6 +1660,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         ignoreTimestampsCheckBox.setToolTipText("Ignore the timestamps of files?");
 
         ignoreHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        ignoreHelpButton.setToolTipText("What does that mean?");
         ignoreHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ignoreHelpButtonActionPerformed(evt);
@@ -1643,18 +1748,19 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addComponent(integrityVerificationFileFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(integrityVerificationFilterPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addContainerGap(66, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Verification", verificationPanel);
 
         printHeaderCheckBox.setText("Print header");
-        printHeaderCheckBox.setToolTipText("Prints a short header before the data set");
+        printHeaderCheckBox.setToolTipText("Print a short header before the output");
 
         outputRespIntegrityInputFormatLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         outputRespIntegrityInputFormatLabel.setText("Header");
 
         printHeaderHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        printHeaderHelpButton.setToolTipText("What does that mean?");
         printHeaderHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 printHeaderHelpButtonActionPerformed(evt);
@@ -1700,6 +1806,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         hashValueEncodingCheckBox.setText("Hash value encoding:");
+        hashValueEncodingCheckBox.setToolTipText("Encode the hash values in another way than hex");
         hashValueEncodingCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 hashValueEncodingCheckBoxItemStateChanged(evt);
@@ -1709,8 +1816,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         hashValueEncodingComboBox.setMaximumRowCount(16);
         hashValueEncodingComboBox.setModel(net.jacksum.gui.GUIHelper.getEncodingsComboBoxModel());
         hashValueEncodingComboBox.setSelectedItem("hex");
+        hashValueEncodingComboBox.setToolTipText("The encoding of the hash values");
 
         includeFileSizeCheckBox.setText("Include file size in bytes");
+        includeFileSizeCheckBox.setToolTipText("Print the size of each file");
         includeFileSizeCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 includeFileSizeCheckBoxItemStateChanged(evt);
@@ -1718,7 +1827,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         includeTimestampCheckBox.setText("Include timestamp, format:");
-        includeTimestampCheckBox.setToolTipText("");
+        includeTimestampCheckBox.setToolTipText("Print the timestamp of each file");
         includeTimestampCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 includeTimestampCheckBoxItemStateChanged(evt);
@@ -1726,6 +1835,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         timestampFormatComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "default-utc", "iso8601", "iso8601utc", "unixtime", "unixtime-ms", "custom" }));
+        timestampFormatComboBox.setToolTipText("The format of the timestamps");
         timestampFormatComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 timestampFormatComboBoxItemStateChanged(evt);
@@ -1733,9 +1843,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         timestampFormatTextField.setText(AppConstants.TIMESTAMP_DEFAULT);
+        timestampFormatTextField.setToolTipText("A custom timestamp format, e.g. yyyyMMddHHmmssSSS");
 
         lineFormatCheckBox.setText("Line format:");
-        lineFormatCheckBox.setToolTipText("Sets the format of the lines");
+        lineFormatCheckBox.setToolTipText("Set the format of each output line");
         lineFormatCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 lineFormatCheckBoxItemStateChanged(evt);
@@ -1743,6 +1854,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         lineFormatTextField.setText("#ALGONAME{i}(\"#FILENAME\") = #HASH{i,base64-nopadding}");
+        lineFormatTextField.setToolTipText("The format of each output line, e.g. #HASH #FILENAME");
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel3.setText("Line Format");
@@ -1887,7 +1999,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
-        pathRelativeToTextField.setToolTipText("Drag and Drop is supported");
+        pathRelativeToTextField.setToolTipText("Drag and drop is supported");
         pathRelativeToTextField.setDropMode(javax.swing.DropMode.INSERT);
         pathRelativeToTextField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
@@ -1895,11 +2007,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
-        customizedPathSeparatorCheckBox.setText("Customized path separator:");
+        customizedPathSeparatorCheckBox.setText("Custom path separator:");
+        customizedPathSeparatorCheckBox.setToolTipText("Use another character to separate the parts of a path");
 
         customizedPathSpearatorTextField.setText("/");
+        customizedPathSpearatorTextField.setToolTipText("The character that separates the parts of a path");
 
         customizedPathSeparatorHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        customizedPathSeparatorHelpButton.setToolTipText("What does that mean?");
         customizedPathSeparatorHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 customizedPathSeparatorHelpButtonActionPerformed(evt);
@@ -1976,7 +2091,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addComponent(customizedFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(outputStylePathFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(78, Short.MAX_VALUE))
+                .addContainerGap(102, Short.MAX_VALUE))
         );
 
         tabbedPane.addTab("Output Style", outputStylePanel);
@@ -1986,9 +2101,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         standardOutputFileLabel.setText("Standard output:");
 
-        standardOutputFileTextField.setToolTipText("To which file do you want to save the output?\n(drag and drop is supported)");
+        standardOutputFileTextField.setToolTipText("Which file should the output be saved to? Drag and drop is supported.");
 
         standardOutputViewButton.setText("View");
+        standardOutputViewButton.setToolTipText("Show the content of the output file");
         standardOutputViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 standardOutputViewButtonActionPerformed(evt);
@@ -1997,9 +2113,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         standardErrorFileLabel.setText("Standard error:");
 
-        standardErrorFileTextField.setToolTipText("To which file do you want to save errors?\n(drag and drop is supported)");
+        standardErrorFileTextField.setToolTipText("Which file should errors be saved to? Drag and drop is supported.");
 
         standardErrorViewButton.setText("View");
+        standardErrorViewButton.setToolTipText("Show the content of the error log");
         standardErrorViewButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 standardErrorViewButtonActionPerformed(evt);
@@ -2051,9 +2168,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         placeholderForOutputFilesOptionsLabel.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         placeholderForOutputFilesOptionsLabel.setText("Output Files Customization");
 
-        bomCheckBox.setText("Insert a Byte Order Mark (BOM), even if it is optional for a charset");
+        bomCheckBox.setText("Insert a Byte Order Mark (BOM), even if it is optional for the character set");
+        bomCheckBox.setToolTipText("Start the output files with a Byte Order Mark");
 
         bomHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        bomHelpButton.setToolTipText("What does that mean?");
         bomHelpButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 bomHelpButtonActionPerformed(evt);
@@ -2064,11 +2183,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         standardOutputFileCharacterSetComboBox.setModel(net.jacksum.gui.GUIHelper.buildCharsetsComboBoxModel());
         standardOutputFileCharacterSetComboBox.setSelectedItem("UTF-8");
+        standardOutputFileCharacterSetComboBox.setToolTipText("The character set of the output file");
 
         standardErrorFileCharacterSetLabel.setText("Standard error character set:");
 
         standardErrorFileCharacterSetComboBox.setModel(net.jacksum.gui.GUIHelper.buildCharsetsComboBoxModel());
         standardErrorFileCharacterSetComboBox.setSelectedItem("UTF-8");
+        standardErrorFileCharacterSetComboBox.setToolTipText("The character set of the error log");
 
         javax.swing.GroupLayout outputFilesOptionsPanelLayout = new javax.swing.GroupLayout(outputFilesOptionsPanel);
         outputFilesOptionsPanel.setLayout(outputFilesOptionsPanelLayout);
@@ -2177,7 +2298,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         jLabel5.setText("Window Behavior");
 
         alwaysOnTopCheckBox.setSelected(true);
-        alwaysOnTopCheckBox.setText("Window is always on top");
+        alwaysOnTopCheckBox.setText("Keep the window always on top");
+        alwaysOnTopCheckBox.setToolTipText("Keep the window in front of all other windows");
         alwaysOnTopCheckBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 alwaysOnTopCheckBoxItemStateChanged(evt);
@@ -2185,10 +2307,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         });
 
         stayOpenCheckBox.setSelected(true);
-        stayOpenCheckBox.setText("Stay the window open after a task has been finished");
+        stayOpenCheckBox.setText("Keep the window open after a task has finished");
+        stayOpenCheckBox.setToolTipText("Do not quit HashGarten after a task has finished");
 
         centerWindowWhereTheMouseIsCheckBox.setSelected(true);
         centerWindowWhereTheMouseIsCheckBox.setText("After starting, center the window on the screen where the mouse cursor is");
+        centerWindowWhereTheMouseIsCheckBox.setToolTipText("Open the window on the screen where the mouse cursor is");
 
         javax.swing.GroupLayout guiPanelLayout = new javax.swing.GroupLayout(guiPanel);
         guiPanel.setLayout(guiPanelLayout);
@@ -2248,7 +2372,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         actionButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix32x32/jacksum-32x32.png"))); // NOI18N
         actionButton.setMnemonic('J');
         actionButton.setText("  Calculate File Hash Values");
-        actionButton.setToolTipText("Action!");
+        actionButton.setToolTipText("Start the task");
         actionButton.setIconTextGap(20);
         actionButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2535,8 +2659,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     if (!timestampFormatTextField.getText().equals("")) {
                         parameters.setTimestampFormat(timestampFormatTextField.getText());
                     } else {
-                        JOptionPane.showMessageDialog(this, "Timestamp format has been set to custom, but it shall be a non-empty string.");
-                        timestampFormatTextField.setText("ENTER SOMETHING HERE, e. g. " + AppConstants.TIMESTAMP_DEFAULT);
+                        JOptionPane.showMessageDialog(this, "The timestamp format has been set to custom, but no format has been entered.");
+                        timestampFormatTextField.setText("ENTER A FORMAT HERE, e.g. " + AppConstants.TIMESTAMP_DEFAULT);
                         timestampFormatTextField.selectAll();
                         timestampFormatTextField.requestFocus();
                         throw new UserInputError();
@@ -2594,8 +2718,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // follow symlinks to files
         followSymlinksToFilesCheckBox.setSelected(!parameters.isDontFollowSymlinksToFiles());
 
-        // find Alternate Data Streams (ADS)
-        scanNtfsAdsCheckBox.setSelected(parameters.isScanNtfsAds());
+        // find Alternate Data Streams (ADS); Jacksum scans for them on Windows only
+        scanNtfsAdsCheckBox.setSelected(SystemInfo.isWindows && parameters.isScanNtfsAds());
+        scanNtfsAdsCheckBox.setEnabled(SystemInfo.isWindows);
+
+        // find all Unix file types (block/character devices, named pipes, sockets, doors);
+        // Jacksum reads them on Unix-like operating systems only
+        scanAllUnixFileTypesCheckBox.setSelected(!SystemInfo.isWindows && parameters.scanAllUnixFileTypes());
+        scanAllUnixFileTypesCheckBox.setEnabled(!SystemInfo.isWindows);
 
         // read files with n threads
         readingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
@@ -2635,8 +2765,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // follow symlinks to files
         parameters.setDontFollowSymlinksToFiles(!followSymlinksToFilesCheckBox.isSelected());
 
-        // find Alternate Datea Streams
+        // find Alternate Data Streams
         parameters.setScanNtfsAds(scanNtfsAdsCheckBox.isSelected());
+
+        // find all Unix file types
+        parameters.setScanAllUnixFileTypes(scanAllUnixFileTypesCheckBox.isSelected());
         
         // read files with n threads
         if (readingThreadsCheckBox.isSelected()) {
@@ -2696,6 +2829,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 keyTypeComboBox.setSelectedItem("Text");
             }
         }
+        updateKeyToolTip();
     }
     
     private void calculationPanel2parameters() {
@@ -2706,11 +2840,17 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         // HMAC Options
         String key = new String(keyPasswordField.getPassword());
-        if (key.isEmpty()) {
+        if (key.isEmpty() && (!isHmacSelected() || "File".equals(keyTypeComboBox.getSelectedItem()))) {
             // an empty key is no key at all: it would make Parameters.isKey() return true, and
             // Jacksum would then put "-k txt:" into the header of the output file, even if the
-            // selected algorithm is not an HMAC at all
+            // selected algorithm is not an HMAC at all.
+            // An empty file name is not an empty key either, so Jacksum reports the missing key.
             parameters.setKey((Sequence) null);
+        } else if (key.isEmpty()) {
+            // an HMAC accepts an empty key (RFC 2104 pads it with zeros), so pass an empty key
+            // rather than none, otherwise Jacksum rejects the HMAC for lacking a key; this is
+            // the same as -k txt: on the command line
+            parameters.setKey(new Sequence(Sequence.Type.TXT, ""));
         } else if (keyTypeComboBox.getSelectedItem().equals("Text")
                 || keyTypeComboBox.getSelectedItem().equals("Password")) {
             parameters.setKey(new Sequence("txt:" + key));
@@ -2884,7 +3024,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         if (customizedPathSeparatorCheckBox.isSelected()) {
             if (customizedPathSpearatorTextField.getText().length() != 1) {
                 tabbedPane.setSelectedComponent(outputStylePanel);
-                JOptionPane.showMessageDialog(this, "Path separator has ben set to custom, but it shall be a single character.");
+                JOptionPane.showMessageDialog(this, "The path separator has been set to custom, but it must be a single character.");
                 customizedPathSpearatorTextField.selectAll();
                 customizedPathSpearatorTextField.requestFocus();
                 throw new UserInputError();
@@ -2990,7 +3130,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // so inform the user to enter files
             if (fileListModel.isEmpty()) {
                 tabbedPane.setSelectedComponent(inputPanel);
-                JOptionPane.showMessageDialog(this, "You must add at least one file to the file list.\nYou can also drag and drop files to the file list!");
+                JOptionPane.showMessageDialog(this, "Please add at least one file to the file list.\nYou can also drag and drop files onto the list.");
                 throw new UserInputError();
             }            
         }
@@ -3000,7 +3140,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             if (fileVerificationTextField.getText().equals("")) {
                 // JOptionPane: has to be filled out!
                 tabbedPane.setSelectedComponent(verificationPanel);
-                JOptionPane.showMessageDialog(this, "In verification mode a verification file name is required.");
+                JOptionPane.showMessageDialog(this, "In verification mode, a verification file is required.");
                 fileVerificationTextField.setText("ENTER A VERIFICATION FILE HERE");
                 fileVerificationTextField.selectAll();
                 fileVerificationTextField.requestFocus();
@@ -3103,14 +3243,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 setVisible(true);
             }
 
-            StringBuilder message = new StringBuilder("HashGarten task has been finished.");
+            StringBuilder message = new StringBuilder("The HashGarten task has finished.");
             if (parameters.getOutputFile() != null) {
-                message.append(String.format("%n%nOutput has been saved to%n%s", parameters.getOutputFile()));
+                message.append(String.format("%n%nThe output has been saved to%n%s", parameters.getOutputFile()));
             } else {
-                message.append(String.format("%n%nOutput has been written to standard output."));
+                message.append(String.format("%n%nThe output has been written to standard output."));
             }
             if (parameters.getErrorFile() != null) {
-                message.append(String.format("%n%nError log has been saved to%n%s", parameters.getErrorFile()));
+                message.append(String.format("%n%nThe error log has been saved to%n%s", parameters.getErrorFile()));
             }
             JOptionPane.showMessageDialog(this, message.toString());
 
@@ -3167,6 +3307,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         fileListModel.backup();
+        // remember the list across restarts as well; the file list is stored as part of the
+        // parameters, which are otherwise only written when a task is started
+        List<String> list = new ArrayList<>();
+        for (int i = 0; i < fileListModel.getSize(); i++) {
+            list.add((String) fileListModel.getElementAt(i));
+        }
+        parameters.setFilenamesFromFilelist(list);
+        updatePropertiesFromParameters();
+        saveProperties();
     }//GEN-LAST:event_saveButtonActionPerformed
 
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
@@ -3296,7 +3445,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             return;
         }
         algoTextField.setText(dialog.getSelection());
-        
+        updateKeyToolTip();
+
         //parameters.setAlgorithm(algoTextField.getText());
         
         if (getOperatingMode()==OperatingMode.INTERACTIVE) {
@@ -3330,7 +3480,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 lookAndFeel = flatLightLaf;
             }
             javax.swing.UIManager.setLookAndFeel(lookAndFeel);
-            com.formdev.flatlaf.FlatLaf.updateUI();
+            updateUI();
         } catch (UnsupportedLookAndFeelException ex) {
             debug(ex.toString());
         }
@@ -3378,7 +3528,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             helpDialog.setText(text);
             helpDialog.setVisible(true);
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(this, "Error reading file.");
+            JOptionPane.showMessageDialog(this, "The file could not be read.");
         }
     }
     
@@ -3410,7 +3560,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             helpDialog.setTitle(title);
             helpDialog.setVisible(true);
         } catch (NothingFoundException ex) {
-            JOptionPane.showMessageDialog(this, String.format("Nothing helpful found for %s", text));
+            JOptionPane.showMessageDialog(this, String.format("No help found for %s", text));
             //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "No help file found.");
@@ -3509,7 +3659,36 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                          break;
         }
         this.pack();
-        com.formdev.flatlaf.FlatLaf.updateUI();
+        updateUI();
+    }
+
+    /**
+     * Updates the UI of all windows after the look and feel has changed, see FlatLaf.updateUI().
+     *
+     * On macOS with the screen menu bar, FlatLaf.updateUI() makes the menus after the application
+     * menu disappear until the mouse is moved over the menu bar. A test program has narrowed it down:
+     * updating the root pane's own UI and the content pane is fine, the trigger is updating the
+     * remaining children of the root pane (layered pane, glass pane). Neither keeping the JMenuBar
+     * out of the update, nor rebuilding or reactivating the native menu bar afterwards helped.
+     * So only the root pane itself and the content pane are updated there. The JMenuBar does not
+     * need the new theme, because the screen menu bar is drawn natively.
+     */
+    private void updateUI() {
+        if (!(SystemInfo.isMacOS && Boolean.getBoolean("apple.laf.useScreenMenuBar"))) {
+            com.formdev.flatlaf.FlatLaf.updateUI();
+            return;
+        }
+        for (java.awt.Window window : java.awt.Window.getWindows()) {
+            if (window instanceof javax.swing.RootPaneContainer container) {
+                javax.swing.JRootPane rootPane = container.getRootPane();
+                rootPane.updateUI();
+                javax.swing.SwingUtilities.updateComponentTreeUI(container.getContentPane());
+                rootPane.revalidate();
+                rootPane.repaint();
+            } else {
+                javax.swing.SwingUtilities.updateComponentTreeUI(window);
+            }
+        }
     }
     
         
@@ -3558,6 +3737,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         actionButton.setText(ACTION_BUTTON_CALCULATE_HASHES);
         actionButton.setVisible(false);
+
+        // an empty input has a hash as well, so show it right away rather than waiting for the
+        // first keystroke
+        interactiveInputTextFieldKeyReleased(null);
     }
     
     private void verifyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_verifyMenuItemActionPerformed
@@ -3569,7 +3752,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     private void showAboutDialog() {
-        JOptionPane.showMessageDialog(this, String.format("<html><body><h1>HashGarten %s</h1></body></html>\nis powered by Jacksum %s\nhttps://jacksum.net\n\nReleased under the conditions of the GPLv3.\nThis is Free/Libre Open Source Software.", AppConstants.VERSION, JacksumAPI.getVersion()), "About", JOptionPane.INFORMATION_MESSAGE);
+        // FlatLaf has no version API, the version comes from the manifest of its jar
+        String flatLafVersion = com.formdev.flatlaf.FlatLaf.class.getPackage().getImplementationVersion();
+        JOptionPane.showMessageDialog(this, String.format("<html><body><h1>HashGarten %s</h1></body></html>\nis powered by Jacksum %s\nhttps://jacksum.net\n\nruns on Java %s (%s)\nuses FlatLaf %s\n\nReleased under the terms of the GPLv3 or later.\nThis is Free/Libre Open Source Software.",
+                AppConstants.VERSION, JacksumAPI.getVersion(),
+                System.getProperty("java.version"), System.getProperty("java.vendor"),
+                flatLafVersion == null ? "(unknown version)" : flatLafVersion),
+                "About", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void manpageJacksumMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_manpageJacksumMenuItemActionPerformed
@@ -3681,6 +3870,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void findADSHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_findADSHelpButtonActionPerformed
         help("--scan-ntfs-ads");
     }//GEN-LAST:event_findADSHelpButtonActionPerformed
+
+    private void scanAllUnixFileTypesHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scanAllUnixFileTypesHelpButtonActionPerformed
+        help("--scan-all-unix-file-types");
+    }//GEN-LAST:event_scanAllUnixFileTypesHelpButtonActionPerformed
 
     private void threadsReadingHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_threadsReadingHelpButtonActionPerformed
         help("--threads-reading");
@@ -3807,6 +4000,28 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
     }
 
+    // true if at least one of the selected algorithms is an HMAC
+    private boolean isHmacSelected() {
+        return algoTextField.getText().toLowerCase().contains("hmac:");
+    }
+
+    /**
+     * Sets the tooltip that the key field carries while there is no warning or error, depending
+     * on whether an HMAC is selected. Call it whenever the algorithm selection changes.
+     *
+     * The text is stored as the backup as well, so that clearInputError() restores it rather than
+     * an empty tooltip. An active warning or error keeps its tooltip until it is cleared.
+     */
+    private void updateKeyToolTip() {
+        String text = isHmacSelected()
+                ? "At least one HMAC algorithm has been selected. This is the key for all selected HMAC algorithms."
+                : "The key for HMAC algorithms (e.g. hmac:sha-256). It has no effect unless an HMAC algorithm is selected.";
+        toolTipBackup.put(keyPasswordField, text);
+        if (keyPasswordField.getClientProperty(FlatClientProperties.OUTLINE) == null) {
+            keyPasswordField.setToolTipText(text);
+        }
+    }
+
     // all components that the Interactive operating mode can blame for an error
     private void clearInteractiveErrors() {
         clearInputError(interactiveInputTextField);
@@ -3897,7 +4112,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
             // Jacksum uses the key for HMAC algorithms only and ignores it silently otherwise, so
             // without a hint typing a key would seem to have no effect at all
-            if (parameters.isKey() && !algoTextField.getText().toLowerCase().contains("hmac:")) {
+            if (parameters.isKey() && !isHmacSelected()) {
                 markInputWarning(keyPasswordField, "The key has no effect, because it is used by HMAC "
                         + "algorithms only (e.g. hmac:sha-256), and none of the selected algorithms is one.");
             }
@@ -3980,6 +4195,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         saveProperties();
         this.setVisible(false);
         this.dispose();
+        // don't wait for AWT to shut itself down, that takes about two seconds until a terminal
+        // accepts input again; the properties have been written, and no task can be running,
+        // because tasks run on the EDT
+        System.exit(0);
     }
 
 
@@ -4139,6 +4358,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JMenuItem reportIssueJacksumMenuItem;
     private javax.swing.JButton restoreButton;
     private javax.swing.JButton saveButton;
+    private javax.swing.JCheckBox scanAllUnixFileTypesCheckBox;
+    private javax.swing.JButton scanAllUnixFileTypesHelpButton;
     private javax.swing.JCheckBox scanNtfsAdsCheckBox;
     private javax.swing.JButton selectAlgoButton;
     private javax.swing.JCheckBox showFailedFilesCheckBox;

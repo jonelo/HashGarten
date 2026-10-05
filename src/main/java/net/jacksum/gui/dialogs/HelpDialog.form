@@ -53,6 +53,7 @@
     <Component class="javax.swing.JButton" name="cancelButton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Close"/>
+        <Property name="toolTipText" type="java.lang.String" value="Close this window"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancelButtonActionPerformed"/>
@@ -90,6 +91,7 @@
                 <Property name="editable" type="boolean" value="false"/>
                 <Property name="columns" type="int" value="20"/>
                 <Property name="rows" type="int" value="5"/>
+                <Property name="toolTipText" type="java.lang.String" value="Help text from the Jacksum manpage"/>
               </Properties>
             </Component>
           </SubComponents>

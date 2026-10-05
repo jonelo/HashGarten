@@ -168,7 +168,7 @@
     <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
     <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
     <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
-    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,75,0,0,2,95"/>
+    <AuxValue name="designerSize" type="java.awt.Dimension" value="-84,-19,0,5,115,114,0,18,106,97,118,97,46,97,119,116,46,68,105,109,101,110,115,105,111,110,65,-114,-39,-41,-84,95,68,20,2,0,2,73,0,6,104,101,105,103,104,116,73,0,5,119,105,100,116,104,120,112,0,0,2,100,0,0,2,95"/>
   </AuxValues>
 
   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout"/>
@@ -321,7 +321,7 @@
                     <Component class="javax.swing.JButton" name="moveTopButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Top"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Move selected line to the top of the list"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Move the selected line to the top of the list"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveTopButtonActionPerformed"/>
@@ -330,7 +330,7 @@
                     <Component class="javax.swing.JButton" name="moveUpButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Up"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Move selected line up"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Move the selected line up"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveUpButtonActionPerformed"/>
@@ -339,7 +339,7 @@
                     <Component class="javax.swing.JButton" name="moveDownButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Down"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Move selected line down"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Move the selected line down"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveDownButtonActionPerformed"/>
@@ -348,7 +348,7 @@
                     <Component class="javax.swing.JButton" name="moveBottomButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Bottom"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Move selected line to the bottom of the list"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Move the selected line to the bottom of the list"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="moveBottomButtonActionPerformed"/>
@@ -395,7 +395,7 @@
                     <Component class="javax.swing.JButton" name="addButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Add"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Add files and directories that should be read"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Add files and directories to be read"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="addButtonActionPerformed"/>
@@ -404,7 +404,7 @@
                     <Component class="javax.swing.JButton" name="removeButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Remove"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Remove selected lines from the list"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Remove the selected lines from the list"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="removeButtonActionPerformed"/>
@@ -413,7 +413,7 @@
                     <Component class="javax.swing.JButton" name="saveButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Save"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Save the current list to memory"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Save the current list, it is also remembered after a restart"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="saveButtonActionPerformed"/>
@@ -422,7 +422,7 @@
                     <Component class="javax.swing.JButton" name="restoreButton">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Restore"/>
-                        <Property name="toolTipText" type="java.lang.String" value="Restore the list from memory"/>
+                        <Property name="toolTipText" type="java.lang.String" value="Go back to the list that has been saved last"/>
                       </Properties>
                       <Events>
                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="restoreButtonActionPerformed"/>
@@ -482,6 +482,11 @@
                                   <EmptySpace max="32767" attributes="0"/>
                                   <Component id="findADSHelpButton" min="-2" max="-2" attributes="0"/>
                               </Group>
+                              <Group type="102" attributes="0">
+                                  <Component id="scanAllUnixFileTypesCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
+                                  <Component id="scanAllUnixFileTypesHelpButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -514,6 +519,11 @@
                               <Component id="findADSHelpButton" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="scanNtfsAdsCheckBox" min="-2" max="-2" attributes="0"/>
                           </Group>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="scanAllUnixFileTypesHelpButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="scanAllUnixFileTypesCheckBox" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
@@ -530,7 +540,8 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="walkingDepthCheckBox">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Go down max."/>
+                    <Property name="text" type="java.lang.String" value="Descend at most"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Limit how deep subdirectories are read"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JSpinner" name="walkingDepthSpinner">
@@ -538,28 +549,32 @@
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
                       <SpinnerModel initial="1" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="Maximum number of directory levels to descend"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="levelsWhenTraversingADirectoryLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="level(s) if traversing a directory"/>
+                    <Property name="text" type="java.lang.String" value="level(s) when traversing a directory"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="followSymlinksToDirectoriesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Follow symlinks to directories (don&apos;t worry, file system cycle detection is supported)"/>
+                    <Property name="text" type="java.lang.String" value="Follow symlinks to directories (file system cycles are detected)"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Read the directories that symbolic links point to"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="followSymlinksToFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="Follow symlinks to files"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Read the files that symbolic links point to"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="scanNtfsAdsCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Find Alternate Data Streams (ADS) for both files and directories (Windows only)"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Also read NTFS Alternate Data Streams (Windows only)"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="recursiveDepthHelpButton">
@@ -567,6 +582,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="recursiveDepthHelpButtonActionPerformed"/>
@@ -577,6 +593,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="followSymlinksToDirectoriesHelpButtonActionPerformed"/>
@@ -587,6 +604,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="followSymlinksToFilesHelpButtonActionPerformed"/>
@@ -597,9 +615,27 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="findADSHelpButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="scanAllUnixFileTypesCheckBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Find all Unix file types (Unix-like OS only)"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Also read devices, named pipes and sockets (Unix-like OS only)"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="scanAllUnixFileTypesHelpButton">
+                  <Properties>
+                    <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                      <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
+                    </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="scanAllUnixFileTypesHelpButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>
@@ -650,6 +686,7 @@
                 <Component class="javax.swing.JCheckBox" name="readingThreadsCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Read files with"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Read several files at the same time"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JSpinner" name="readingThreadsSpinner">
@@ -657,11 +694,12 @@
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
                       <SpinnerModel initial="2" minimum="2" numberType="java.lang.Integer" stepSize="1" type="number"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="Number of threads that read files in parallel"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="parallelThreadsLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="parallel threads (activate only if all files are stored on SSDs)"/>
+                    <Property name="text" type="java.lang.String" value="parallel threads (enable only if all files are stored on SSDs)"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel2">
@@ -677,6 +715,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="threadsReadingHelpButtonActionPerformed"/>
@@ -717,7 +756,7 @@
                       <Component id="processingOptionsPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="interactivePanel" min="-2" pref="144" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="78" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -844,6 +883,7 @@
                         <StringItem index="3" value="File"/>
                       </StringArray>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="How the key is given: as text, as masked text, as hex or by a file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="keyTypeComboBoxItemStateChanged"/>
@@ -860,6 +900,7 @@
                 <Component class="javax.swing.JButton" name="keyFileButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="..."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Select the file that contains the key"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="keyFileButtonActionPerformed"/>
@@ -889,6 +930,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="keyTypeHelpButtonActionPerformed"/>
@@ -959,7 +1001,7 @@
                     <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                       <Font name="Tahoma" size="11" style="1"/>
                     </Property>
-                    <Property name="text" type="java.lang.String" value="Compute Performance"/>
+                    <Property name="text" type="java.lang.String" value="Calculation Performance"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="calculateHashesLabel1">
@@ -972,6 +1014,7 @@
                     <Property name="model" type="javax.swing.SpinnerModel" editor="org.netbeans.modules.form.editors2.SpinnerModelEditor">
                       <SpinnerModel initial="1" minimum="1" numberType="java.lang.Integer" stepSize="1" type="number"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="Number of threads that calculate the selected algorithms in parallel"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="calculateHashesLabel2">
@@ -981,7 +1024,8 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="alternativeImplementationCheckBox">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Use alternative implementation(s) if available"/>
+                    <Property name="text" type="java.lang.String" value="Use alternative implementations if available"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Use another implementation of an algorithm if Jacksum provides one"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="alternativeImplementationHelpButton">
@@ -989,6 +1033,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="alternativeImplementationHelpButtonActionPerformed"/>
@@ -999,6 +1044,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="threadsHashingHelpButton1ActionPerformed"/>
@@ -1111,6 +1157,7 @@
                         <StringItem index="12" value="Z85"/>
                       </StringArray>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="How the input is to be decoded, e.g. as text, hex or Base64"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="interactiveInputTypeComboBoxItemStateChanged"/>
@@ -1125,6 +1172,9 @@
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JPasswordField" name="interactiveInputTextField">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="The input to be hashed, in the format that has been selected as input type (e.g. text, hex or Base64). The hash is updated as you type, an empty input has a hash as well."/>
+                  </Properties>
                   <Events>
                     <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="interactiveInputTextFieldKeyReleased"/>
                   </Events>
@@ -1146,6 +1196,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="(Encoding)Encoding.HEX_UPPERCASE" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The encoding of the hash value"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="interactiveOutputTypeComboBoxItemStateChanged"/>
@@ -1156,6 +1207,9 @@
                   </AuxValues>
                 </Component>
                 <Component class="javax.swing.JTextField" name="interactiveOutputTextField">
+                  <Properties>
+                    <Property name="toolTipText" type="java.lang.String" value="The hash value of the input, updated as you type"/>
+                  </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="interactiveOutputLabel">
                   <Properties>
@@ -1167,6 +1221,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
@@ -1177,6 +1232,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
@@ -1218,7 +1274,7 @@
                       <Component id="integrityVerificationFileFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="integrityVerificationFilterPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="40" max="32767" attributes="0"/>
+                      <EmptySpace pref="66" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1298,12 +1354,13 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="fileVerificationTextField">
                   <Properties>
-                    <Property name="toolTipText" type="java.lang.String" value="Where did you store hashes?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Which file contains the expected hash values?"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="fileVerificationSelectFileButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="..."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Select the verification file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileVerificationSelectFileButtonActionPerformed"/>
@@ -1312,6 +1369,7 @@
                 <Component class="javax.swing.JButton" name="fileVerificationClearButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Clear"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Clear the verification file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileVerificationClearButtonActionPerformed"/>
@@ -1330,6 +1388,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;UTF-8&quot;" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The character set of the verification file"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -1338,6 +1397,7 @@
                 <Component class="javax.swing.JButton" name="fileVerificationViewButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="View"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Show the content of the verification file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileVerificationViewButtonActionPerformed"/>
@@ -1495,6 +1555,7 @@
                 <Component class="javax.swing.JCheckBox" name="hashValueEncodingCheckBox_verify">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Hash value encoding:"/>
+                    <Property name="toolTipText" type="java.lang.String" value="The hash values in the verification file are not hex encoded"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="hashValueEncodingCheckBox_verifyItemStateChanged"/>
@@ -1509,6 +1570,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;hex&quot;" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The encoding of the hash values in the verification file"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -1528,7 +1590,7 @@
                 <Component class="javax.swing.JCheckBox" name="includeFileSizeCheckBox_verify">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="File size in bytes is included"/>
-                    <Property name="toolTipText" type="java.lang.String" value=""/>
+                    <Property name="toolTipText" type="java.lang.String" value="The verification file contains the size of each file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="includeFileSizeCheckBox_verifyItemStateChanged"/>
@@ -1548,7 +1610,7 @@
                 <Component class="javax.swing.JCheckBox" name="includeTimestampCheckBox_verify">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Timestamp is included, format:"/>
-                    <Property name="toolTipText" type="java.lang.String" value=""/>
+                    <Property name="toolTipText" type="java.lang.String" value="The verification file contains the timestamp of each file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="includeTimestampCheckBox_verifyItemStateChanged"/>
@@ -1567,6 +1629,7 @@
                         <StringItem index="6" value="custom"/>
                       </StringArray>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The format of the timestamps in the verification file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="timestampFormatComboBox_verifyItemStateChanged"/>
@@ -1580,6 +1643,7 @@
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="AppConstants.TIMESTAMP_DEFAULT" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="A custom timestamp format, e.g. yyyyMMddHHmmssSSS"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="timestampHelpButton_verify">
@@ -1672,35 +1736,35 @@
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="showFilesLabel">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Only display files that match status:"/>
+                    <Property name="text" type="java.lang.String" value="Only show files with the status:"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showOkFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="OK"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files with an expected hash value?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files whose hash value matches"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showFailedFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="FAILED"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files with an unexpected hash value?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files whose hash value does not match"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showMissingFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="MISSING"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files that are not there anymore?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files that no longer exist"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="showNewFilesCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="NEW"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Files that have been added?"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files that are not listed in the verification file"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel1">
@@ -1716,6 +1780,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="listFilterButtonActionPerformed"/>
@@ -1723,7 +1788,7 @@
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel7">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Ignore these values if they are present in the Verification File:"/>
+                    <Property name="text" type="java.lang.String" value="Ignore these values if they are present in the verification file:"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="ignoreHashesCheckBox">
@@ -1749,6 +1814,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ignoreHelpButtonActionPerformed"/>
@@ -1790,7 +1856,7 @@
                       <Component id="customizedFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="outputStylePathFormatPanel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="78" max="32767" attributes="0"/>
+                      <EmptySpace pref="102" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -1836,7 +1902,7 @@
                 <Component class="javax.swing.JCheckBox" name="printHeaderCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Print header"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Prints a short header before the data set"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Print a short header before the output"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="outputRespIntegrityInputFormatLabel">
@@ -1852,6 +1918,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="printHeaderHelpButtonActionPerformed"/>
@@ -2006,6 +2073,7 @@
                 <Component class="javax.swing.JCheckBox" name="hashValueEncodingCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Hash value encoding:"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Encode the hash values in another way than hex"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="hashValueEncodingCheckBoxItemStateChanged"/>
@@ -2020,6 +2088,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;hex&quot;" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The encoding of the hash values"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -2028,6 +2097,7 @@
                 <Component class="javax.swing.JCheckBox" name="includeFileSizeCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Include file size in bytes"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Print the size of each file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="includeFileSizeCheckBoxItemStateChanged"/>
@@ -2036,7 +2106,7 @@
                 <Component class="javax.swing.JCheckBox" name="includeTimestampCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Include timestamp, format:"/>
-                    <Property name="toolTipText" type="java.lang.String" value=""/>
+                    <Property name="toolTipText" type="java.lang.String" value="Print the timestamp of each file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="includeTimestampCheckBoxItemStateChanged"/>
@@ -2055,6 +2125,7 @@
                         <StringItem index="6" value="custom"/>
                       </StringArray>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The format of the timestamps"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="timestampFormatComboBoxItemStateChanged"/>
@@ -2068,12 +2139,13 @@
                     <Property name="text" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="AppConstants.TIMESTAMP_DEFAULT" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="A custom timestamp format, e.g. yyyyMMddHHmmssSSS"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="lineFormatCheckBox">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Line format:"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Sets the format of the lines"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Set the format of each output line"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="lineFormatCheckBoxItemStateChanged"/>
@@ -2082,6 +2154,7 @@
                 <Component class="javax.swing.JTextField" name="lineFormatTextField">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="#ALGONAME{i}(&quot;#FILENAME&quot;) = #HASH{i,base64-nopadding}"/>
+                    <Property name="toolTipText" type="java.lang.String" value="The format of each output line, e.g. #HASH #FILENAME"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel3">
@@ -2260,7 +2333,7 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="pathRelativeToTextField">
                   <Properties>
-                    <Property name="toolTipText" type="java.lang.String" value="Drag and Drop is supported"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Drag and drop is supported"/>
                     <Property name="dropMode" type="javax.swing.DropMode" editor="org.netbeans.modules.form.editors.EnumEditor">
                       <Value id="INSERT"/>
                     </Property>
@@ -2271,12 +2344,14 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="customizedPathSeparatorCheckBox">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Customized path separator:"/>
+                    <Property name="text" type="java.lang.String" value="Custom path separator:"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Use another character to separate the parts of a path"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JTextField" name="customizedPathSpearatorTextField">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="/"/>
+                    <Property name="toolTipText" type="java.lang.String" value="The character that separates the parts of a path"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="customizedPathSeparatorHelpButton">
@@ -2284,6 +2359,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="customizedPathSeparatorHelpButtonActionPerformed"/>
@@ -2404,12 +2480,13 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="standardOutputFileTextField">
                   <Properties>
-                    <Property name="toolTipText" type="java.lang.String" value="To which file do you want to save the output?&#xa;(drag and drop is supported)"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Which file should the output be saved to? Drag and drop is supported."/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="standardOutputViewButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="View"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Show the content of the output file"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="standardOutputViewButtonActionPerformed"/>
@@ -2422,12 +2499,13 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="standardErrorFileTextField">
                   <Properties>
-                    <Property name="toolTipText" type="java.lang.String" value="To which file do you want to save errors?&#xa;(drag and drop is supported)"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Which file should errors be saved to? Drag and drop is supported."/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="standardErrorViewButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="View"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Show the content of the error log"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="standardErrorViewButtonActionPerformed"/>
@@ -2501,7 +2579,8 @@
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="bomCheckBox">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Insert a Byte Order Mark (BOM), even if it is optional for a charset"/>
+                    <Property name="text" type="java.lang.String" value="Insert a Byte Order Mark (BOM), even if it is optional for the character set"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Start the output files with a Byte Order Mark"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JButton" name="bomHelpButton">
@@ -2509,6 +2588,7 @@
                     <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                       <Image iconType="3" name="/net/jacksum/gui/pix16x16/question.png"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="What does that mean?"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="bomHelpButtonActionPerformed"/>
@@ -2527,6 +2607,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;UTF-8&quot;" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The character set of the output file"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -2545,6 +2626,7 @@
                     <Property name="selectedItem" type="java.lang.Object" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
                       <Connection code="&quot;UTF-8&quot;" type="code"/>
                     </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The character set of the error log"/>
                   </Properties>
                   <AuxValues>
                     <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
@@ -2690,7 +2772,8 @@
                 <Component class="javax.swing.JCheckBox" name="alwaysOnTopCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Window is always on top"/>
+                    <Property name="text" type="java.lang.String" value="Keep the window always on top"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Keep the window in front of all other windows"/>
                   </Properties>
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="alwaysOnTopCheckBoxItemStateChanged"/>
@@ -2699,13 +2782,15 @@
                 <Component class="javax.swing.JCheckBox" name="stayOpenCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
-                    <Property name="text" type="java.lang.String" value="Stay the window open after a task has been finished"/>
+                    <Property name="text" type="java.lang.String" value="Keep the window open after a task has finished"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Do not quit HashGarten after a task has finished"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="centerWindowWhereTheMouseIsCheckBox">
                   <Properties>
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="After starting, center the window on the screen where the mouse cursor is"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Open the window on the screen where the mouse cursor is"/>
                   </Properties>
                 </Component>
               </SubComponents>
@@ -2752,7 +2837,7 @@
             </Property>
             <Property name="mnemonic" type="int" value="74"/>
             <Property name="text" type="java.lang.String" value="  Calculate File Hash Values"/>
-            <Property name="toolTipText" type="java.lang.String" value="Action!"/>
+            <Property name="toolTipText" type="java.lang.String" value="Start the task"/>
             <Property name="iconTextGap" type="int" value="20"/>
           </Properties>
           <Events>

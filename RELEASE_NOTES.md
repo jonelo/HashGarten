@@ -52,8 +52,11 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
     for a file that has not been set either
   - an output file that has been typed or dropped in is not overruled anymore when the algorithm
     or the relative path is changed
-  - no key is handed over to Jacksum if the key field is empty; an empty key made Jacksum print
-    `-k txt:` to the header of the output file, even for algorithms that are not HMACs at all
+  - no key is handed over to Jacksum if the key field is empty and none of the selected algorithms
+    is an HMAC; an empty key made Jacksum print `-k txt:` to the header of the output file, even
+    for algorithms that are not HMACs at all; for an HMAC an empty key is handed over as an empty
+    text key (like `-k txt:`), because RFC 2104 allows it and Jacksum would reject the HMAC for
+    lacking a key otherwise
   - the key type "Password" is remembered, so that the key field stays masked after a restart
   - the button to select a verification file also works if the text field contains a filename
     without a directory
@@ -75,9 +78,39 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - `mvn package` copies the jacksum and flatlaf jars next to the HashGarten jar, where the
     `Class-Path` of its manifest expects them; `java -jar target/HashGarten-0.20.0.jar` failed with
     a `NoClassDefFoundError` otherwise
+  - macOS: the menus "Operating Mode" and "Help" of the screen menu bar are drawn right after the
+    start and after the theme has been changed; they sometimes did not appear until the mouse was
+    moved over the menu bar; menus and items that move into the application menu are removed
+    instead of hidden, the File menu is removed if both Preferences and Quit are in the application
+    menu, the menu bar is redrawn once after the window has been activated for the first time, and
+    a theme change no longer updates the layered pane and the glass pane
+  - macOS 26 and later: the Settings item of the application menu is no longer indented
+  - Interactive: the hash of the empty input is shown right away, not only after the first
+    keystroke
+  - the tooltip of the key field tells whether the key is used, depending on whether an HMAC has
+    been selected
+  - Save in the file list remembers the list after a restart as well; it was only kept in memory,
+    so a removed entry came back at the next start unless a task had been run; a file list that
+    is given by `--file-list` still takes precedence over the saved list
+  - HashGarten quits immediately; it waited for Java's GUI toolkit to shut itself down, which
+    took about two seconds before a terminal accepted input again
+  - the option to find Alternate Data Streams (ADS) is unticked and disabled on systems other
+    than Windows, because Jacksum scans for ADS on Windows only; ticking it had no effect there
 
 - Enhancements
   - requires Jacksum 4.0.1
+  - Traversal Options: added "Find all Unix file types" for `--scan-all-unix-file-types`, which
+    also reads block and character devices, named pipes and sockets; it has an effect on
+    Unix-like operating systems only and is disabled on Windows
+  - the About dialog shows the version and the vendor of the Java runtime, and the version of
+    FlatLaf
+  - requires Java 25 (was Java 21); the manifest of the jar carries
+    `Enable-Native-Access: ALL-UNNAMED`, so that `java -jar` does not warn about native access,
+    which is used on macOS for the application menu, and by FlatLaf
+  - revised texts of labels, tooltips and messages throughout the GUI: typos have been fixed
+    (e.g. "Toglggle", "has ben set"), the wording is consistent ("OK" instead of "Ok",
+    "Select Algorithms", "Algorithm ID"), tooltips describe what a control does, and every
+    control that had no tooltip has got one
 
 ## HashGarten 0.19, August 22, 2026
 

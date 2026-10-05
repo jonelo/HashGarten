@@ -2,63 +2,82 @@
 
 # HashGarten
 
-A simple graphical user interface for the desktop (Windows, Linux, macOS) to access features of [Jacksum](https://github.com/jonelo/jacksum) by the graphical way. Jacksum is both a command line tool and lib. See also https://github.com/jonelo/jacksum.
+HashGarten is a graphical user interface for the desktop (Windows, Linux and macOS) that makes the features of
+[Jacksum](https://github.com/jonelo/jacksum) available without a command line. Jacksum is both a command line tool and
+a Java library.
 
-HashGarten is also part of the Jacksum File Browser Integration. See also
+HashGarten is also part of the Jacksum File Browser Integration:
 - https://github.com/jonelo/jacksum-for-windows
 - https://github.com/jonelo/jacksum-for-macos
 - https://github.com/jonelo/jacksum-for-linux
 
 ## Trivia
 
-In a "Kindergarten" children should be cherished and cared for like young plants. The German name has persisted to this day and has spread to other countries. In reference to the famous "Kindergarten", the HashGarten is a similar construction, but for hash algorithms.
+In a kindergarten, children are meant to be cherished and cared for like young plants. The German word has survived to
+this day and has spread to many other languages. HashGarten borrows the idea: it is a garden, too, but one for hash
+algorithms.
 
 ## Screenshots
 
-### Use Cases
-
-#### Find and Select Hash Algorithms
+### Find and Select Hash Algorithms
 
 ![Find and Select Hash Algorithms](https://github.com/user-attachments/assets/41e54f70-591a-4a94-b38c-6cf25282d17e)
 
-Note that the algorithm list above has been filtered. For now 586 algorithms are supported!
+The list of algorithms in the screenshot has been filtered. HashGarten currently supports 586 hash algorithms, plus 492
+HMAC variants.
 
-#### Calculate Hash Values
+### Calculate Hash Values
 
 ![Calculate Hash Values](https://github.com/user-attachments/assets/49f76e03-7821-4a24-ad3e-54ad69caa3f2)
 
-#### Verify Hash Values
+### Verify Hash Values
 
 ![Verify Hash Values](https://github.com/user-attachments/assets/537ddd9d-d202-4f1f-be95-0605b04d8492)
 
-#### Interactive
+### Interactive
 
 ![Interactive](https://github.com/user-attachments/assets/6c4c87b2-4253-43be-bab4-edad6c4b51e2)
 
-#### Set Preferences
+### Set Preferences
 
 ![Set Preferences](https://github.com/user-attachments/assets/042b68bc-0767-4dc4-bd55-7977b722d2c5)
 
-
 ## Features
 
-- Run it standalone or integrate it to your file browser
-- Drag and drop files and directories to the GUI
+- Run it standalone, or use it from your file browser
+- Drag and drop files and directories onto the window
 - Calculate and verify hash values
-- Initialize the GUI by Jacksum command line options, because it supports the same options as Jacksum does 
-- Find suitable algorithms, regular expressions are supported (e.g. `^sha\d?-`)
-- Select one or many of a pool of more than 480 algorithms
+- Hash text or other input interactively, as you type
+- Start it with Jacksum's command line options, since it supports the same options as Jacksum
+- Find the right algorithm quickly; the search field accepts regular expressions (e.g. `^sha\d?-`)
+- Select one or more algorithms out of 586 hash algorithms and 492 HMAC variants
 - Get detailed information about each algorithm
-- Get detailed help for many configuration options
-- Components become visible if yout need them
-- Multi screen environment support (the window appears on the screen on which your mouse cursor is)
-- Window is always on top if you want
-- Light and Dark themes are supported
+- Get context help for many options
+- Controls are shown only when you need them
+- Multi-screen support: the window opens on the screen where the mouse cursor is
+- Keep the window always on top if you like
+- Light and dark themes
+
+## Requirements
+
+Java 25 or later.
+
+## Usage
+
+```sh
+java -jar HashGarten-0.20.0.jar
+java -jar HashGarten-0.20.0.jar -a sha3-256 /path/to/file
+```
 
 ## Internals
 
-- HashGarten is written entirely in Java and it uses the Swing framework
-- It uses Jacksum as a lib and calls its API, it does not call Jacksum by the command line
-- It requires FlatLaF to get a modern look and feel. See also https://github.com/JFormDesigner/FlatLaf
-- The GUI supports the same program options as Jacksum does, so you can initialize the GUI even by the command line
-- It reads and stores GUI properties from/to `$HOME/.HashGarten.properties`
+- HashGarten is written entirely in Java and uses Swing.
+- It uses Jacksum as a library and calls its API; it never runs the Jacksum command line tool.
+- It uses [FlatLaf](https://github.com/JFormDesigner/FlatLaf) for a modern look and feel.
+- It accepts the same options as Jacksum, so it can be preconfigured from the command line.
+- It stores its settings in `$HOME/.HashGarten.properties`.
+
+## License
+
+HashGarten is free software, licensed under the GNU General Public License, version 3 or (at your option) any later
+version. See [LICENSE](LICENSE).
