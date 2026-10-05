@@ -1208,6 +1208,7 @@
                 </Component>
                 <Component class="javax.swing.JTextField" name="interactiveOutputTextField">
                   <Properties>
+                    <Property name="editable" type="boolean" value="false"/>
                     <Property name="toolTipText" type="java.lang.String" value="The hash value of the input, updated as you type"/>
                   </Properties>
                 </Component>

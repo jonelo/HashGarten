@@ -1282,6 +1282,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
+        interactiveOutputTextField.setEditable(false);
         interactiveOutputTextField.setToolTipText("The hash value of the input, updated as you type");
 
         interactiveOutputLabel.setText("Output:");
