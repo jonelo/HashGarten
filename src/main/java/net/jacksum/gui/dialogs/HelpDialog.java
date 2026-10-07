@@ -48,6 +48,7 @@ public class HelpDialog extends javax.swing.JDialog {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        statusLabel = new javax.swing.JLabel();
         cancelButton = new javax.swing.JButton();
         helpPanel = new javax.swing.JPanel();
         helpScrollPane = new javax.swing.JScrollPane();
@@ -95,6 +96,7 @@ public class HelpDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(statusLabel)
                         .addGap(0, 557, Short.MAX_VALUE)
                         .addComponent(cancelButton))
                     .addComponent(helpPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -106,7 +108,9 @@ public class HelpDialog extends javax.swing.JDialog {
                 .addContainerGap()
                 .addComponent(helpPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
-                .addComponent(cancelButton)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(statusLabel)
+                    .addComponent(cancelButton))
                 .addContainerGap())
         );
 
@@ -122,6 +126,8 @@ public class HelpDialog extends javax.swing.JDialog {
     }
 
     public void searchHelp(String text, boolean strict) throws NothingFoundException, IOException {
+        ensureMonospacedFont();
+        statusLabel.setText("");
         helpTextArea.setText(Help.searchHelp("en", text, strict));
         helpTextArea.setCaretPosition(0);
     }
@@ -131,13 +137,40 @@ public class HelpDialog extends javax.swing.JDialog {
         for (String s : texte) {
             sb.append(Help.searchHelp("en", s, strict));
         }
+        ensureMonospacedFont();
+        statusLabel.setText("");
         helpTextArea.setText(sb.toString());
         helpTextArea.setCaretPosition(0);
     }
     
     public void setText(String text) {
+        setText(text, "");
+    }
+
+    /**
+     * Shows a text, e.g. the content of a file, with a status below it (e.g. the number of lines).
+     *
+     * @param text the text
+     * @param status the status, an empty string shows none
+     */
+    public void setText(String text, String status) {
+        ensureMonospacedFont();
+        statusLabel.setText(status);
         helpTextArea.setText(text);
         helpTextArea.setCaretPosition(0);
+    }
+
+    /**
+     * The texts are preformatted (manpage, hex dump), so they need a monospaced font. FlatLaf
+     * gets one by the style that is set in the constructor; other look and feels (Nimbus, the
+     * system one) don't know that style, so their font is replaced if it isn't monospaced.
+     */
+    private void ensureMonospacedFont() {
+        java.awt.Font font = helpTextArea.getFont();
+        java.awt.FontMetrics fm = helpTextArea.getFontMetrics(font);
+        if (fm.charWidth('i') != fm.charWidth('W')) {
+            helpTextArea.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, font.getSize()));
+        }
     }
 
     
@@ -146,5 +179,6 @@ public class HelpDialog extends javax.swing.JDialog {
     private javax.swing.JPanel helpPanel;
     private javax.swing.JScrollPane helpScrollPane;
     private javax.swing.JTextArea helpTextArea;
+    private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
 }

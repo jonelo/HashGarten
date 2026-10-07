@@ -33,4 +33,14 @@ public class PropertyKeys {
     // Jacksum maps both key types "Text" and "Password" onto Sequence.Type.TXT,
     // so which one the user has picked has to be remembered by the GUI itself
     public final static String GUI_KEYTYPE = "gui.keytype";
+    // the directory that the Add dialog of the file list has shown most recently
+    public final static String GUI_ADD_DIRECTORY = "gui.add.directory";
+    // the directory that the dialog to select the verification file has shown most recently
+    public final static String GUI_VERIFICATION_FILE_DIRECTORY = "gui.verificationfile.directory";
+    // the directory that the dialog to select the key file has shown most recently
+    public final static String GUI_KEY_FILE_DIRECTORY = "gui.keyfile.directory";
+    // the directory that the dialogs to select the output resp. the error file have shown most recently
+    public final static String GUI_OUTPUT_FILE_DIRECTORY = "gui.outputfile.directory";
+    // the directory that the dialog to select the directory for "relativize paths to" has shown most recently
+    public final static String GUI_PATH_RELATIVE_TO_DIRECTORY = "gui.pathrelativeto.directory";
 }

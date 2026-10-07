@@ -9,13 +9,130 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - Select algorithms: the implementation details of an HMAC are shown; selecting e.g.
     `hmac:sha-256` failed with "Key must not be null" if no key had been entered, which was
     always the case in the Interactive operating mode with an empty key field
+  - Interactive: the output field is no longer cut off with the Nimbus look and feel; the section
+    had a fixed height that was too small for Nimbus
+  - the heading "Calculation Performance", the header area of the Output Style tab, the label
+    "Style:" and the button "Clear" on the Verification tab are no longer cut off; they had fixed
+    sizes that were too small; the same goes for the label "Standard output character set:" on
+    the Output Files tab, and for the button "..." to select the verification file with the
+    system look and feel on macOS
   - Interactive: the output field is read-only, so the hash value can be selected and copied,
     but no longer changed by mistake
   - an incomplete input (e.g. an empty file list, no algorithm, no verification file) is reported
     once; after the message an empty dialog appeared, and an error was printed to the terminal
+  - a file that has been given by command line args and is removed from the file list is no
+    longer read; Jacksum read the files from the command line in addition to the list
+  - with "stay open", the output and error files of a task are closed when the task is over; a
+    following task without an output file wrote into the output file of the previous one
+  - "Print header" is remembered after a restart, and it is applied when a style is selected as
+    well; it was reset at every start, and a style decided on the header on its own (e.g. sfv
+    never printed one, full always did)
+  - one hashing thread is remembered; it came back as the number of processors
+  - the selected algorithm is remembered if a style with a hardcoded algorithm has been used
+    (names-only, sizes-and-names, timestamps-and-names, without-hashes); after a restart the
+    algorithm was "none", so after switching back to another style the output showed the file
+    sizes instead of hash values
+  - Select algorithms: Ok keeps the order of the algorithms, which is the order of the columns of
+    a combined output, and it keeps algorithms that have no row in the table (e.g. `all`,
+    `crc:...`, `hmac:sha-256:128`) instead of dropping them; Reset removes them; an HMAC that is
+    given by an alias (e.g. `hmac:sha256`) is ticked
+  - Select algorithms: a filter like "Show checked" is applied again when the dialog is opened
+    again; it showed the algorithms of the previous selection
+  - a style that is not in the list of styles (e.g. an alias like `linux`, or a style file) is
+    kept; the style openssl111-dgst has been added to the list; the next task used the default
+    style instead
+  - a character set that is given by an alias (e.g. `latin1`, `cp1252`) is kept; the next task
+    used UTF-8 instead
+  - copy, cut and paste work in the text fields for the verification file, the relative path, the
+    output file and the error file again, and text can be dragged into them; only files could be
+    dropped onto them
+  - an unexpected error during a task shows a short message and the window again; the app kept
+    running without a window, and the message was a raw stack trace
+  - invalid command line args are reported, and HashGarten starts with the remembered settings;
+    it failed with a NullPointerException
+  - Interactive: a key file that is selected by the "..." button is used right away; the output
+    kept showing the hash with the previous key, and a directory could be selected as key file
+  - Interactive: no algorithm selected is reported at the algorithm field; the output kept
+    showing the hash of the algorithm that was selected before
+  - the suggested output filename follows the path that the paths are relativized to after every
+    keystroke, and also when the path is pasted or dropped; it lagged one keystroke behind
+  - the theme `nimbus` (set in `.HashGarten.properties`) is kept; it was replaced by `light` the
+    first time the settings were saved
+  - Verify: a line format of the calculation mode no longer causes the warning "Option -F will be
+    ignored, because option -c is used"
+  - Verify: the filter "Only show files with the status" has the status ERROR for files that
+    could not be read; once it had been switched off (e.g. by `--list-filter ok`), unreadable
+    files were never reported again, because the GUI had no control for it
+  - a custom style whose only change is "no file size" is remembered as custom; it came back as
+    the default style, and with combined algorithms (e.g. `sha1+md5`) the file sizes were printed
+    again
+  - Top, Up, Down and Bottom move all selected lines of the file list, and the lines stay
+    selected; only the first selected line was moved
+  - View shows the output file, the error file and the verification file in the character set
+    that has been selected for it, and without a Byte Order Mark; it always read UTF-8, so e.g. a
+    UTF-16 file was shown garbled
+  - a missing verification file resp. custom timestamp format is pointed out by a greyed out
+    hint in the empty field; a hint text such as "ENTER A VERIFICATION FILE HERE" was written
+    into the field and was passed to Jacksum when the button was pressed again; the message about
+    the timestamp format also switches to the tab that contains the field
+  - Select algorithms: the filter searches the algorithm ids only, regardless of upper and lower
+    case; it also searched the hidden descriptions and the check boxes, so e.g. `true` showed the
+    ticked algorithms; "Show checked" and "Show unchecked" can be combined with a filter text
+  - diagnostic messages are appended to `$HOME/.HashGarten.log` next to the settings; they were
+    written to `hashgarten.log` in the working directory, which often was the folder that was
+    being hashed, and if that directory was not writable an error was printed to the terminal
+  - Help: if no web browser can be opened (e.g. on some Linux desktops), the address is shown
+    so that it can be copied; an error was printed to the terminal instead
+  - the Jacksum File Browser Integration (`-c relative` with `--path-relative-to-entry 1`)
+    proposes the verification file next to the first selected file again, so that the output of
+    a calculation is the input of the verification; it proposed a file in the home directory,
+    because Jacksum 4.0.1 rejects a verification file that doesn't exist before it resolves the
+    path of the first entry, and the Interactive operating mode failed on every keystroke after
+    such a start
+  - Verify: a task is refused if the standard output file or the standard error file is the
+    verification file, also via a relative path or a symbolic link; the verification file was
+    overwritten before it was read
+  - Verify: the suggested output file is named `.<ALGORITHM>.log`; it was the name of the
+    verification file that `-c relative` stands for, so the verification file was overwritten
+  - the file dialogs show hidden files, so that e.g. a verification file `.sha256` can be
+    selected
+  - a key is no longer saved in `.HashGarten.properties`, where it was stored unencrypted; a key
+    that has been saved by an older version is removed the next time the settings are saved; the
+    name of a key file is still remembered
+  - errors in the parameters at startup are written to `$HOME/.HashGarten.log`; they were printed
+    to the terminal, which can't be seen if HashGarten has been started from a file browser
 
 - Enhancements
   - Interactive: the output field has a context menu to copy the hash value to the clipboard
+  - Input: Add allows to select several files and directories at once, and it starts in the
+    directory that has been used last, also after a restart
+  - the dialogs to select the verification file and the key file start in the directory that has
+    been used last, also after a restart, unless the text field names a file in a directory
+  - Output Files: the output file and the error file can be selected by a "..." button; the
+    dialog remembers its directory like the others
+  - Output Style: the directory for "relativize paths to" can be selected by a "..." button,
+    which remembers its directory as well
+  - Calculation: the key file of an HMAC can be viewed by a "View" button, as text, or as a hex
+    dump if it contains binary data
+  - the viewer shows the number of lines, the size, the character set and the time of the last
+    modification of the file below the text, and the full path of the file in its title
+  - Input: the empty file list shows the greyed out hint "Drag and drop files and directories
+    here"
+  - Preferences: the look and feel can be selected (FlatLaf, Nimbus or the one of the system),
+    and it is applied immediately; the dark theme is available with FlatLaf
+  - Output Files and Verify: the fields for the standard output file, the standard error file and
+    the verification file have a context menu with suggestions: next to the first input file,
+    next to the verification file (for the output of a verification), in the directory the paths
+    are relativized to, in the working directory, in the home directory and in the temporary
+    directory (on macOS also in the temporary user directory); the output and the error can also
+    be set to standard output resp. standard error, and the error file to the output file
+  - Interactive: the input field and the key field have a context menu with Cut, Copy, Paste and
+    Clear; a hidden input resp. key can't be cut or copied
+  - Input: the file list shows the icon of each file and directory, on macOS the one of the
+    Finder; an entry that doesn't exist anymore says so in its tooltip
+  - Input: the entries of the file list can be reordered by drag and drop, and they have a
+    context menu with Top, Up, Down, Bottom and Remove; these functions resp. buttons are greyed
+    out when they would have no effect
 
 ## HashGarten 0.20, Oct 5, 2026
 

@@ -21,6 +21,7 @@
 package net.jacksum.gui;
 
 import java.awt.Desktop;
+import net.jacksum.gui.constants.AppConstants;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,8 +29,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JToggleButton;
 import net.jacksum.JacksumAPI;
@@ -85,24 +84,31 @@ public class GUIHelper {
 
     // since Jacksum controls stdout/stderr, we cannot simply use System.out or System.err
     public static void debug(String message) {
-        try (final BufferedWriter writer = new BufferedWriter(new FileWriter("hashgarten.log", true))) {
+        try (final BufferedWriter writer = new BufferedWriter(new FileWriter(AppConstants.LOG_FILE, true))) {
             writer.append(message);
             writer.append("\n");
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            // nowhere else to report it: the standard streams are controlled by Jacksum and can
+            // point to the user's output file, so the message is dropped
         }
     }
 
     public static void openWebsite(String address) {
-        if (Desktop.isDesktopSupported()) {
-
-            Desktop desktop = Desktop.getDesktop();
+        // not every desktop supports opening a browser (e.g. some Linux window managers), and
+        // browse() throws an unchecked exception then; show the address instead, so that it can
+        // be copied into a browser
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             try {
-                URI uri = new URI(address);
-                desktop.browse(uri);
-            } catch (IOException | URISyntaxException excp) {
+                Desktop.getDesktop().browse(new URI(address));
+                return;
+            } catch (IOException | URISyntaxException | RuntimeException excp) {
                 debug(String.format("Could not open %s: %s", address, excp));
             }
         }
+        javax.swing.JTextField field = new javax.swing.JTextField(address);
+        field.setEditable(false);
+        javax.swing.JOptionPane.showMessageDialog(null,
+                new Object[]{"The web browser could not be opened. Please open this address manually:", field},
+                "HashGarten", javax.swing.JOptionPane.INFORMATION_MESSAGE);
     }
 }

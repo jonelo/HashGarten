@@ -175,15 +175,30 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         });
     }
 
+    // null: all rows, TRUE: only the ticked ones, FALSE: only the unticked ones (Show checked resp.
+    // Show unchecked); it is combined with the text of the filter field
+    private Boolean checkedFilter = null;
+
     private void newFilter() {
-        RowFilter<AlgorithmsTableModel, Object> rf;
+        java.util.List<RowFilter<AlgorithmsTableModel, Integer>> filters = new java.util.ArrayList<>();
         // If current expression doesn't parse, don't update.
         try {
-            rf = RowFilter.regexFilter(filterTextField.getText());
+            // the algorithm id only, case-insensitive: without a column index the filter would
+            // also search the description, which is hidden, and the column of the check boxes
+            filters.add(RowFilter.regexFilter("(?i)" + filterTextField.getText(), 1));
         } catch (java.util.regex.PatternSyntaxException e) {
             return;
         }
-        altorithmsTableRowSorter.setRowFilter(rf);
+        if (checkedFilter != null) {
+            Boolean wanted = checkedFilter;
+            filters.add(new RowFilter<AlgorithmsTableModel, Integer>() {
+                @Override
+                public boolean include(Entry<? extends AlgorithmsTableModel, ? extends Integer> entry) {
+                    return wanted.equals(entry.getValue(0));
+                }
+            });
+        }
+        altorithmsTableRowSorter.setRowFilter(RowFilter.andFilter(filters));
         updateAlgorithmCountLabel();
     }
     
@@ -314,13 +329,20 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     public void setSelection(String algos) {
         okPressed = false;
         algorithmsTableModel.setSelection(algos);
+        // the dialog is reused, so a filter (e.g. "Show checked") is still active; the row sorter
+        // doesn't filter again on its own when the ticks change, so it would show the rows that
+        // have been ticked when the dialog was open the last time
+        newFilter();
 
         // make sure that the first enabled row is selected
         int row = algorithmsTableModel.getFirstTrue();
         if (row > -1) {
             int viewRow = algorithmsTable.convertRowIndexToView(row);
-            algorithmsTable.getSelectionModel().setSelectionInterval(viewRow, viewRow);
-            algorithmsTable.scrollRectToVisible(new Rectangle(algorithmsTable.getCellRect(viewRow, 1, true)));
+            // -1 if the filter hides the row
+            if (viewRow > -1) {
+                algorithmsTable.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+                algorithmsTable.scrollRectToVisible(new Rectangle(algorithmsTable.getCellRect(viewRow, 1, true)));
+            }
         }
     }
 
@@ -663,7 +685,9 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_cancelButtonActionPerformed
 
     private void showAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showAllButtonActionPerformed
+        checkedFilter = null;
         filterTextField.setText("");
+        newFilter();
     }//GEN-LAST:event_showAllButtonActionPerformed
 
     private void checkButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_checkButtonActionPerformed
@@ -683,12 +707,15 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_uncheckButtonActionPerformed
 
     private void showCheckedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showCheckedButtonActionPerformed
-        // anchored, otherwise a description that contains the word "true" would match as well
-        filterTextField.setText("^true$");
+        checkedFilter = Boolean.TRUE;
+        filterTextField.setText("");
+        newFilter();
     }//GEN-LAST:event_showCheckedButtonActionPerformed
 
     private void showUncheckedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showUncheckedButtonActionPerformed
-        filterTextField.setText("^false$");
+        checkedFilter = Boolean.FALSE;
+        filterTextField.setText("");
+        newFilter();
     }//GEN-LAST:event_showUncheckedButtonActionPerformed
 
     private void selectAllButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllButtonActionPerformed
@@ -700,11 +727,16 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     }//GEN-LAST:event_selectNoneButtonActionPerformed
 
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
+        checkedFilter = null;
         filterTextField.setText("");
+        newFilter();
         algorithmsTable.clearSelection();
         for (int i = 0; i < algorithmsTableModel.getRowCount(); i++) {
             algorithmsTableModel.setValueAt(Boolean.FALSE, i, 0);
         }
+        // also the algorithms that can't be shown in the table (e.g. "all"), otherwise there
+        // would be no way to get rid of them
+        algorithmsTableModel.clearUnmatched();
     }//GEN-LAST:event_resetButtonActionPerformed
 
     private void toggleButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_toggleButtonActionPerformed

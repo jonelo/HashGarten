@@ -755,7 +755,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="processingOptionsPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="interactivePanel" min="-2" pref="144" max="-2" attributes="0"/>
+                      <Component id="interactivePanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace pref="78" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -794,7 +794,11 @@
                                                   <EmptySpace min="-2" max="-2" attributes="0"/>
                                                   <Group type="103" groupAlignment="0" max="-2" attributes="0">
                                                       <Component id="selectAlgoButton" max="32767" attributes="0"/>
-                                                      <Component id="keyFileButton" max="32767" attributes="0"/>
+                                                      <Group type="102" attributes="0">
+                                                          <Component id="keyFileButton" max="32767" attributes="0"/>
+                                                          <EmptySpace max="-2" attributes="0"/>
+                                                          <Component id="keyViewButton" min="-2" max="-2" attributes="0"/>
+                                                      </Group>
                                                   </Group>
                                               </Group>
                                           </Group>
@@ -831,6 +835,7 @@
                               <Component id="jLabel9" min="-2" max="-2" attributes="0"/>
                               <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                                   <Component id="keyFileButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="keyViewButton" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="keyPasswordField" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
@@ -909,6 +914,18 @@
                     <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="keyFileButton.setEnabled(false);"/>
                   </AuxValues>
                 </Component>
+                <Component class="javax.swing.JButton" name="keyViewButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="View"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Show the content of the key file"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="keyViewButtonActionPerformed"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_InitCodePost" type="java.lang.String" value="keyViewButton.setEnabled(false);"/>
+                  </AuxValues>
+                </Component>
                 <Component class="javax.swing.JPasswordField" name="keyPasswordField">
                   <Events>
                     <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="keyPasswordFieldKeyReleased"/>
@@ -975,7 +992,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="headerDataIntegrityStrengthLabel1" min="-2" pref="8" max="-2" attributes="0"/>
+                          <Component id="headerDataIntegrityStrengthLabel1" min="-2" max="-2" attributes="0"/>
                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="1" attributes="0">
                               <Group type="102" attributes="0">
@@ -1302,11 +1319,11 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="fileVerificationTextField" max="32767" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="fileVerificationSelectFileButton" min="-2" pref="45" max="-2" attributes="0"/>
+                                          <Component id="fileVerificationSelectFileButton" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
                                           <Component id="fileVerificationViewButton" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="fileVerificationClearButton" min="-2" pref="68" max="-2" attributes="0"/>
+                                          <Component id="fileVerificationClearButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                   <EmptySpace min="4" pref="4" max="-2" attributes="0"/>
@@ -1416,7 +1433,7 @@
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="jLabel6" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
-                                  <Component id="styleLabel1" min="-2" pref="28" max="-2" attributes="0"/>
+                                  <Component id="styleLabel1" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace type="separate" max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
                                       <Group type="102" attributes="0">
@@ -1510,7 +1527,7 @@
                   <Properties>
                     <Property name="maximumRowCount" type="int" value="25"/>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="20">
+                      <StringArray count="21">
                         <StringItem index="0" value="default"/>
                         <StringItem index="1" value="bsd"/>
                         <StringItem index="2" value="bsd-r"/>
@@ -1519,18 +1536,19 @@
                         <StringItem index="5" value="hdb"/>
                         <StringItem index="6" value="openssl-dgst"/>
                         <StringItem index="7" value="openssl-dgst-r"/>
-                        <StringItem index="8" value="sfv"/>
-                        <StringItem index="9" value="solaris-digest"/>
-                        <StringItem index="10" value="solaris-digest-v"/>
-                        <StringItem index="11" value="full"/>
-                        <StringItem index="12" value="without-sizes"/>
-                        <StringItem index="13" value="without-timestamps"/>
-                        <StringItem index="14" value="without-hashes"/>
-                        <StringItem index="15" value="sizes-and-names"/>
-                        <StringItem index="16" value="timestamps-and-names"/>
-                        <StringItem index="17" value="names-only"/>
-                        <StringItem index="18" value="hexhashes-only"/>
-                        <StringItem index="19" value="custom"/>
+                        <StringItem index="8" value="openssl111-dgst"/>
+                        <StringItem index="9" value="sfv"/>
+                        <StringItem index="10" value="solaris-digest"/>
+                        <StringItem index="11" value="solaris-digest-v"/>
+                        <StringItem index="12" value="full"/>
+                        <StringItem index="13" value="without-sizes"/>
+                        <StringItem index="14" value="without-timestamps"/>
+                        <StringItem index="15" value="without-hashes"/>
+                        <StringItem index="16" value="sizes-and-names"/>
+                        <StringItem index="17" value="timestamps-and-names"/>
+                        <StringItem index="18" value="names-only"/>
+                        <StringItem index="19" value="hexhashes-only"/>
+                        <StringItem index="20" value="custom"/>
                       </StringArray>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="What style/format should be used?"/>
@@ -1684,6 +1702,8 @@
                                           <Component id="showMissingFilesCheckBox" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace type="separate" max="-2" attributes="0"/>
                                           <Component id="showNewFilesCheckBox" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                                          <Component id="showErrorFilesCheckBox" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="32767" attributes="0"/>
                                           <Component id="listFilterButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
@@ -1726,6 +1746,7 @@
                                   <Component id="showFailedFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="showMissingFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                                   <Component id="showNewFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="showErrorFilesCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="listFilterButton" alignment="1" min="-2" max="-2" attributes="0"/>
                           </Group>
@@ -1766,6 +1787,13 @@
                     <Property name="selected" type="boolean" value="true"/>
                     <Property name="text" type="java.lang.String" value="NEW"/>
                     <Property name="toolTipText" type="java.lang.String" value="Files that are not listed in the verification file"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="showErrorFilesCheckBox">
+                  <Properties>
+                    <Property name="selected" type="boolean" value="true"/>
+                    <Property name="text" type="java.lang.String" value="ERROR"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Files that could not be read"/>
                   </Properties>
                 </Component>
                 <Component class="javax.swing.JLabel" name="jLabel1">
@@ -1852,7 +1880,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="outputStyleHeaderPanel" min="-2" pref="52" max="-2" attributes="0"/>
+                      <Component id="outputStyleHeaderPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="customizedFormatPanel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
@@ -2039,7 +2067,7 @@
                   <Properties>
                     <Property name="maximumRowCount" type="int" value="25"/>
                     <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-                      <StringArray count="20">
+                      <StringArray count="21">
                         <StringItem index="0" value="default"/>
                         <StringItem index="1" value="bsd"/>
                         <StringItem index="2" value="bsd-r"/>
@@ -2048,18 +2076,19 @@
                         <StringItem index="5" value="hdb"/>
                         <StringItem index="6" value="openssl-dgst"/>
                         <StringItem index="7" value="openssl-dgst-r"/>
-                        <StringItem index="8" value="sfv"/>
-                        <StringItem index="9" value="solaris-digest"/>
-                        <StringItem index="10" value="solaris-digest-v"/>
-                        <StringItem index="11" value="full"/>
-                        <StringItem index="12" value="without-sizes"/>
-                        <StringItem index="13" value="without-timestamps"/>
-                        <StringItem index="14" value="without-hashes"/>
-                        <StringItem index="15" value="sizes-and-names"/>
-                        <StringItem index="16" value="timestamps-and-names"/>
-                        <StringItem index="17" value="names-only"/>
-                        <StringItem index="18" value="hexhashes-only"/>
-                        <StringItem index="19" value="custom"/>
+                        <StringItem index="8" value="openssl111-dgst"/>
+                        <StringItem index="9" value="sfv"/>
+                        <StringItem index="10" value="solaris-digest"/>
+                        <StringItem index="11" value="solaris-digest-v"/>
+                        <StringItem index="12" value="full"/>
+                        <StringItem index="13" value="without-sizes"/>
+                        <StringItem index="14" value="without-timestamps"/>
+                        <StringItem index="15" value="without-hashes"/>
+                        <StringItem index="16" value="sizes-and-names"/>
+                        <StringItem index="17" value="timestamps-and-names"/>
+                        <StringItem index="18" value="names-only"/>
+                        <StringItem index="19" value="hexhashes-only"/>
+                        <StringItem index="20" value="custom"/>
                       </StringArray>
                     </Property>
                     <Property name="toolTipText" type="java.lang.String" value="What style/format should be used?"/>
@@ -2246,7 +2275,11 @@
                                           <Component id="customizedPathSpearatorTextField" min="-2" pref="71" max="-2" attributes="0"/>
                                           <EmptySpace min="0" pref="210" max="32767" attributes="0"/>
                                       </Group>
-                                      <Component id="pathRelativeToTextField" alignment="0" max="32767" attributes="0"/>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="pathRelativeToTextField" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="pathRelativeToSelectButton" min="-2" max="-2" attributes="0"/>
+                                      </Group>
                                   </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="1" attributes="0">
@@ -2274,7 +2307,10 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="1" attributes="0">
                               <Group type="102" attributes="0">
-                                  <Component id="pathRelativeToTextField" min="-2" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="3" attributes="0">
+                                      <Component id="pathRelativeToTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                                      <Component id="pathRelativeToSelectButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="3" attributes="0">
                                       <Component id="customizedPathSeparatorCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -2339,8 +2375,14 @@
                       <Value id="INSERT"/>
                     </Property>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="pathRelativeToSelectButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="..."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Select the directory that the paths are relativized to"/>
+                  </Properties>
                   <Events>
-                    <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="pathRelativeToTextFieldKeyTyped"/>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="pathRelativeToSelectButtonActionPerformed"/>
                   </Events>
                 </Component>
                 <Component class="javax.swing.JCheckBox" name="customizedPathSeparatorCheckBox">
@@ -2429,10 +2471,14 @@
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="standardOutputFileTextField" pref="315" max="32767" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="standardOutputFileSelectButton" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
                                           <Component id="standardOutputViewButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" alignment="0" attributes="0">
                                           <Component id="standardErrorFileTextField" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="standardErrorFileSelectButton" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="standardErrorViewButton" min="-2" max="-2" attributes="0"/>
                                       </Group>
@@ -2452,12 +2498,14 @@
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="standardOutputFileTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardOutputFileLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="standardOutputFileSelectButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardOutputViewButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="standardErrorFileLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardErrorFileTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="standardErrorFileSelectButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="standardErrorViewButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
@@ -2484,6 +2532,15 @@
                     <Property name="toolTipText" type="java.lang.String" value="Which file should the output be saved to? Drag and drop is supported."/>
                   </Properties>
                 </Component>
+                <Component class="javax.swing.JButton" name="standardOutputFileSelectButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="..."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Select the output file"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="standardOutputFileSelectButtonActionPerformed"/>
+                  </Events>
+                </Component>
                 <Component class="javax.swing.JButton" name="standardOutputViewButton">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="View"/>
@@ -2502,6 +2559,15 @@
                   <Properties>
                     <Property name="toolTipText" type="java.lang.String" value="Which file should errors be saved to? Drag and drop is supported."/>
                   </Properties>
+                </Component>
+                <Component class="javax.swing.JButton" name="standardErrorFileSelectButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="..."/>
+                    <Property name="toolTipText" type="java.lang.String" value="Select the error file"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="standardErrorFileSelectButtonActionPerformed"/>
+                  </Events>
                 </Component>
                 <Component class="javax.swing.JButton" name="standardErrorViewButton">
                   <Properties>
@@ -2531,7 +2597,7 @@
                               <Group type="102" alignment="0" attributes="0">
                                   <Group type="103" groupAlignment="1" max="-2" attributes="0">
                                       <Component id="standardErrorFileCharacterSetLabel" max="32767" attributes="0"/>
-                                      <Component id="standardOutputFileCharacterSetLabel" pref="0" max="32767" attributes="0"/>
+                                      <Component id="standardOutputFileCharacterSetLabel" max="32767" attributes="0"/>
                                   </Group>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Group type="103" groupAlignment="0" attributes="0">
@@ -2682,6 +2748,12 @@
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="themeLabel" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
+                                  <Component id="lookAndFeelLabel" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="lookAndFeelComboBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              </Group>
+                              <Group type="102" alignment="0" attributes="0">
                                   <Component id="darkThemeToggleButton" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace min="0" pref="432" max="32767" attributes="0"/>
                               </Group>
@@ -2695,6 +2767,11 @@
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="themeLabel" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="lookAndFeelLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="lookAndFeelComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                          </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="darkThemeToggleButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace pref="12" max="32767" attributes="0"/>
@@ -2722,6 +2799,29 @@
                   <Events>
                     <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="darkThemeToggleButtonItemStateChanged"/>
                   </Events>
+                </Component>
+                <Component class="javax.swing.JLabel" name="lookAndFeelLabel">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Look and feel:"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JComboBox" name="lookAndFeelComboBox">
+                  <Properties>
+                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+                      <StringArray count="3">
+                        <StringItem index="0" value="FlatLaf"/>
+                        <StringItem index="1" value="Nimbus"/>
+                        <StringItem index="2" value="System"/>
+                      </StringArray>
+                    </Property>
+                    <Property name="toolTipText" type="java.lang.String" value="The look and feel of the windows"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="lookAndFeelComboBoxItemStateChanged"/>
+                  </Events>
+                  <AuxValues>
+                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+                  </AuxValues>
                 </Component>
               </SubComponents>
             </Container>

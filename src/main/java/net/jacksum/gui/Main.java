@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -56,8 +57,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -219,7 +218,33 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             System.setProperty( "apple.awt.application.appearance", "system" );
         }
     }
-    
+
+    // The standard streams as they are at startup. Parameters.checked() redirects them to the
+    // output resp. error file of a task and never points them back, and Parameters.restoreStreams()
+    // can't be used, because its backups are transient and so null after the parameters have
+    // been restored from the properties file.
+    private static final java.io.PrintStream STANDARD_OUT = System.out;
+    private static final java.io.PrintStream STANDARD_ERR = System.err;
+
+    /**
+     * Points the standard streams back to where they were at startup and closes the files that
+     * a task has redirected them to. Without this, a following task without an output file would
+     * append to the output file of the previous one, and the files would stay open.
+     */
+    private static void restoreStandardStreams() {
+        java.io.PrintStream out = System.out;
+        java.io.PrintStream err = System.err;
+        System.setOut(STANDARD_OUT);
+        System.setErr(STANDARD_ERR);
+        if (out != STANDARD_OUT) {
+            out.close();
+        }
+        // output and error can share one stream if they go to the same file
+        if (err != STANDARD_ERR && err != out) {
+            err.close();
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -265,8 +290,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     private void finishLookAndFeel() {
         installDropHandlers();
+        installPlaceholders();
+        fileList.setCellRenderer(new net.jacksum.gui.renderers.FileListCellRenderer());
         installOutputContextMenu();
-        darkThemeToggleButton.setSelected(theme.equals(PropertyValues.THEME_DARK));
+        installInputContextMenu();
+        installFileListContextMenu();
+        installFileListButtonUpdater();
+        installSuggestionMenus();
+        installPathRelativeToListener();
+        themeToControls(theme);
         setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
     }
 
@@ -325,6 +357,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 // integration for a previous run, and it is gone by now; if a file list is required,
                 // the file browser integration passes a fresh one by command line args
                 parametersFromProps.setFilelistFilename(null);
+                // older versions have saved the secret key as well; drop it, so that it also
+                // disappears from the properties file when the settings are saved the next time
+                if (isSecretKey(parametersFromProps.getKey())) {
+                    parametersFromProps.setKey((Sequence) null);
+                }
                 parametersFromProps.getVerbose().setDefault();
 
                 // parametersFromProps.setParameterModifiedByAPI(true);
@@ -334,7 +371,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
    debug("algorithmIdentifier:\n" + parametersFromProps.getAlgorithmIdentifier());
                  */
             } catch (IOException | ClassNotFoundException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                debug("The remembered parameters could not be read: " + ex);
             }
         } else {
             parametersFromProps = null;
@@ -355,20 +392,53 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
    debug("algorithmIdentifier:\n" + parametersFromCLI.getAlgorithmIdentifier());
              */
         } catch (ParameterException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            // e.g. an unknown option; start with the remembered resp. default settings instead of
+            // failing with a NullPointerException below
+            debug(ex.toString());
+            JOptionPane.showMessageDialog(null, String.format(
+                    "The command line arguments are invalid, they are ignored:%n%s", ex.getMessage()),
+                    "HashGarten", JOptionPane.WARNING_MESSAGE);
+            parametersFromCLI = new Parameters();
+            parametersFromCLI.setHelp(false);
         }
 
         // set the parameter object member depenent to the availability of
         // parameters in the properties file and from the command line
         if (parametersFromProps != null) {
+            // Parameters.update() always takes over the header setting, even if the command line
+            // has neither --header nor --no-header, so the remembered setting would always be lost
+            boolean headerWanted = parametersFromProps.isHeaderWanted();
+            boolean headerWantedExplicitlySet = parametersFromProps.isHeaderWantedExplicitlySet();
             parametersFromProps.update(parametersFromCLI);
+            if (!parametersFromCLI.isHeaderWantedExplicitlySet()) {
+                parametersFromProps.setHeaderWanted(headerWanted);
+                parametersFromProps.setHeaderWantedExplicitlySet(headerWantedExplicitlySet);
+            }
             parameters = parametersFromProps;
         } else {
             parameters = parametersFromCLI;
         }
 
+        // A style with a hardcoded algorithm (e.g. names-only, which uses "none") replaces the
+        // algorithm during the check. The GUI would then show "none", and after switching back
+        // to the default style a task would run with "none", which prints the file sizes instead
+        // of hash values. So keep the algorithm the user has selected; a task with such a style
+        // still uses the style's algorithm, because the style is applied again for every task.
+        String algorithmSelected = parameters.getAlgorithm();
+
+        // "-c relative" (file browser integration) stands for a check file next to the first file,
+        // see buildRelativeFilename(). Jacksum checks that a check file exists before it resolves
+        // --path-relative-to-entry, so the check would abort before the directory is known. Hence
+        // the check file is left out of the check and resolved to a real filename afterwards.
+        boolean checkFileRelative = "relative".equals(parameters.getCheckFile());
+        if (checkFileRelative) {
+            parameters.setCheckFile(null);
+        }
         try {
             checkParameters(false);
+            if (parameters.getCompatibilityID() != null && algorithmSelected != null) {
+                parameters.setAlgorithm(algorithmSelected);
+            }
             // adjust the object again, no stdin for the GUI
             parameters.setStdinForFilenamesFromArgs(false);
 
@@ -376,8 +446,18 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // parameters.restoreStdErr();
             // parameters.restoreStdOut();
         } catch (ParameterException | ExitException ex) {
-            //} catch (ParameterException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            debug("The parameters are invalid: " + ex);
+        }
+        if (checkFileRelative) {
+            String directory = parameters.getPathRelativeTo() != null
+                    ? parameters.getPathRelativeTo().toString()
+                    : "";
+            // the same algorithm that parameters2calculationPanel() shows, so the name matches the
+            // one that a calculation with "-O relative" has written
+            String algorithm = parameters.isAlgorithmSetByUser()
+                    ? parameters.getAlgorithm()
+                    : parameters.getAlgorithmIdentifier();
+            parameters.setCheckFile(buildRelativeFilename(directory, algorithm));
         }
         // parameters.setParameterModifiedByAPI(true);
 /*
@@ -462,13 +542,31 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // derives it from pathRelativeToAsString, so it is left out and put back afterwards
         java.nio.file.Path pathRelativeTo = parameters.getPathRelativeTo();
         parameters.setPathRelativeTo(null);
+        // the properties file is plain text, so a secret key must not be saved, see isSecretKey()
+        Sequence key = parameters.getKey();
+        if (isSecretKey(key)) {
+            parameters.setKey((Sequence) null);
+        }
         try {
             props.setProperty(PropertyKeys.JACKSUM_PARAMETERS_BASE64, IO.objectToBase64String(parameters));
         } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            debug("The parameters could not be saved: " + ex);
         } finally {
             parameters.setPathRelativeTo(pathRelativeTo);
+            parameters.setKey(key);
         }
+    }
+
+    /**
+     * Tells whether a key is the secret itself (text, password or hex), which must not be
+     * remembered across runs. A key file is not: the key is just the name of the file then, and
+     * remembering that is as harmless as remembering any other filename.
+     *
+     * @param key the key, may be null
+     * @return true if the key must not be saved
+     */
+    private static boolean isSecretKey(Sequence key) {
+        return key != null && key.getType() != Sequence.Type.FILE;
     }
 
     /**
@@ -529,6 +627,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         keyTypeComboBox = new javax.swing.JComboBox<>();
         jLabel9 = new javax.swing.JLabel();
         keyFileButton = new javax.swing.JButton();
+        keyViewButton = new javax.swing.JButton();
         keyPasswordField = new javax.swing.JPasswordField();
         jLabel10 = new javax.swing.JLabel();
         keyTypeHelpButton = new javax.swing.JButton();
@@ -583,6 +682,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         showFailedFilesCheckBox = new javax.swing.JCheckBox();
         showMissingFilesCheckBox = new javax.swing.JCheckBox();
         showNewFilesCheckBox = new javax.swing.JCheckBox();
+        showErrorFilesCheckBox = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
         listFilterButton = new javax.swing.JButton();
         jLabel7 = new javax.swing.JLabel();
@@ -618,6 +718,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         pathStyleComboBox = new javax.swing.JComboBox<>();
         pathStyleHelpButton = new javax.swing.JButton();
         pathRelativeToTextField = new javax.swing.JTextField();
+        pathRelativeToSelectButton = new javax.swing.JButton();
         customizedPathSeparatorCheckBox = new javax.swing.JCheckBox();
         customizedPathSpearatorTextField = new javax.swing.JTextField();
         customizedPathSeparatorHelpButton = new javax.swing.JButton();
@@ -626,9 +727,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         headerOutputFilesLabel = new javax.swing.JLabel();
         standardOutputFileLabel = new javax.swing.JLabel();
         standardOutputFileTextField = new javax.swing.JTextField();
+        standardOutputFileSelectButton = new javax.swing.JButton();
         standardOutputViewButton = new javax.swing.JButton();
         standardErrorFileLabel = new javax.swing.JLabel();
         standardErrorFileTextField = new javax.swing.JTextField();
+        standardErrorFileSelectButton = new javax.swing.JButton();
         standardErrorViewButton = new javax.swing.JButton();
         outputFilesOptionsPanel = new javax.swing.JPanel();
         placeholderForOutputFilesOptionsLabel = new javax.swing.JLabel();
@@ -642,6 +745,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         themePanel = new javax.swing.JPanel();
         themeLabel = new javax.swing.JLabel();
         darkThemeToggleButton = new javax.swing.JToggleButton();
+        lookAndFeelLabel = new javax.swing.JLabel();
+        lookAndFeelComboBox = new javax.swing.JComboBox<>();
         guiPanel = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
         alwaysOnTopCheckBox = new javax.swing.JCheckBox();
@@ -1100,6 +1205,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
+        keyViewButton.setText("View");
+        keyViewButton.setToolTipText("Show the content of the key file");
+        keyViewButton.setEnabled(false);
+        keyViewButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                keyViewButtonActionPerformed(evt);
+            }
+        });
+
         maskChar = keyPasswordField.getEchoChar(); keyPasswordField.setEchoChar((char)0);
         keyPasswordField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
@@ -1146,7 +1260,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addGroup(integrityStrengthPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                             .addComponent(selectAlgoButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(keyFileButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                                            .addGroup(integrityStrengthPanelLayout.createSequentialGroup()
+                                                .addComponent(keyFileButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(keyViewButton))))))
                             .addComponent(jLabel10))
                         .addContainerGap())))
         );
@@ -1172,6 +1289,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addComponent(jLabel9)
                     .addGroup(integrityStrengthPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(keyFileButton)
+                        .addComponent(keyViewButton)
                         .addComponent(keyPasswordField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1233,7 +1351,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(processingOptionsPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(headerDataIntegrityStrengthLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 8, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(headerDataIntegrityStrengthLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(processingOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(processingOptionsPanelLayout.createSequentialGroup()
@@ -1379,7 +1497,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(processingOptionsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(interactivePanel, javax.swing.GroupLayout.PREFERRED_SIZE, 144, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(interactivePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(78, Short.MAX_VALUE))
         );
 
@@ -1441,11 +1559,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(fileVerificationTextField)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(fileVerificationSelectFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(fileVerificationSelectFileButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(7, 7, 7)
                                 .addComponent(fileVerificationViewButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(fileVerificationClearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(fileVerificationClearButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(4, 4, 4)))
                 .addContainerGap())
         );
@@ -1474,7 +1592,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         styleLabel1.setText("Style:");
 
         outputStyleComboBox_verify.setMaximumRowCount(25);
-        outputStyleComboBox_verify.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "bsd", "bsd-r", "fciv", "gnu-linux", "hdb", "openssl-dgst", "openssl-dgst-r", "sfv", "solaris-digest", "solaris-digest-v", "full", "without-sizes", "without-timestamps", "without-hashes", "sizes-and-names", "timestamps-and-names", "names-only", "hexhashes-only", "custom" }));
+        outputStyleComboBox_verify.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "bsd", "bsd-r", "fciv", "gnu-linux", "hdb", "openssl-dgst", "openssl-dgst-r", "openssl111-dgst", "sfv", "solaris-digest", "solaris-digest-v", "full", "without-sizes", "without-timestamps", "without-hashes", "sizes-and-names", "timestamps-and-names", "names-only", "hexhashes-only", "custom" }));
         outputStyleComboBox_verify.setToolTipText("What style/format should be used?");
         outputStyleComboBox_verify.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -1563,7 +1681,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
-                        .addComponent(styleLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(styleLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addGroup(integrityVerificationFileFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(integrityVerificationFileFormatPanelLayout.createSequentialGroup()
@@ -1639,6 +1757,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         showNewFilesCheckBox.setText("NEW");
         showNewFilesCheckBox.setToolTipText("Files that are not listed in the verification file");
 
+        showErrorFilesCheckBox.setSelected(true);
+        showErrorFilesCheckBox.setText("ERROR");
+        showErrorFilesCheckBox.setToolTipText("Files that could not be read");
+
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel1.setText("Integrity Verification Filter");
 
@@ -1691,6 +1813,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addComponent(showMissingFilesCheckBox)
                                 .addGap(18, 18, 18)
                                 .addComponent(showNewFilesCheckBox)
+                                .addGap(18, 18, 18)
+                                .addComponent(showErrorFilesCheckBox)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(listFilterButton))
                             .addGroup(integrityVerificationFilterPanelLayout.createSequentialGroup()
@@ -1724,7 +1848,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                         .addComponent(showOkFilesCheckBox)
                         .addComponent(showFailedFilesCheckBox)
                         .addComponent(showMissingFilesCheckBox)
-                        .addComponent(showNewFilesCheckBox))
+                        .addComponent(showNewFilesCheckBox)
+                        .addComponent(showErrorFilesCheckBox))
                     .addComponent(listFilterButton, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1799,7 +1924,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         styleLabel.setText("Style:");
 
         outputStyleComboBox.setMaximumRowCount(25);
-        outputStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "bsd", "bsd-r", "fciv", "gnu-linux", "hdb", "openssl-dgst", "openssl-dgst-r", "sfv", "solaris-digest", "solaris-digest-v", "full", "without-sizes", "without-timestamps", "without-hashes", "sizes-and-names", "timestamps-and-names", "names-only", "hexhashes-only", "custom" }));
+        outputStyleComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "default", "bsd", "bsd-r", "fciv", "gnu-linux", "hdb", "openssl-dgst", "openssl-dgst-r", "openssl111-dgst", "sfv", "solaris-digest", "solaris-digest-v", "full", "without-sizes", "without-timestamps", "without-hashes", "sizes-and-names", "timestamps-and-names", "names-only", "hexhashes-only", "custom" }));
         outputStyleComboBox.setToolTipText("What style/format should be used?");
         outputStyleComboBox.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -2003,9 +2128,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         pathRelativeToTextField.setToolTipText("Drag and drop is supported");
         pathRelativeToTextField.setDropMode(javax.swing.DropMode.INSERT);
-        pathRelativeToTextField.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                pathRelativeToTextFieldKeyTyped(evt);
+
+        pathRelativeToSelectButton.setText("...");
+        pathRelativeToSelectButton.setToolTipText("Select the directory that the paths are relativized to");
+        pathRelativeToSelectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathRelativeToSelectButtonActionPerformed(evt);
             }
         });
 
@@ -2043,7 +2171,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(customizedPathSpearatorTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 210, Short.MAX_VALUE))
-                            .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.Alignment.LEADING))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, outputStylePathFormatPanelLayout.createSequentialGroup()
+                                .addComponent(pathRelativeToTextField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(pathRelativeToSelectButton)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(pathStyleHelpButton)
@@ -2063,7 +2194,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(outputStylePathFormatPanelLayout.createSequentialGroup()
-                        .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(pathRelativeToTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(pathRelativeToSelectButton))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputStylePathFormatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(customizedPathSeparatorCheckBox)
@@ -2088,7 +2221,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             outputStylePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(outputStylePanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(outputStyleHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(outputStyleHeaderPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(customizedFormatPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
@@ -2105,6 +2238,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         standardOutputFileTextField.setToolTipText("Which file should the output be saved to? Drag and drop is supported.");
 
+        standardOutputFileSelectButton.setText("...");
+        standardOutputFileSelectButton.setToolTipText("Select the output file");
+        standardOutputFileSelectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                standardOutputFileSelectButtonActionPerformed(evt);
+            }
+        });
+
         standardOutputViewButton.setText("View");
         standardOutputViewButton.setToolTipText("Show the content of the output file");
         standardOutputViewButton.addActionListener(new java.awt.event.ActionListener() {
@@ -2116,6 +2257,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         standardErrorFileLabel.setText("Standard error:");
 
         standardErrorFileTextField.setToolTipText("Which file should errors be saved to? Drag and drop is supported.");
+
+        standardErrorFileSelectButton.setText("...");
+        standardErrorFileSelectButton.setToolTipText("Select the error file");
+        standardErrorFileSelectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                standardErrorFileSelectButtonActionPerformed(evt);
+            }
+        });
 
         standardErrorViewButton.setText("View");
         standardErrorViewButton.setToolTipText("Show the content of the error log");
@@ -2142,9 +2291,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                             .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                                 .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 315, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(standardOutputFileSelectButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(standardOutputViewButton))
                             .addGroup(outputFilesInnerPanelLayout.createSequentialGroup()
                                 .addComponent(standardErrorFileTextField)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(standardErrorFileSelectButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(standardErrorViewButton)))))
                 .addContainerGap())
@@ -2158,11 +2311,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardOutputFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(standardOutputFileLabel)
+                    .addComponent(standardOutputFileSelectButton)
                     .addComponent(standardOutputViewButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(outputFilesInnerPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(standardErrorFileLabel)
                     .addComponent(standardErrorFileTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(standardErrorFileSelectButton)
                     .addComponent(standardErrorViewButton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -2208,7 +2363,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                     .addGroup(outputFilesOptionsPanelLayout.createSequentialGroup()
                         .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(standardErrorFileCharacterSetLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(standardOutputFileCharacterSetLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE))
+                            .addComponent(standardOutputFileCharacterSetLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(outputFilesOptionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(standardOutputFileCharacterSetComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2273,6 +2428,16 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
 
+        lookAndFeelLabel.setText("Look and feel:");
+
+        lookAndFeelComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "FlatLaf", "Nimbus", "System" }));
+        lookAndFeelComboBox.setToolTipText("The look and feel of the windows");
+        lookAndFeelComboBox.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                lookAndFeelComboBoxItemStateChanged(evt);
+            }
+        });
+
         javax.swing.GroupLayout themePanelLayout = new javax.swing.GroupLayout(themePanel);
         themePanel.setLayout(themePanelLayout);
         themePanelLayout.setHorizontalGroup(
@@ -2281,6 +2446,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 .addContainerGap()
                 .addGroup(themePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(themeLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(themePanelLayout.createSequentialGroup()
+                        .addComponent(lookAndFeelLabel)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lookAndFeelComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(themePanelLayout.createSequentialGroup()
                         .addComponent(darkThemeToggleButton)
                         .addGap(0, 432, Short.MAX_VALUE)))
@@ -2291,6 +2461,10 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             .addGroup(themePanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(themeLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(themePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lookAndFeelLabel)
+                    .addComponent(lookAndFeelComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(darkThemeToggleButton)
                 .addContainerGap(12, Short.MAX_VALUE))
@@ -2519,9 +2693,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }// </editor-fold>//GEN-END:initComponents
 
     private void updateGUIfromProperties() {
-        darkThemeToggleButton.setSelected(props.getProperty(
-                PropertyKeys.GUI_THEME,
-                PropertyValues.THEME_LIGHT).equals(PropertyValues.THEME_DARK));
+        themeToControls(props.getProperty(PropertyKeys.GUI_THEME, PropertyValues.THEME_LIGHT));
 
         centerWindowWhereTheMouseIsCheckBox.setSelected(props.getProperty(
                 PropertyKeys.GUI_SMARTPOSITIONED,
@@ -2537,7 +2709,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }
 
     private void updatePropertiesFromGUI() {
-        props.setProperty(PropertyKeys.GUI_THEME, darkThemeToggleButton.isSelected() ? PropertyValues.THEME_DARK : theme.equals(PropertyValues.THEME_SYSTEM) ? theme : PropertyValues.THEME_LIGHT);
+        props.setProperty(PropertyKeys.GUI_THEME, selectedTheme());
         props.setProperty(PropertyKeys.GUI_SMARTPOSITIONED, centerWindowWhereTheMouseIsCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_ALWAYSONTOP, alwaysOnTopCheckBox.isSelected() ? PropertyValues.TRUE : PropertyValues.FALSE);
         props.setProperty(PropertyKeys.GUI_STAYOPEN, stayOpenCheckBox.isSelected() ? PropertyValues.TRUE: PropertyValues.FALSE);
@@ -2572,6 +2744,36 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
     }
 
+    /**
+     * Selects a character set in one of the character set combo boxes. They list the canonical
+     * names only, while Jacksum also accepts aliases (e.g. "latin1" for "ISO-8859-1"); without
+     * resolving them, setSelectedItem() would ignore the alias, and the next task would silently
+     * use the character set that happens to be selected (UTF-8 by default).
+     */
+    private static void selectCharset(JComboBox comboBox, String charsetName) {
+        String canonical = charsetName;
+        try {
+            canonical = java.nio.charset.Charset.forName(charsetName).name();
+        } catch (IllegalArgumentException e) {
+            // unknown or unsupported, Jacksum reports it when the task is started
+        }
+        comboBox.setSelectedItem(canonical);
+    }
+
+    /**
+     * Selects a style in one of the style combo boxes. A style that is not one of its items, e.g.
+     * an alias like "linux" or the path of a style file, is added, because setSelectedItem() would
+     * ignore it, and the next task would silently run with the default style.
+     */
+    private static void selectStyle(JComboBox comboBox, String style) {
+        javax.swing.DefaultComboBoxModel model = (javax.swing.DefaultComboBoxModel) comboBox.getModel();
+        if (model.getIndexOf(style) < 0) {
+            int custom = model.getIndexOf("custom");
+            model.insertElementAt(style, custom < 0 ? model.getSize() : custom);
+        }
+        comboBox.setSelectedItem(style);
+    }
+
     // for both the verify panel (verification mode) and the output style panel (calculation mode)
     private void parameters2customStylePanel(
             JCheckBox hashValueEncodingCheckBox, JComboBox hashValueEncodingComboBox,
@@ -2580,7 +2782,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         // Style
         if (parameters.getCompatibilityID() != null) {
-            outputStyleComboBox.setSelectedItem(parameters.getCompatibilityID());
+            selectStyle(outputStyleComboBox, parameters.getCompatibilityID());
         } else {
 
             // hash value encoding
@@ -2592,6 +2794,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // include file size
             if (parameters.isFilesizeWantedSet()) {
                 includeFileSizeCheckBox.setSelected(parameters.isFilesizeWanted());
+                // Ticking the box switches the style to custom by its listener, but unticking it
+                // doesn't, so a custom style whose only change is "no file size" would come back
+                // as the default style. The next task would then no longer switch the file size
+                // off, and Jacksum prints it by default if several algorithms are combined.
+                if (!parameters.isFilesizeWanted()) {
+                    outputStyleComboBox.setSelectedItem("custom");
+                }
             }
 
             // include timestamp
@@ -2658,12 +2867,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // include timestamp
             if (includeTimestampCheckBox.isSelected()) {
                 if (timestampFormatComboBox.getSelectedItem().equals("custom")) {
-                    if (!timestampFormatTextField.getText().equals("")) {
+                    if (!timestampFormatTextField.getText().isBlank()) {
                         parameters.setTimestampFormat(timestampFormatTextField.getText());
                     } else {
+                        // the field is on the calculation or on the verification tab
+                        selectTabOf(timestampFormatTextField);
                         JOptionPane.showMessageDialog(this, "The timestamp format has been set to custom, but no format has been entered.");
-                        timestampFormatTextField.setText("ENTER A FORMAT HERE, e.g. " + AppConstants.TIMESTAMP_DEFAULT);
-                        timestampFormatTextField.selectAll();
+                        // the example is a placeholder only (see installPlaceholders()), so pressing
+                        // the button again doesn't pass it to Jacksum as a format
+                        timestampFormatTextField.setText("");
                         timestampFormatTextField.requestFocus();
                         throw new UserInputError();
                     }
@@ -2746,7 +2958,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             list.add(i, fileList.getModel().getElementAt(i));
         }
         parameters.setFilenamesFromFilelist(list);
-        
+        // the list also holds the files from the command line (see buildFileListModel()), and
+        // Jacksum would read the files from the command line in addition to the list, so a file
+        // that has been removed from the list would still be read
+        parameters.setFilenamesFromArgs(new ArrayList<>());
+
         // walking depth
         if (walkingDepthCheckBox.isSelected()) {
             parameters.setRecursive(true);
@@ -2803,7 +3019,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
         // Calculate hashes with n threads
         hashingThreadsSpinner.setModel(new javax.swing.SpinnerNumberModel(ThreadControl.getThreadsMax(), 1, null, 1));
-        if (parameters.getThreadsHashing() > 1) {
+        // 1 is a valid choice as well, otherwise it would come back as the number of processors
+        if (parameters.getThreadsHashing() >= 1) {
             hashingThreadsSpinner.setValue(parameters.getThreadsHashing());
         }
 
@@ -2880,7 +3097,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 fileVerificationTextField.setText(parameters.getCheckFile());
             }        
             if (parameters.getCharsetCheckFile() != null) {
-                fileVerificationCharacterSetComboBox.setSelectedItem(parameters.getCharsetCheckFile());
+                selectCharset(fileVerificationCharacterSetComboBox, parameters.getCharsetCheckFile());
             }
 
             parameters2customStylePanel(
@@ -2899,6 +3116,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             showFailedFilesCheckBox.setSelected(parameters.getListFilter().isFilterFailed());
             showMissingFilesCheckBox.setSelected(parameters.getListFilter().isFilterMissing());
             showNewFilesCheckBox.setSelected(parameters.getListFilter().isFilterNew());
+            showErrorFilesCheckBox.setSelected(parameters.getListFilter().isFilterError());
 
     }
 
@@ -2929,6 +3147,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             parameters.getListFilter().setFilterFailed(showFailedFilesCheckBox.isSelected());
             parameters.getListFilter().setFilterMissing(showMissingFilesCheckBox.isSelected());
             parameters.getListFilter().setFilterNew(showNewFilesCheckBox.isSelected());
+            parameters.getListFilter().setFilterError(showErrorFilesCheckBox.isSelected());
             
             
             /*
@@ -2971,6 +3190,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             pathStyleComboBox.setSelectedItem("default");
         }
         pathRelativeToTextField.setVisible(pathStyleComboBox.getSelectedItem().equals("relativize paths to"));
+        pathRelativeToSelectButton.setVisible(pathRelativeToTextField.isVisible());
         
         // Customized path char
         if (parameters.isPathCharSet()) {
@@ -2987,6 +3207,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void outputStylePanel2parameters() throws UserInputError {
         // Header
         parameters.setHeaderWanted(printHeaderCheckBox.isSelected());
+        // the check box always has a definite state; without this, a style would decide on the
+        // header itself (e.g. sfv never prints one, full always does), whatever the check box says
+        parameters.setHeaderWantedExplicitlySet(true);
 
         // In verification mode this panel contributes the header option only: its custom format
         // and path style controls are hidden (see setOperatingModeVerify()), the format of the
@@ -3044,6 +3267,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         // Standard output
         if (parameters.getOutputFile() != null && !parameters.getOutputFile().equals("relative")) {
             standardOutputFileTextField.setText(parameters.getOutputFile());
+            if (isSuggestedOutputFilename(parameters.getOutputFile())) {
+                // a suggestion that has been saved with the last run, so keep it in line with
+                // the operating mode (see setOperatingMode())
+                generatedOutputFilename = parameters.getOutputFile();
+            }
         } else {
             // "relative" has a special meaning, and without an output file at all Jacksum writes
             // to System.out, which a GUI user never gets to see, so suggest a file in both cases
@@ -3051,7 +3279,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
         
         if (parameters.getCharsetOutputFile() != null) {
-            standardOutputFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetOutputFile());
+            selectCharset(standardOutputFileCharacterSetComboBox, parameters.getCharsetOutputFile());
         }
 
         // Standard error
@@ -3059,7 +3287,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             standardErrorFileTextField.setText(parameters.getErrorFile());
         }
         if (parameters.getCharsetErrorFile() != null) {
-            standardErrorFileCharacterSetComboBox.setSelectedItem(parameters.getCharsetErrorFile());
+            selectCharset(standardErrorFileCharacterSetComboBox, parameters.getCharsetErrorFile());
         }
 
         // BOM
@@ -3091,13 +3319,120 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
 
     private void installDropHandlers() {
-        // the Drop-Handler
-        DropTransferHandler dropHandler = new DropTransferHandler();
-        fileList.setTransferHandler(dropHandler);
-        fileVerificationTextField.setTransferHandler(dropHandler);
-        pathRelativeToTextField.setTransferHandler(dropHandler);
-        standardOutputFileTextField.setTransferHandler(dropHandler);
-        standardErrorFileTextField.setTransferHandler(dropHandler);
+        // one Drop-Handler per component, because each one passes everything that isn't a drop
+        // of files on to the original handler of its component (copy, cut, paste)
+        for (javax.swing.JComponent c : new javax.swing.JComponent[]{fileList,
+                fileVerificationTextField, pathRelativeToTextField,
+                standardOutputFileTextField, standardErrorFileTextField}) {
+            c.setTransferHandler(new DropTransferHandler(c.getTransferHandler()));
+        }
+        // the entries can be reordered by drag and drop, see DropTransferHandler
+        fileList.setDragEnabled(true);
+    }
+
+    /**
+     * Gives empty fields that must be filled in a hint. It is a FlatLaf placeholder, so it is
+     * shown greyed out and is no text: it can't be passed to Jacksum by mistake. Other look and
+     * feels (system, nimbus) don't show it.
+     */
+    private void installPlaceholders() {
+        fileVerificationTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT,
+                "Select or drop the verification file");
+        String timestampExample = "e.g. " + AppConstants.TIMESTAMP_DEFAULT;
+        timestampFormatTextField.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, timestampExample);
+        timestampFormatTextField_verify.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, timestampExample);
+        // FlatLaf has placeholders for text fields only, so the empty file list gets a painted one;
+        // the layer leaves the list itself untouched (model, drop handler, selection)
+        fileListScrollPane.setViewportView(new javax.swing.JLayer<>(fileList,
+                new EmptyListHintUI("Drag and drop files and directories here")));
+    }
+
+    /**
+     * Paints a greyed out hint into a list as long as the list has no entries. It is a
+     * placeholder, not an entry, so it can't be selected and is never passed to Jacksum.
+     */
+    private static class EmptyListHintUI extends javax.swing.plaf.LayerUI<javax.swing.JList<String>> {
+
+        private final String hint;
+
+        EmptyListHintUI(String hint) {
+            this.hint = hint;
+        }
+
+        @Override
+        public void paint(java.awt.Graphics g, javax.swing.JComponent c) {
+            super.paint(g, c);
+            javax.swing.JList<?> list = (javax.swing.JList<?>) ((javax.swing.JLayer<?>) c).getView();
+            if (list.getModel().getSize() > 0) {
+                return;
+            }
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            try {
+                // the placeholder color of the theme, so it fits light and dark; Nimbus and the
+                // system look and feel have no such key, they get the color of disabled text,
+                // which the system look and feel calls Label.disabledForeground and Nimbus
+                // Label.disabledText ("textInactiveText" would be black on macOS)
+                java.awt.Color color = null;
+                for (String key : new String[]{"TextField.placeholderForeground",
+                        "Label.disabledForeground", "Label.disabledText"}) {
+                    color = javax.swing.UIManager.getColor(key);
+                    if (color != null) {
+                        break;
+                    }
+                }
+                g2.setColor(color != null ? color : list.getForeground());
+                g2.setFont(list.getFont());
+                // antialiased like the other text of the GUI
+                Object hints = java.awt.Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints");
+                if (hints instanceof java.util.Map<?, ?> map) {
+                    g2.addRenderingHints(map);
+                }
+                // centered in the visible part of the list
+                java.awt.FontMetrics fm = g2.getFontMetrics();
+                java.awt.Rectangle visible = list.getVisibleRect();
+                int x = visible.x + Math.max(0, (visible.width - fm.stringWidth(hint)) / 2);
+                int y = visible.y + (visible.height - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(hint, x, y);
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
+    // selects the tab that contains the component, so that it can get the focus
+    private void selectTabOf(java.awt.Component component) {
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            java.awt.Component tab = tabbedPane.getComponentAt(i);
+            if (tab == component || (tab instanceof java.awt.Container c && c.isAncestorOf(component))) {
+                tabbedPane.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Keeps the suggested output filename in line with the path that the paths are relativized
+     * to, because the filename is derived from it. A DocumentListener sees the text after it has
+     * changed, by typing, pasting, dropping or by the program (e.g. when the path style changes);
+     * a key listener would see the text before the last keystroke.
+     */
+    private void installPathRelativeToListener() {
+        pathRelativeToTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                updateOutputTextField();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                updateOutputTextField();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                // attribute changes only, the text stays the same
+            }
+        });
     }
 
     /**
@@ -3106,7 +3441,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
      */
     private void installOutputContextMenu() {
         javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
-        javax.swing.JMenuItem copyItem = new javax.swing.JMenuItem("Copy to Clipboard");
+        javax.swing.JMenuItem copyItem = new javax.swing.JMenuItem("Copy");
         copyItem.addActionListener(e -> {
             String text = interactiveOutputTextField.getText();
             java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
@@ -3131,17 +3466,417 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         interactiveOutputTextField.setComponentPopupMenu(menu);
     }
 
+    /**
+     * Gives the input field and the key field of the Interactive mode a context menu to cut,
+     * copy, paste and clear their content. The paste behaves like Cmd/Ctrl+V, so both give the
+     * same hash.
+     */
+    private void installInputContextMenu() {
+        installEditContextMenu(interactiveInputTextField, () -> interactiveInputTextFieldKeyReleased(null));
+        installEditContextMenu(keyPasswordField, () -> keyPasswordFieldKeyReleased(null));
+    }
+
+    /**
+     * Gives a password field a context menu with Cut, Copy, Paste and Clear.
+     *
+     * @param field the field
+     * @param changed called after the content has been changed by the menu, because the hash is
+     *                updated on key release only, and a change from a menu has no key event
+     */
+    private void installEditContextMenu(javax.swing.JPasswordField field, Runnable changed) {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+
+        javax.swing.JMenuItem cutItem = new javax.swing.JMenuItem("Cut");
+        cutItem.addActionListener(e -> {
+            copySelection(field);
+            field.requestFocusInWindow();
+            field.replaceSelection("");
+            changed.run();
+        });
+        menu.add(cutItem);
+
+        javax.swing.JMenuItem copyItem = new javax.swing.JMenuItem("Copy");
+        copyItem.addActionListener(e -> copySelection(field));
+        menu.add(copyItem);
+
+        javax.swing.JMenuItem pasteItem = new javax.swing.JMenuItem("Paste");
+        pasteItem.addActionListener(e -> {
+            field.requestFocusInWindow();
+            field.paste();
+            changed.run();
+        });
+        menu.add(pasteItem);
+
+        menu.addSeparator();
+        javax.swing.JMenuItem clearItem = new javax.swing.JMenuItem("Clear");
+        clearItem.addActionListener(e -> {
+            field.setText("");
+            field.requestFocusInWindow();
+            changed.run();
+        });
+        menu.add(clearItem);
+
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                // a hidden content stays out of the clipboard, as with Cmd/Ctrl+X in a password field
+                boolean hidden = field.getEchoChar() != (char) 0;
+                boolean copyable = !hidden && field.getSelectionStart() != field.getSelectionEnd();
+                cutItem.setEnabled(copyable);
+                copyItem.setEnabled(copyable);
+                clearItem.setEnabled(field.getDocument().getLength() > 0);
+                // only text can be pasted (not an image or a file, for example)
+                boolean text;
+                try {
+                    text = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                            .isDataFlavorAvailable(java.awt.datatransfer.DataFlavor.stringFlavor);
+                } catch (IllegalStateException ise) {
+                    // the clipboard is in use by another application at the moment
+                    text = false;
+                }
+                pasteItem.setEnabled(text);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        field.setComponentPopupMenu(menu);
+    }
+
+    // JPasswordField.cut() and copy() refuse to work (they only beep), so copy by hand
+    private static void copySelection(javax.swing.JPasswordField field) {
+        int start = field.getSelectionStart();
+        int end = field.getSelectionEnd();
+        String selected = new String(field.getPassword(), start, end - start);
+        java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                .setContents(new java.awt.datatransfer.StringSelection(selected), null);
+    }
+
+    /**
+     * Gives the file list a context menu with the functions of the buttons next to it (Top, Up,
+     * Down, Bottom, Remove). It calls the button handlers, so both behave the same.
+     */
+    private void installFileListContextMenu() {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        javax.swing.JMenuItem topItem = new javax.swing.JMenuItem("Top");
+        topItem.addActionListener(e -> moveTopButtonActionPerformed(e));
+        javax.swing.JMenuItem upItem = new javax.swing.JMenuItem("Up");
+        upItem.addActionListener(e -> moveUpButtonActionPerformed(e));
+        javax.swing.JMenuItem downItem = new javax.swing.JMenuItem("Down");
+        downItem.addActionListener(e -> moveDownButtonActionPerformed(e));
+        javax.swing.JMenuItem bottomItem = new javax.swing.JMenuItem("Bottom");
+        bottomItem.addActionListener(e -> moveBottomButtonActionPerformed(e));
+        javax.swing.JMenuItem removeItem = new javax.swing.JMenuItem("Remove");
+        removeItem.addActionListener(e -> removeButtonActionPerformed(e));
+        menu.add(topItem);
+        menu.add(upItem);
+        menu.add(downItem);
+        menu.add(bottomItem);
+        menu.addSeparator();
+        menu.add(removeItem);
+
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                // a right click doesn't select in a JList; the menu should act on the entry that
+                // has been clicked, unless it belongs to the selection already
+                java.awt.Point p = fileList.getMousePosition();
+                if (p != null) {
+                    int row = fileList.locationToIndex(p);
+                    if (row >= 0 && fileList.getCellBounds(row, row).contains(p)
+                            && !fileList.isSelectedIndex(row)) {
+                        fileList.setSelectedIndex(row);
+                    }
+                }
+                boolean[] enabled = fileListActionsEnabled();
+                topItem.setEnabled(enabled[0]);
+                upItem.setEnabled(enabled[0]);
+                downItem.setEnabled(enabled[1]);
+                bottomItem.setEnabled(enabled[1]);
+                removeItem.setEnabled(enabled[2]);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        fileList.setComponentPopupMenu(menu);
+    }
+
+    /**
+     * Tells which of the functions for the file list make sense for the current selection.
+     *
+     * @return {Top/Up, Down/Bottom, Remove}
+     */
+    private boolean[] fileListActionsEnabled() {
+        int[] selected = fileList.getSelectedIndices();
+        int n = selected.length;
+        int size = fileListModel.getSize();
+        // the selection can't move up resp. down if it is a block at the top resp. bottom already
+        boolean atTop = n > 0 && selected[n - 1] == n - 1;
+        boolean atBottom = n > 0 && selected[0] == size - n;
+        return new boolean[]{n > 0 && !atTop, n > 0 && !atBottom, n > 0};
+    }
+
+    // the buttons next to the file list follow the same rules as its context menu
+    private void updateFileListButtons() {
+        boolean[] enabled = fileListActionsEnabled();
+        moveTopButton.setEnabled(enabled[0]);
+        moveUpButton.setEnabled(enabled[0]);
+        moveDownButton.setEnabled(enabled[1]);
+        moveBottomButton.setEnabled(enabled[1]);
+        removeButton.setEnabled(enabled[2]);
+    }
+
+    private void installFileListButtonUpdater() {
+        fileList.addListSelectionListener(e -> updateFileListButtons());
+        // e.g. entries that are dropped, removed, or restored change what can be moved
+        fileListModel.addListDataListener(new javax.swing.event.ListDataListener() {
+            @Override
+            public void intervalAdded(javax.swing.event.ListDataEvent e) {
+                updateFileListButtons();
+            }
+
+            @Override
+            public void intervalRemoved(javax.swing.event.ListDataEvent e) {
+                updateFileListButtons();
+            }
+
+            @Override
+            public void contentsChanged(javax.swing.event.ListDataEvent e) {
+                updateFileListButtons();
+            }
+        });
+        updateFileListButtons();
+    }
+
+    /**
+     * An entry of a suggestion menu, see installSuggestionMenu().
+     *
+     * @param label the text of the menu item
+     * @param value the text that is put into the field, empty for "no file"
+     * @param enabled whether the entry can be chosen
+     * @param toolTip an explanation, or null
+     */
+    private record Suggestion(String label, String value, boolean enabled, String toolTip) {
+        Suggestion(String label, String value) {
+            this(label, value, true, null);
+        }
+    }
+
+    // stdout resp. stderr is not visible if HashGarten has been started from a file browser
+    private static final String NO_FILE_TOOLTIP =
+            "Useful if HashGarten has been started from a terminal; otherwise the output can't be seen.";
+
+    /**
+     * Gives a file field a context menu that suggests filenames. The suggestions are built
+     * whenever the menu opens, because they depend on the operating mode, the algorithm and the
+     * file list. Choosing a suggestion puts its value into the field. The menu also offers
+     * Cut, Copy and Paste, because it replaces what a right click in a text field usually offers.
+     *
+     * @param field the file field
+     * @param suggestions supplies the suggestions; a suggestion whose value equals the value of
+     *                    an earlier one is left out, a null element stands for a separator
+     */
+    private void installSuggestionMenu(javax.swing.JTextField field,
+            java.util.function.Supplier<List<Suggestion>> suggestions) {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                menu.removeAll();
+                java.util.Set<String> seen = new java.util.HashSet<>();
+                for (Suggestion suggestion : suggestions.get()) {
+                    if (suggestion == null) {
+                        menu.addSeparator();
+                        continue;
+                    }
+                    // e.g. the working directory is the home directory if started from a file browser
+                    if (suggestion.enabled() && !seen.add(suggestion.value())) {
+                        continue;
+                    }
+                    javax.swing.JMenuItem item = new javax.swing.JMenuItem(suggestion.label());
+                    item.setEnabled(suggestion.enabled());
+                    item.setToolTipText(suggestion.toolTip());
+                    item.addActionListener(ev -> {
+                        if (field == standardOutputFileTextField) {
+                            // see updateOutputTextField()
+                            outputToStdout = suggestion.value().isEmpty();
+                        }
+                        field.setText(suggestion.value());
+                    });
+                    menu.add(item);
+                }
+                menu.addSeparator();
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.CutAction(), "Cut",
+                        field.isEditable() && field.getSelectedText() != null);
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.CopyAction(), "Copy",
+                        field.getSelectedText() != null);
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.PasteAction(), "Paste",
+                        field.isEditable());
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        field.setComponentPopupMenu(menu);
+    }
+
+    private static void addEditItem(javax.swing.JPopupMenu menu, javax.swing.JTextField field,
+            javax.swing.Action action, String label, boolean enabled) {
+        javax.swing.JMenuItem item = new javax.swing.JMenuItem(label);
+        item.setEnabled(enabled);
+        // the text actions work on the focused text component, and a right click doesn't focus
+        item.addActionListener(ev -> {
+            field.requestFocusInWindow();
+            action.actionPerformed(new java.awt.event.ActionEvent(field,
+                    java.awt.event.ActionEvent.ACTION_PERFORMED, null));
+        });
+        menu.add(item);
+    }
+
+    /**
+     * Returns the directory of the first entry of the file list: an entry that is a directory
+     * stands for itself, a file for the directory it is in. That is the rule that Jacksum
+     * applies to --path-relative-to-entry as well.
+     *
+     * @return the directory, or null if the file list is empty
+     */
+    private String firstInputDirectory() {
+        if (fileListModel.getSize() == 0) {
+            return null;
+        }
+        try {
+            Path first = Paths.get(fileListModel.getElementAt(0).toString()).toAbsolutePath().normalize();
+            Path directory = Files.isDirectory(first) ? first : first.getParent();
+            return directory == null ? null : directory.toString();
+        } catch (InvalidPathException ipe) {
+            return null;
+        }
+    }
+
+    /**
+     * Builds the suggestions for a hash file: next to the first input file, in the directory that
+     * the paths are relativized to (if any), in the working directory, in the home directory and
+     * in the temporary directory.
+     *
+     * @param suffix appended to each filename, e.g. ".log"
+     * @return the suggestions
+     */
+    private List<Suggestion> buildDirectorySuggestions(String suffix) {
+        String algorithm = algoTextField.getText();
+        List<Suggestion> list = new ArrayList<>();
+        String first = firstInputDirectory();
+        if (first != null) {
+            list.add(new Suggestion("Next to the first input file: " + buildRelativeFilename(first, algorithm) + suffix,
+                    buildRelativeFilename(first, algorithm) + suffix));
+        } else {
+            list.add(new Suggestion("Next to the first input file (no files)", "", false,
+                    "Add files to the file list first."));
+        }
+        String relativeTo = pathRelativeToTextField.getText();
+        if (!relativeTo.isEmpty()) {
+            String name = buildRelativeFilename(relativeTo, algorithm) + suffix;
+            list.add(new Suggestion("In the directory the paths are relativized to: " + name, name));
+        }
+        List<String[]> directories = new ArrayList<>();
+        directories.add(new String[] {"In the working directory: ", System.getProperty("user.dir")});
+        directories.add(new String[] {"In the home directory: ", System.getProperty("user.home")});
+        if (SystemInfo.isMacOS) {
+            // the per-user temporary directory below /var/folders ($TMPDIR), not shared with other users
+            directories.add(new String[] {"In the temporary user directory: ", System.getProperty("java.io.tmpdir")});
+        }
+        directories.add(new String[] {"In the temporary directory: ", temporaryDirectory()});
+        for (String[] directory : directories) {
+            String name = buildRelativeFilename(directory[1], algorithm) + suffix;
+            list.add(new Suggestion(directory[0] + name, name));
+        }
+        return list;
+    }
+
+    // On macOS java.io.tmpdir is a per-user directory below /var/folders that nobody would look
+    // for, so /tmp is preferred on Unix-like systems; Windows has no /tmp and keeps %TEMP%.
+    private static String temporaryDirectory() {
+        Path tmp = Paths.get("/tmp");
+        if (!SystemInfo.isWindows && Files.isDirectory(tmp) && Files.isWritable(tmp)) {
+            return tmp.toString();
+        }
+        return System.getProperty("java.io.tmpdir");
+    }
+
+    private List<Suggestion> buildOutputFileSuggestions() {
+        List<Suggestion> list = new ArrayList<>();
+        if (operatingMode == OperatingMode.VERIFY) {
+            String checkFile = fileVerificationTextField.getText().trim();
+            if (!checkFile.isEmpty()) {
+                list.add(new Suggestion("Next to the verification file: " + checkFile + ".log", checkFile + ".log"));
+            }
+            list.addAll(buildDirectorySuggestions(".log"));
+        } else {
+            list.addAll(buildDirectorySuggestions(""));
+        }
+        list.add(null);
+        list.add(new Suggestion("Standard output (no file)", "", true, NO_FILE_TOOLTIP));
+        return list;
+    }
+
+    private List<Suggestion> buildErrorFileSuggestions() {
+        List<Suggestion> list = new ArrayList<>();
+        String output = standardOutputFileTextField.getText().trim();
+        if (output.isEmpty()) {
+            list.add(new Suggestion("Same file as standard output (no output file)", "", false,
+                    "Standard output is not written to a file."));
+        } else {
+            list.add(new Suggestion("Same file as standard output: " + output, output));
+        }
+        list.add(null);
+        list.add(new Suggestion("Standard error (no file)", "", true, NO_FILE_TOOLTIP));
+        return list;
+    }
+
+    private void installSuggestionMenus() {
+        installSuggestionMenu(standardOutputFileTextField, this::buildOutputFileSuggestions);
+        installSuggestionMenu(standardErrorFileTextField, this::buildErrorFileSuggestions);
+        installSuggestionMenu(fileVerificationTextField, () -> buildDirectorySuggestions(""));
+        // typing, pasting or dropping a filename ends the explicit choice of standard output
+        standardOutputFileTextField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                outputToStdout = false;
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            }
+        });
+    }
+
     private void parameters2modeSelection() {
         if (parameters.getCheckFile() == null) {
             fileVerificationTextField.setText("");
             setOperatingMode(OperatingMode.CALC);
         } else {
             setOperatingMode(OperatingMode.VERIFY);
-            if (parameters.getCheckFile().equals("relative")) {
-                fileVerificationTextField.setText(buildRelativeFilename());
-            } else {
-                fileVerificationTextField.setText(parameters.getCheckFile());
-            }
+            // "relative" has already been resolved by initParameters()
+            fileVerificationTextField.setText(parameters.getCheckFile());
         }        
     }
     
@@ -3170,13 +3905,31 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         
         if (operatingMode == OperatingMode.VERIFY) {
             // Verification file name
-            if (fileVerificationTextField.getText().equals("")) {
+            if (fileVerificationTextField.getText().isBlank()) {
                 // JOptionPane: has to be filled out!
                 tabbedPane.setSelectedComponent(verificationPanel);
                 JOptionPane.showMessageDialog(this, "In verification mode, a verification file is required.");
-                fileVerificationTextField.setText("ENTER A VERIFICATION FILE HERE");
-                fileVerificationTextField.selectAll();
+                // the hint is a placeholder only (see installPlaceholders()), so pressing the
+                // button again doesn't pass it to Jacksum as a filename
+                fileVerificationTextField.setText("");
                 fileVerificationTextField.requestFocus();
+                throw new UserInputError();
+            }
+
+            // the output files are overwritten, which would destroy the verification file before it is read
+            String checkFile = fileVerificationTextField.getText();
+            if (isSameFile(checkFile, standardOutputFileTextField.getText())) {
+                tabbedPane.setSelectedComponent(outputFilesPanel);
+                JOptionPane.showMessageDialog(this, "The standard output file is the verification file.\n"
+                        + "It would be overwritten, so please choose a different output file.");
+                standardOutputFileTextField.requestFocus();
+                throw new UserInputError();
+            }
+            if (isSameFile(checkFile, standardErrorFileTextField.getText())) {
+                tabbedPane.setSelectedComponent(outputFilesPanel);
+                JOptionPane.showMessageDialog(this, "The standard error file is the verification file.\n"
+                        + "It would be overwritten, so please choose a different error file.");
+                standardErrorFileTextField.requestFocus();
                 throw new UserInputError();
             }
         }
@@ -3219,12 +3972,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     // since Jacksum controls stdout/stderr, we cannot simply use System.out or System.err
     public static void debug(String message) {
-        try (final BufferedWriter writer = new BufferedWriter(new FileWriter("hashgarten.log", true))) {
-            writer.append(message);
-            writer.append("\n");
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        GUIHelper.debug(message);
     }
     
     
@@ -3241,6 +3989,14 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
             updatePropertiesFromParameters();
             updatePropertiesFromGUI();
+
+            // The verification panel has no line format, so a line format of the calculation mode
+            // is still set. Jacksum ignores it when verifying, but warns "Option -F will be ignored",
+            // although the user hasn't given one. It is removed for this run only, after the
+            // parameters have been stored, so the calculation mode still remembers it.
+            if (operatingMode == OperatingMode.VERIFY) {
+                parameters.setFormat(null);
+            }
 
             // mark the parameter object that values have changed by this app to
             // get Jacksum's header (invocation args) correct
@@ -3288,7 +4044,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             JOptionPane.showMessageDialog(this, message.toString());
 
             if (stayOpenCheckBox.isSelected() && !standardOutputFileTextField.getText().isEmpty()) {
-                viewFile(standardOutputFileTextField.getText());
+                viewFile(standardOutputFileTextField.getText(), standardOutputFileCharacterSetComboBox);
             }
 
             if (!stayOpenCheckBox.isSelected()) {
@@ -3302,9 +4058,15 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // oops, an unexpected error occurred, make the GUI visible again
             setVisible(true);
             JOptionPane.showMessageDialog(this, ex.getMessage());
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            debug(ex.toString());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.toString() + "\n" + Arrays.toString(e.getStackTrace()));
+            // a defect rather than a user error; without setVisible() the app would keep running
+            // without a window, because the window has been hidden before the task started
+            setVisible(true);
+            JOptionPane.showMessageDialog(this, String.format("Unexpected error: %s%n%nSee %s for details.", e, AppConstants.LOG_FILE));
+            debug(String.format("%s%n%s", e, Arrays.toString(e.getStackTrace())));
+        } finally {
+            restoreStandardStreams();
         }
     }//GEN-LAST:event_actionButtonActionPerformed
 
@@ -3354,31 +4116,95 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         saveProperties();
     }//GEN-LAST:event_saveButtonActionPerformed
 
-    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+    /**
+     * Creates a file chooser that starts in the directory it has shown the last time, also after
+     * a restart (see rememberDirectory()). The directory of a file that is already given takes
+     * precedence, because it is more specific. A directory that doesn't exist anymore is ignored
+     * by the chooser, it starts in its default directory then. Hidden files are shown.
+     *
+     * @param propertyKey the key under which the directory is remembered
+     * @param currentFile the file that is given in the corresponding field, or null/empty
+     * @return the file chooser
+     */
+    private JFileChooser createFileChooser(String propertyKey, String currentFile) {
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-        int state = chooser.showOpenDialog(this);
-        File sourceFile = chooser.getSelectedFile();
-        if ((sourceFile != null) && (state == JFileChooser.APPROVE_OPTION)) {
-            fileListModel.addElement(sourceFile.getPath());
+        // check files are usually written with a leading dot (e.g. ".hashes"), so they must be selectable
+        chooser.setFileHidingEnabled(false);
+        String lastDirectory = props.getProperty(propertyKey);
+        if (lastDirectory != null) {
+            chooser.setCurrentDirectory(new File(lastDirectory));
         }
-    }//GEN-LAST:event_addButtonActionPerformed
-
-    private void fileVerificationSelectFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileVerificationSelectFileButtonActionPerformed
-        JFileChooser chooser = new JFileChooser();
-        if (fileVerificationTextField.getText().trim().length() > 0) {
+        if (currentFile != null && !currentFile.isBlank()) {
             try {
-                Path parent = Paths.get(fileVerificationTextField.getText()).getParent();
+                Path parent = Paths.get(currentFile.trim()).getParent();
                 // a filename without a directory (e.g. "check.txt") has no parent
                 if (parent != null) {
                     chooser.setCurrentDirectory(parent.toFile());
                 }
             } catch (InvalidPathException ipe) {
-                // keep the default directory of the file chooser
+                // keep the remembered resp. the default directory
             }
         }
+        return chooser;
+    }
+
+    // True if both names refer to the same file. Relative names are resolved against the working
+    // directory, as Jacksum does. Files.isSameFile() also covers symlinks and case-insensitive
+    // file systems; a file that doesn't exist yet cannot be the (existing) check file.
+    private static boolean isSameFile(String a, String b) {
+        if (a == null || b == null || a.isBlank() || b.isBlank()) {
+            return false;
+        }
+        try {
+            Path pa = Paths.get(a.trim()).toAbsolutePath().normalize();
+            Path pb = Paths.get(b.trim()).toAbsolutePath().normalize();
+            if (Files.exists(pa) && Files.exists(pb)) {
+                try {
+                    return Files.isSameFile(pa, pb);
+                } catch (IOException ioe) {
+                    return pa.equals(pb);
+                }
+            }
+            return pa.equals(pb);
+        } catch (InvalidPathException ipe) {
+            // Jacksum reports an invalid filename itself
+            return false;
+        }
+    }
+
+    // Remembers the directory a file chooser has shown, also on Cancel: the user may have
+    // navigated to the right place already. It is saved with the other settings.
+    private void rememberDirectory(JFileChooser chooser, String propertyKey) {
+        if (chooser.getCurrentDirectory() != null) {
+            props.setProperty(propertyKey, chooser.getCurrentDirectory().getPath());
+        }
+    }
+
+    private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
+        JFileChooser chooser = createFileChooser(PropertyKeys.GUI_ADD_DIRECTORY, null);
+        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        // several files and directories can be added in one go (Shift/Ctrl/Cmd-click)
+        chooser.setMultiSelectionEnabled(true);
+        int state = chooser.showOpenDialog(this);
+        rememberDirectory(chooser, PropertyKeys.GUI_ADD_DIRECTORY);
+        if (state == JFileChooser.APPROVE_OPTION) {
+            File[] selected = chooser.getSelectedFiles();
+            // a name that has been typed into the file name field ends up in getSelectedFile() only
+            if (selected.length == 0 && chooser.getSelectedFile() != null) {
+                selected = new File[]{chooser.getSelectedFile()};
+            }
+            for (File file : selected) {
+                fileListModel.addElement(file.getPath());
+            }
+        }
+    }//GEN-LAST:event_addButtonActionPerformed
+
+    private void fileVerificationSelectFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileVerificationSelectFileButtonActionPerformed
+        JFileChooser chooser = createFileChooser(PropertyKeys.GUI_VERIFICATION_FILE_DIRECTORY,
+                fileVerificationTextField.getText());
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int state = chooser.showOpenDialog(this);
+        rememberDirectory(chooser, PropertyKeys.GUI_VERIFICATION_FILE_DIRECTORY);
         File sourceFile = chooser.getSelectedFile();
         if ((sourceFile != null) && (state == JFileChooser.APPROVE_OPTION)) {
             fileVerificationTextField.setText(sourceFile.getPath());
@@ -3386,9 +4212,28 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     }//GEN-LAST:event_fileVerificationSelectFileButtonActionPerformed
 
+    private void pathRelativeToSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathRelativeToSelectButtonActionPerformed
+        String current = pathRelativeToTextField.getText();
+        // starts next to the directory in the field (and selects it), otherwise in the directory
+        // that has been used last
+        JFileChooser chooser = createFileChooser(PropertyKeys.GUI_PATH_RELATIVE_TO_DIRECTORY, current);
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        if (!current.isBlank()) {
+            chooser.setSelectedFile(new File(current.trim()));
+        }
+        int state = chooser.showOpenDialog(this);
+        rememberDirectory(chooser, PropertyKeys.GUI_PATH_RELATIVE_TO_DIRECTORY);
+        File directory = chooser.getSelectedFile();
+        if (directory != null && state == JFileChooser.APPROVE_OPTION) {
+            // the DocumentListener of the field updates the suggested output filename
+            pathRelativeToTextField.setText(directory.getPath());
+        }
+    }//GEN-LAST:event_pathRelativeToSelectButtonActionPerformed
+
     private void pathStyleComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_pathStyleComboBoxItemStateChanged
         boolean bool = pathStyleComboBox.getSelectedItem().equals("relativize paths to");
         pathRelativeToTextField.setVisible(bool);
+        pathRelativeToSelectButton.setVisible(bool);
         if (!bool) {
             pathRelativeToTextField.setText("");
         }
@@ -3522,10 +4367,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
     }
 
-    private void pathRelativeToTextFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_pathRelativeToTextFieldKeyTyped
-        updateOutputTextField();
-    }//GEN-LAST:event_pathRelativeToTextFieldKeyTyped
-
     private void lineFormatCheckBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lineFormatCheckBoxItemStateChanged
         if (evt.getStateChange() == ItemEvent.SELECTED) {
             outputStyleComboBox.setSelectedItem("custom");
@@ -3534,15 +4375,86 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
 
     private void darkThemeToggleButtonItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_darkThemeToggleButtonItemStateChanged
         GUIHelper.setIconOfToggleButton(darkThemeToggleButton);
-        boolean selected = darkThemeToggleButton.isSelected();
-        setDarkLookAndFeel(selected);
-        props.setProperty(PropertyKeys.GUI_THEME, selected ? PropertyValues.THEME_DARK : PropertyValues.THEME_LIGHT);
+        if (!updatingThemeControls) {
+            applyTheme();
+        }
     }//GEN-LAST:event_darkThemeToggleButtonItemStateChanged
 
+    private void lookAndFeelComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_lookAndFeelComboBoxItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED && !updatingThemeControls) {
+            applyTheme();
+        }
+    }//GEN-LAST:event_lookAndFeelComboBoxItemStateChanged
+
+    // true while the theme controls are set from the settings; the look and feel has been set at
+    // startup already (initLookAndFeel()), so setting the controls must not apply it again
+    private boolean updatingThemeControls = false;
+
+    /**
+     * Sets the look and feel combo box and the dark theme toggle from a value of gui.theme.
+     * The dark theme is a FlatLaf feature, so the toggle is disabled for Nimbus and System.
+     */
+    private void themeToControls(String themeValue) {
+        updatingThemeControls = true;
+        try {
+            boolean nimbus = themeValue.equals(PropertyValues.THEME_NIMBUS);
+            boolean system = themeValue.equals(PropertyValues.THEME_SYSTEM);
+            lookAndFeelComboBox.setSelectedItem(nimbus ? "Nimbus" : system ? "System" : "FlatLaf");
+            darkThemeToggleButton.setSelected(themeValue.equals(PropertyValues.THEME_DARK));
+            GUIHelper.setIconOfToggleButton(darkThemeToggleButton);
+            darkThemeToggleButton.setEnabled(!nimbus && !system);
+        } finally {
+            updatingThemeControls = false;
+        }
+    }
+
+    // the value of gui.theme that the look and feel combo box and the dark theme toggle stand for
+    private String selectedTheme() {
+        Object lookAndFeel = lookAndFeelComboBox.getSelectedItem();
+        if ("Nimbus".equals(lookAndFeel)) {
+            return PropertyValues.THEME_NIMBUS;
+        }
+        if ("System".equals(lookAndFeel)) {
+            return PropertyValues.THEME_SYSTEM;
+        }
+        return darkThemeToggleButton.isSelected() ? PropertyValues.THEME_DARK : PropertyValues.THEME_LIGHT;
+    }
+
+    /**
+     * Applies the look and feel that has been selected in the preferences right away, and
+     * remembers it.
+     */
+    private void applyTheme() {
+        String previous = theme;
+        theme = selectedTheme();
+        boolean flatLaf = theme.equals(PropertyValues.THEME_LIGHT) || theme.equals(PropertyValues.THEME_DARK);
+        darkThemeToggleButton.setEnabled(flatLaf);
+        switch (theme) {
+            case PropertyValues.THEME_NIMBUS:
+                SwingUtils.setNimbusLookAndFeel();
+                updateUI();
+                break;
+            case PropertyValues.THEME_SYSTEM:
+                SwingUtils.setSystemLookAndFeel();
+                updateUI();
+                break;
+            default:
+                setDarkLookAndFeel(theme.equals(PropertyValues.THEME_DARK));
+                break;
+        }
+        // the look and feels differ in fonts and insets, so the window may need another size;
+        // light and dark FlatLaf share the same metrics
+        boolean previousFlatLaf = previous.equals(PropertyValues.THEME_LIGHT) || previous.equals(PropertyValues.THEME_DARK);
+        if (flatLaf != previousFlatLaf || !flatLaf) {
+            pack();
+        }
+        props.setProperty(PropertyKeys.GUI_THEME, theme);
+    }
+
     
-    private static String readTextFile(String filename) throws IOException {
+    private static String readTextFile(String filename, Charset charset) throws IOException {
         StringBuilder sb = new StringBuilder();
-        try ( FileReader fileReader = new FileReader(new File(filename), Charset.forName("UTF-8"));
+        try ( FileReader fileReader = new FileReader(new File(filename), charset);
                 BufferedReader br = new BufferedReader(fileReader)) {
             
             String line;
@@ -3550,18 +4462,38 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                 sb.append(line).append("\n");
             }
         }
+        // a Byte Order Mark (see the BOM option) is not part of the text
+        if (sb.length() > 0 && sb.charAt(0) == '\uFEFF') {
+            sb.deleteCharAt(0);
+        }
         return sb.toString();
     }
-    
-    private void viewFile(String filename) {
+
+    /**
+     * Shows a text file in the viewer.
+     *
+     * @param filename the file
+     * @param charsetComboBox the combo box with the character set that the file has been written
+     *                        resp. is read with, so that it is displayed the way Jacksum sees it
+     */
+    private void viewFile(String filename, JComboBox charsetComboBox) {
+        Charset charset = StandardCharsets.UTF_8;
+        try {
+            charset = Charset.forName(charsetComboBox.getSelectedItem().toString());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            // keep UTF-8
+        }
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
             helpDialog.setLocationRelativeTo(this);
         }
         try {
-            String text = readTextFile(filename);
-            helpDialog.setTitle(String.format("Viewer: %s", filename));
-            helpDialog.setText(text);
+            String text = readTextFile(filename, charset);
+            helpDialog.setTitle(String.format("Viewer: %s", fullPath(filename)));
+            long size = new File(filename).length();
+            // the character set that the file has been read with, see the combo box of the file
+            helpDialog.setText(text, String.format("%s, %s, %s%s", lineCountText(text), fileSizeText(size),
+                    charset.name(), lastModifiedText(filename)));
             helpDialog.setVisible(true);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "The file could not be read.");
@@ -3661,12 +4593,41 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         help("--header");
     }//GEN-LAST:event_printHeaderHelpButtonActionPerformed
 
+    private void standardOutputFileSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_standardOutputFileSelectButtonActionPerformed
+        selectOutputFile(standardOutputFileTextField);
+    }//GEN-LAST:event_standardOutputFileSelectButtonActionPerformed
+
+    private void standardErrorFileSelectButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_standardErrorFileSelectButtonActionPerformed
+        selectOutputFile(standardErrorFileTextField);
+    }//GEN-LAST:event_standardErrorFileSelectButtonActionPerformed
+
+    /**
+     * Lets the user pick the file that the output resp. the error log is written to. It is a
+     * save dialog, because the file usually doesn't exist yet; whether an existing file may be
+     * overwritten is decided by Jacksum (--overwrite), so there is no question here. Both fields
+     * share the remembered directory, because output and error log usually go to the same place.
+     */
+    private void selectOutputFile(JTextField field) {
+        JFileChooser chooser = createFileChooser(PropertyKeys.GUI_OUTPUT_FILE_DIRECTORY, field.getText());
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        // preselect the file that is given, so that its name can be edited
+        if (!field.getText().isBlank()) {
+            chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), new File(field.getText().trim()).getName()));
+        }
+        int state = chooser.showSaveDialog(this);
+        rememberDirectory(chooser, PropertyKeys.GUI_OUTPUT_FILE_DIRECTORY);
+        File file = chooser.getSelectedFile();
+        if (file != null && state == JFileChooser.APPROVE_OPTION) {
+            field.setText(file.getPath());
+        }
+    }
+
     private void standardOutputViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_standardOutputViewButtonActionPerformed
-        viewFile(standardOutputFileTextField.getText());
+        viewFile(standardOutputFileTextField.getText(), standardOutputFileCharacterSetComboBox);
     }//GEN-LAST:event_standardOutputViewButtonActionPerformed
 
     private void standardErrorViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_standardErrorViewButtonActionPerformed
-        viewFile(standardErrorFileTextField.getText());
+        viewFile(standardErrorFileTextField.getText(), standardErrorFileCharacterSetComboBox);
     }//GEN-LAST:event_standardErrorViewButtonActionPerformed
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
@@ -3694,6 +4655,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             case INTERACTIVE: setOperatingModeInteractive();
                          break;
         }
+        // the suggested output filename depends on the mode
+        updateOutputTextField();
         this.pack();
         updateUI();
     }
@@ -3888,7 +4851,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }//GEN-LAST:event_timestampHelpButton_verifyActionPerformed
 
     private void fileVerificationViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileVerificationViewButtonActionPerformed
-        viewFile(fileVerificationTextField.getText());
+        viewFile(fileVerificationTextField.getText(), fileVerificationCharacterSetComboBox);
     }//GEN-LAST:event_fileVerificationViewButtonActionPerformed
 
     private void recursiveDepthHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recursiveDepthHelpButtonActionPerformed
@@ -3935,13 +4898,16 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             if (evt.getItem().equals("Password")) {
                 keyPasswordField.setEchoChar(maskChar);
                 keyFileButton.setEnabled(false);
+                keyViewButton.setEnabled(false);
             } else
             if (evt.getItem().equals("File")) {
                 keyPasswordField.setEchoChar((char)0);
                 keyFileButton.setEnabled(true);
+                keyViewButton.setEnabled(true);
             } else { // Text, Hex
                 keyPasswordField.setEchoChar((char)0);
-                keyFileButton.setEnabled(false);                
+                keyFileButton.setEnabled(false);
+                keyViewButton.setEnabled(false);
             }
                 
         }
@@ -3956,14 +4922,147 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     }//GEN-LAST:event_threadsHashingHelpButton2ActionPerformed
 
     private void keyFileButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyFileButtonActionPerformed
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        JFileChooser chooser = createFileChooser(PropertyKeys.GUI_KEY_FILE_DIRECTORY,
+                new String(keyPasswordField.getPassword()));
+        // the key is read from a file, a directory can't be a key
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         int state = chooser.showOpenDialog(this);
+        rememberDirectory(chooser, PropertyKeys.GUI_KEY_FILE_DIRECTORY);
         File sourceFile = chooser.getSelectedFile();
         if ((sourceFile != null) && (state == JFileChooser.APPROVE_OPTION)) {
             keyPasswordField.setText(sourceFile.getPath());
+            // setText() fires no key event, so the Interactive output would still show the hash
+            // that has been calculated with the previous key
+            keyPasswordFieldKeyReleased(null);
         }
     }//GEN-LAST:event_keyFileButtonActionPerformed
+
+    private void keyViewButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyViewButtonActionPerformed
+        String filename = new String(keyPasswordField.getPassword()).trim();
+        if (filename.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No key file has been given.");
+            return;
+        }
+        byte[] key;
+        try {
+            // exactly the bytes that Jacksum uses as the key for the key type File
+            key = java.nio.file.Files.readAllBytes(Paths.get(filename));
+        } catch (IOException | InvalidPathException ex) {
+            JOptionPane.showMessageDialog(this, "The file could not be read.");
+            return;
+        }
+        String text = keyAsText(key);
+        if (helpDialog == null) {
+            helpDialog = new HelpDialog(this, false);
+            helpDialog.setLocationRelativeTo(this);
+        }
+        helpDialog.setTitle(String.format("Viewer: %s (key, %s)", fullPath(filename), text != null ? "text" : "hex"));
+        String shown = text != null ? text : hexDump(key, 64 * 1024);
+        // a text key has been decoded as UTF-8, a hex dump shows the bytes without any character set
+        helpDialog.setText(shown, String.format("%s, %s%s%s", lineCountText(shown), fileSizeText(key.length),
+                text != null ? ", " + StandardCharsets.UTF_8.name() : "", lastModifiedText(filename)));
+        helpDialog.setVisible(true);
+    }//GEN-LAST:event_keyViewButtonActionPerformed
+
+    // the number of lines of a text for the status line of the viewer, e.g. "1,234 lines"
+    private static String lineCountText(String text) {
+        long lines = text.lines().count();
+        return lines == 1 ? "1 line" : String.format(java.util.Locale.US, "%,d lines", lines);
+    }
+
+    // the absolute, normalized path of a file for the title of the viewer, so that a relative name
+    // (e.g. "check.txt", resolved against the working directory) or "../" doesn't hide where it is
+    private static String fullPath(String filename) {
+        try {
+            return Paths.get(filename).toAbsolutePath().normalize().toString();
+        } catch (InvalidPathException e) {
+            return filename;
+        }
+    }
+
+    // the time of the last modification of a file for the status line of the viewer, in local
+    // time, e.g. ", modified 2026-10-07 14:23:05"; empty if it can't be determined
+    private static String lastModifiedText(String filename) {
+        try {
+            java.time.Instant modified = java.nio.file.Files.getLastModifiedTime(Paths.get(filename)).toInstant();
+            return ", modified " + java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(java.time.ZoneId.systemDefault()).format(modified);
+        } catch (IOException | InvalidPathException e) {
+            return "";
+        }
+    }
+
+    // the size of a file for the status line of the viewer, e.g. "6,893 bytes (6.7 KiB)"
+    private static String fileSizeText(long bytes) {
+        String text = bytes == 1 ? "1 byte" : String.format(java.util.Locale.US, "%,d bytes", bytes);
+        String[] units = {"KiB", "MiB", "GiB", "TiB"};
+        double size = bytes;
+        int unit = -1;
+        while (size >= 1024 && unit < units.length - 1) {
+            size /= 1024;
+            unit++;
+        }
+        return unit < 0 ? text : String.format(java.util.Locale.US, "%s (%.1f %s)", text, size, units[unit]);
+    }
+
+    /**
+     * Returns the key as text if it is text, i.e. valid UTF-8 without control characters other
+     * than tab, carriage return and line feed; key files often contain random bytes instead.
+     *
+     * @return the text, or null if the key is binary
+     */
+    private static String keyAsText(byte[] key) {
+        String text;
+        try {
+            text = StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(java.nio.charset.CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT)
+                    .decode(java.nio.ByteBuffer.wrap(key)).toString();
+        } catch (java.nio.charset.CharacterCodingException e) {
+            return null;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (Character.isISOControl(c) && c != '\t' && c != '\r' && c != '\n') {
+                return null;
+            }
+        }
+        return text;
+    }
+
+    /**
+     * Formats bytes as a hex dump: the offset, 16 bytes in hex, and the printable ASCII
+     * characters of these bytes, one line per 16 bytes.
+     *
+     * @param bytes the bytes
+     * @param max the maximum number of bytes to dump
+     * @return the hex dump
+     */
+    private static String hexDump(byte[] bytes, int max) {
+        StringBuilder sb = new StringBuilder();
+        int length = Math.min(bytes.length, max);
+        for (int offset = 0; offset < length; offset += 16) {
+            sb.append(String.format("%08x  ", offset));
+            StringBuilder ascii = new StringBuilder();
+            for (int i = offset; i < offset + 16; i++) {
+                if (i < length) {
+                    int b = bytes[i] & 0xff;
+                    sb.append(String.format("%02x ", b));
+                    ascii.append(b >= 0x20 && b < 0x7f ? (char) b : '.');
+                } else {
+                    sb.append("   ");
+                }
+                if (i == offset + 7) {
+                    sb.append(' ');
+                }
+            }
+            sb.append(" |").append(ascii).append("|\n");
+        }
+        if (bytes.length > max) {
+            sb.append(String.format("... (%d more bytes)%n", bytes.length - max));
+        }
+        return sb.toString();
+    }
 
     private void keyTypeHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_keyTypeHelpButtonActionPerformed
         help("--key");
@@ -4114,6 +5213,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         javax.swing.JComponent culprit = keyPasswordField;
         try {
             clearInteractiveErrors();
+            // calculationPanel2parameters() leaves the algorithm alone if the field is empty, so
+            // the output would keep showing the hash of the algorithm that was selected before
+            if (algoTextField.getText().isEmpty()) {
+                culprit = algoTextField;
+                throw new IllegalArgumentException("No algorithm has been selected.");
+            }
             calculationPanel2parameters();
 
             // Decode the key on its own. Parameters.checked() decodes it too, so without this a
@@ -4160,7 +5265,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         } catch (Exception e) {
             // not a user input error but a defect, so keep the details in the log
             debug(String.format("Interactive mode: %s", e));
-            interactiveInvalid(culprit, "Unexpected error, see hashgarten.log");
+            interactiveInvalid(culprit, String.format("Unexpected error, see %s", AppConstants.LOG_FILE));
         }
     }//GEN-LAST:event_interactiveInputTextFieldKeyReleased
 
@@ -4199,28 +5304,66 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
      * @return the filename
      */
     private String buildRelativeFilename() {
-        String directory = pathRelativeToTextField.getText();
-        if (directory.isEmpty()) {
+        return buildRelativeFilename(pathRelativeToTextField.getText(), algoTextField.getText());
+    }
+
+    /**
+     * Builds the filename that Jacksum's special value "relative" stands for, see
+     * buildRelativeFilename(). It doesn't need the GUI, so it can be used before the GUI exists.
+     *
+     * @param directory the directory the paths are relativized to, empty if there is none
+     * @param algorithm the algorithm(s)
+     * @return the filename
+     */
+    private static String buildRelativeFilename(String directory, String algorithm) {
+        if (directory == null || directory.isEmpty()) {
             // a relative filename would end up in the current working directory, and that is not
             // predictable for a GUI that has been started from a desktop or from a file browser
             directory = System.getProperty("user.home");
         }
         // a colon (as in hmac:sha3-256) is not a valid character for a filename on all platforms
-        String algorithm = algoTextField.getText().toUpperCase(Locale.US).replace(':', '=');
-        return Paths.get(directory, "." + algorithm).toString();
+        String name = (algorithm == null ? "" : algorithm).toUpperCase(Locale.US).replace(':', '=');
+        return Paths.get(directory, "." + name).toString();
     }
 
     // the filename that updateOutputTextField() has generated most recently; it is used to find
     // out whether the user has edited the text field in the meantime
     private String generatedOutputFilename = null;
 
+    /**
+     * Builds the output filename that is suggested for the current operating mode. In
+     * verification mode, the name of a check file (see buildRelativeFilename()) would be
+     * overwritten by the output, so the verification result gets a name of its own.
+     *
+     * @return the filename
+     */
+    private String buildSuggestedOutputFilename() {
+        String filename = buildRelativeFilename();
+        return operatingMode == OperatingMode.VERIFY ? filename + ".log" : filename;
+    }
+
+    // true if the filename is one that updateOutputTextField() would suggest in any mode, e.g.
+    // one that has been saved with the settings of a previous run
+    private boolean isSuggestedOutputFilename(String filename) {
+        String relative = buildRelativeFilename();
+        return filename.equals(relative) || filename.equals(relative + ".log");
+    }
+
+    // true if the user has chosen "Standard output (no file)" from the context menu; without it,
+    // the empty field would be filled with a suggestion again, e.g. when the algorithm changes.
+    // It is not remembered across restarts: an empty output field gets a suggestion at startup.
+    private boolean outputToStdout = false;
+
     private void updateOutputTextField() {
         String current = standardOutputFileTextField.getText();
+        if (current.isEmpty() && outputToStdout) {
+            return;
+        }
         if (!current.isEmpty() && !current.equals(generatedOutputFilename)) {
             // the user has typed or dropped a filename, don't overrule it
             return;
         }
-        generatedOutputFilename = buildRelativeFilename();
+        generatedOutputFilename = buildSuggestedOutputFilename();
         standardOutputFileTextField.setText(generatedOutputFilename);
     }
     
@@ -4351,6 +5494,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JPasswordField keyPasswordField;
     private javax.swing.JComboBox<String> keyTypeComboBox;
     private javax.swing.JButton keyTypeHelpButton;
+    private javax.swing.JButton keyViewButton;
     private javax.swing.JLabel levelsWhenTraversingADirectoryLabel;
     private javax.swing.JCheckBox lineFormatCheckBox;
     private javax.swing.JButton lineFormatHelpButton;
@@ -4358,6 +5502,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JButton listFilterButton;
     private javax.swing.JPanel listModificationPanel;
     private javax.swing.JPanel listSortingPanel;
+    private javax.swing.JComboBox<String> lookAndFeelComboBox;
+    private javax.swing.JLabel lookAndFeelLabel;
     private javax.swing.JMenuItem manpageJacksumMenuItem;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu modeMenu;
@@ -4375,6 +5521,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JPanel outputStylePanel;
     private javax.swing.JPanel outputStylePathFormatPanel;
     private javax.swing.JLabel parallelThreadsLabel;
+    private javax.swing.JButton pathRelativeToSelectButton;
     private javax.swing.JTextField pathRelativeToTextField;
     private javax.swing.JComboBox<String> pathStyleComboBox;
     private javax.swing.JButton pathStyleHelpButton;
@@ -4398,6 +5545,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JButton scanAllUnixFileTypesHelpButton;
     private javax.swing.JCheckBox scanNtfsAdsCheckBox;
     private javax.swing.JButton selectAlgoButton;
+    private javax.swing.JCheckBox showErrorFilesCheckBox;
     private javax.swing.JCheckBox showFailedFilesCheckBox;
     private javax.swing.JLabel showFilesLabel;
     private javax.swing.JCheckBox showMissingFilesCheckBox;
@@ -4407,11 +5555,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private javax.swing.JLabel standardErrorFileCharacterSetLabel;
     private javax.swing.JLabel standardErrorFileLabel;
     private javax.swing.JTextField standardErrorFileTextField;
+    private javax.swing.JButton standardErrorFileSelectButton;
     private javax.swing.JButton standardErrorViewButton;
     private javax.swing.JComboBox<String> standardOutputFileCharacterSetComboBox;
     private javax.swing.JLabel standardOutputFileCharacterSetLabel;
     private javax.swing.JLabel standardOutputFileLabel;
     private javax.swing.JTextField standardOutputFileTextField;
+    private javax.swing.JButton standardOutputFileSelectButton;
     private javax.swing.JButton standardOutputViewButton;
     private javax.swing.JCheckBox stayOpenCheckBox;
     private javax.swing.JButton styleHelpButton;

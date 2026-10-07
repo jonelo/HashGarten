@@ -22,6 +22,7 @@ package net.jacksum.gui.models;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,7 +49,11 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
 
     private List<Object[]> tableData = null;
 
-    private int firstTrue = -1; // the first row that has been enabled by the user    
+    private int firstTrue = -1; // the first row that has been enabled by the user
+    private static final String HMAC_PREFIX = "hmac:";
+    // the algorithms of the last setSelection() call in their order: {as given, canonical id of
+    // its row or null if it has no row}
+    private final List<String[]> requested = new ArrayList<>();
 
     public AlgorithmsTableModel() {
         tableData = new ArrayList<>();
@@ -109,23 +114,59 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
 
     }
 
+    /**
+     * Returns the ticked algorithms, joined by a plus sign.
+     *
+     * The algorithms that have been passed to setSelection() keep their order, because the order
+     * of the columns of a combined output follows it. Algorithms that have no row in this table
+     * (e.g. "all", "crc:..." or "hmac:sha-256:128") can't be ticked, but they are kept as well,
+     * so that pressing Ok doesn't silently drop them; clearUnmatched() removes them. Algorithms
+     * that have been ticked additionally are appended in the order of the table.
+     */
     @Override
     public String getSelection() {
-        List<String> list = new ArrayList<>();
+        Set<String> ticked = new LinkedHashSet<>();
         for (Object[] row : tableData) {
             if (Boolean.TRUE.equals(row[0])) {
-                list.add((String) row[1]);
+                ticked.add((String) row[1]);
             }
         }
-        return String.join("+", list);
+        Set<String> result = new LinkedHashSet<>();
+        for (String[] entry : requested) {
+            String canonical = entry[1];
+            if (canonical == null) {
+                result.add(entry[0]);
+            } else if (ticked.contains(canonical)) {
+                result.add(canonical);
+            }
+        }
+        result.addAll(ticked);
+        return String.join("+", result);
+    }
+
+    /**
+     * Forgets the algorithms of the last setSelection() call that have no row in this table, so
+     * that they are not returned by getSelection() anymore.
+     */
+    public void clearUnmatched() {
+        requested.removeIf(entry -> entry[1] == null);
     }
 
     @Override
     public void setSelection(String algosString) {
         firstTrue = -1;
+        requested.clear();
         Set<String> wanted = new HashSet<>();
         for (String algo : algosString.split("\\+")) {
-            String canonical = toCanonicalAlgorithmId(algo.trim());
+            String token = algo.trim();
+            if (token.isEmpty()) {
+                continue;
+            }
+            String canonical = toCanonicalAlgorithmId(token);
+            if (canonical != null && !hasRow(canonical)) {
+                canonical = null;
+            }
+            requested.add(new String[]{token, canonical});
             if (canonical != null) {
                 wanted.add(canonical);
             }
@@ -160,10 +201,14 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
         }
         // Jacksum resolves algorithm ids in lower case only
         String candidate = algorithm.toLowerCase(Locale.US);
-        for (Object[] row : tableData) {
-            if (candidate.equals(row[1])) {
-                return candidate;
-            }
+        if (hasRow(candidate)) {
+            return candidate;
+        }
+        // the rows of the HMACs are keyed by "hmac:" plus the canonical id of the hash function;
+        // Jacksum can't resolve an HMAC without a key, so resolve the hash function on its own
+        if (candidate.startsWith(HMAC_PREFIX)) {
+            String hashFunction = toCanonicalAlgorithmId(candidate.substring(HMAC_PREFIX.length()));
+            return hashFunction == null ? null : HMAC_PREFIX + hashFunction;
         }
         // it is not a canonical id, so let Jacksum find out whether it is an alias
         try {
@@ -172,6 +217,15 @@ public class AlgorithmsTableModel extends AbstractTableModel implements Algorith
             // an unknown algorithm cannot be ticked
             return null;
         }
+    }
+
+    private boolean hasRow(String algorithmId) {
+        for (Object[] row : tableData) {
+            if (algorithmId.equals(row[1])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public int getFirstTrue() {

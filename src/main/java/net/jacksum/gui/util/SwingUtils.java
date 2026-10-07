@@ -55,7 +55,7 @@ public class SwingUtils {
             // Nimbus is not available, so fall back to the look and feel of the system
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            net.jacksum.gui.GUIHelper.debug(String.format("Could not set the look and feel: %s", ex));
         }
         //</editor-fold>
     }
@@ -64,7 +64,7 @@ public class SwingUtils {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Main.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            net.jacksum.gui.GUIHelper.debug(String.format("Could not set the look and feel: %s", ex));
         }
     }
     /**
@@ -130,48 +130,79 @@ public class SwingUtils {
         }                    
     }
 
+    // The move methods work on all selected items, the file list allows a multi selection. The
+    // items keep their order among each other, and they stay selected after the move.
+
     public static void moveSelectedJListItemUp(JList jList, DefaultListModel model) {
-        if (!jList.isSelectionEmpty()) {
-            int pos = jList.getSelectedIndex();
-            if (pos > 0) {
-                swap(jList, model, pos, pos - 1);
-                jList.ensureIndexIsVisible(pos - 1);
-            }
+        int[] selected = jList.getSelectedIndices();
+        if (selected.length == 0) {
+            return;
         }
+        // an item can't move past the top, nor past a selected item above it that can't move
+        int limit = 0;
+        for (int k = 0; k < selected.length; k++) {
+            if (selected[k] > limit) {
+                swap(model, selected[k], selected[k] - 1);
+                selected[k]--;
+            }
+            limit = selected[k] + 1;
+        }
+        jList.setSelectedIndices(selected);
+        jList.ensureIndexIsVisible(selected[0]);
     }
 
     public static void moveSelectedJListItemDown(JList jList, DefaultListModel model) {
-        if (!jList.isSelectionEmpty()) {
-            int pos = jList.getSelectedIndex();
-            //DefaultListModel<String> model = (DefaultListModel) fileList.getModel();
-            if (pos < model.getSize() - 1) {
-                swap(jList, model, pos, pos + 1);
-                jList.ensureIndexIsVisible(pos + 1);
-            }
+        int[] selected = jList.getSelectedIndices();
+        if (selected.length == 0) {
+            return;
         }
+        // an item can't move past the bottom, nor past a selected item below it that can't move
+        int limit = model.getSize() - 1;
+        for (int k = selected.length - 1; k >= 0; k--) {
+            if (selected[k] < limit) {
+                swap(model, selected[k], selected[k] + 1);
+                selected[k]++;
+            }
+            limit = selected[k] - 1;
+        }
+        jList.setSelectedIndices(selected);
+        jList.ensureIndexIsVisible(selected[selected.length - 1]);
     }
 
     public static void moveSelectedJListItemToTop(JList jList, DefaultListModel model) {
-        if (!jList.isSelectionEmpty()) {
-            int pos = jList.getSelectedIndex();
-            while (pos > 0) {
-                swap(jList, model, pos, pos - 1);
-                pos--;
-            }
-            jList.ensureIndexIsVisible(pos);
+        int[] selected = jList.getSelectedIndices();
+        if (selected.length == 0) {
+            return;
         }
+        Object[] items = removeItems(model, selected);
+        for (int k = 0; k < items.length; k++) {
+            model.add(k, items[k]);
+        }
+        jList.setSelectionInterval(0, items.length - 1);
+        jList.ensureIndexIsVisible(0);
     }
 
     public static void moveSelectedJListItemToBottom(JList jList, DefaultListModel model) {
-
-        if (!jList.isSelectionEmpty()) {
-            int pos = jList.getSelectedIndex();
-            while (pos < model.getSize() - 1) {
-                swap(jList, model, pos, pos + 1);
-                pos++;
-            }
-            jList.ensureIndexIsVisible(pos);
+        int[] selected = jList.getSelectedIndices();
+        if (selected.length == 0) {
+            return;
         }
+        Object[] items = removeItems(model, selected);
+        int first = model.getSize();
+        for (Object item : items) {
+            model.addElement(item);
+        }
+        jList.setSelectionInterval(first, model.getSize() - 1);
+        jList.ensureIndexIsVisible(model.getSize() - 1);
+    }
+
+    // removes the items at the given ascending indices and returns them in their order
+    private static Object[] removeItems(DefaultListModel model, int[] indices) {
+        Object[] items = new Object[indices.length];
+        for (int k = indices.length - 1; k >= 0; k--) {
+            items[k] = model.remove(indices[k]);
+        }
+        return items;
     }
 
     /**
@@ -196,11 +227,10 @@ public class SwingUtils {
         }
     }
 
-    private static void swap(JList jList, DefaultListModel model, int oldpos, int newpos) {
+    private static void swap(DefaultListModel model, int oldpos, int newpos) {
         Object backup = model.get(newpos);
         model.set(newpos, model.get(oldpos));
         model.set(oldpos, backup);
-        jList.setSelectedIndex(newpos);
     }
 
 }

@@ -27,5 +27,8 @@ package net.jacksum.gui.constants;
 public class AppConstants {
     public final static String VERSION = "0.21.0";
     public final static String PROPERTIES_FILE = String.format("%s/.HashGarten.properties", System.getProperty("user.home"));
+    // next to the properties file rather than in the working directory, which is often the
+    // folder that is being hashed if HashGarten has been started by a file browser
+    public final static String LOG_FILE = String.format("%s/.HashGarten.log", System.getProperty("user.home"));
     public final static String TIMESTAMP_DEFAULT = "yyyyMMddHHmmssSSS";
 }
