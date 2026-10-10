@@ -107,6 +107,8 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - the key of an HMAC is no longer written in plain text into the header of the output file
     ("invocation args"), fixed by Jacksum 4.0.2; the header says `-k password` instead, which is
     how Jacksum shows a key that has been entered hidden; the name of a key file is kept
+  - HashGarten starts with the default settings if the settings saved in
+    `.HashGarten.properties` are damaged (e.g. edited by hand); the main window didn't appear
   - the help window is wide enough to show the help text without scrolling horizontally (up to
     the width of the screen); it was a few characters too narrow
   - the help window and the viewer are shown centered over the main window, also after the main

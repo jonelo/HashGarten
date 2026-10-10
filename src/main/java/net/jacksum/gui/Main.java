@@ -372,8 +372,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
    debug("algorithm:\n" + parametersFromProps.getAlgorithm());
    debug("algorithmIdentifier:\n" + parametersFromProps.getAlgorithmIdentifier());
                  */
-            } catch (IOException | ClassNotFoundException ex) {
+            } catch (IOException | ClassNotFoundException | RuntimeException ex) {
+                // also a damaged entry, e.g. invalid base64 or an object of another type;
+                // don't use an object that has been cleaned up only in part
                 debug("The remembered parameters could not be read: " + ex);
+                parametersFromProps = null;
             }
         } else {
             parametersFromProps = null;
