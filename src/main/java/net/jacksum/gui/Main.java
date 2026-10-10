@@ -297,6 +297,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         installFileListContextMenu();
         installFileListButtonUpdater();
         installSuggestionMenus();
+        installThreadsContextMenus();
+        installPathSeparatorContextMenu();
         installPathRelativeToListener();
         themeToControls(theme);
         setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());
@@ -3058,26 +3060,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
         
         // HMAC Options
-        String key = new String(keyPasswordField.getPassword());
-        if (key.isEmpty() && (!isHmacSelected() || "File".equals(keyTypeComboBox.getSelectedItem()))) {
-            // an empty key is no key at all: it would make Parameters.isKey() return true, and
-            // Jacksum would then put "-k txt:" into the header of the output file, even if the
-            // selected algorithm is not an HMAC at all.
-            // An empty file name is not an empty key either, so Jacksum reports the missing key.
-            parameters.setKey((Sequence) null);
-        } else if (key.isEmpty()) {
-            // an HMAC accepts an empty key (RFC 2104 pads it with zeros), so pass an empty key
-            // rather than none, otherwise Jacksum rejects the HMAC for lacking a key; this is
-            // the same as -k txt: on the command line
-            parameters.setKey(new Sequence(Sequence.Type.TXT, ""));
-        } else if (keyTypeComboBox.getSelectedItem().equals("Text")
-                || keyTypeComboBox.getSelectedItem().equals("Password")) {
-            parameters.setKey(new Sequence("txt:" + key));
-        } else if (keyTypeComboBox.getSelectedItem().equals("File")) {
-            parameters.setKey(new Sequence("file:" + key));
-        } else if  (keyTypeComboBox.getSelectedItem().equals("Hex")) {
-            parameters.setKey(new Sequence("hex:" + key));
-        }
+        parameters.setKey(keyFromFields());
 
         // Calculate hashes with n threads
         // set it unconditionally, otherwise going back to a single thread would not stick
@@ -3464,6 +3447,106 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         });
         interactiveOutputTextField.setComponentPopupMenu(menu);
+    }
+
+    /**
+     * Gives the field for a custom path separator a context menu with the usual separators, and
+     * with Cut, Copy and Paste, because it replaces what a right click in a text field usually
+     * offers. Choosing a separator also ticks the check box, otherwise it would have no effect
+     * (see outputStylePanel2parameters()).
+     */
+    private void installPathSeparatorContextMenu() {
+        javax.swing.JTextField field = customizedPathSpearatorTextField;
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                menu.removeAll();
+                String[][] separators = {
+                    {"/", "Forward slash (macOS, Linux)"},
+                    {"\\", "Backslash (Windows)"}
+                };
+                for (String[] separator : separators) {
+                    javax.swing.JMenuItem item = new javax.swing.JMenuItem(
+                            separator[0] + "   " + separator[1]);
+                    item.addActionListener(ev -> {
+                        field.setText(separator[0]);
+                        customizedPathSeparatorCheckBox.setSelected(true);
+                    });
+                    menu.add(item);
+                }
+                menu.addSeparator();
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.CutAction(), "Cut",
+                        field.isEditable() && field.getSelectedText() != null);
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.CopyAction(), "Copy",
+                        field.getSelectedText() != null);
+                addEditItem(menu, field, new javax.swing.text.DefaultEditorKit.PasteAction(), "Paste",
+                        field.isEditable());
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        field.setComponentPopupMenu(menu);
+    }
+
+    /**
+     * Gives the spinners for the number of reading and hashing threads a context menu that sets
+     * them to the number of processor cores.
+     */
+    private void installThreadsContextMenus() {
+        // the value only counts if the check box is selected, see inputPanel2parameters()
+        installThreadsContextMenu(readingThreadsSpinner, () -> readingThreadsCheckBox.setSelected(true));
+        installThreadsContextMenu(hashingThreadsSpinner, () -> {});
+    }
+
+    /**
+     * Gives a spinner for a number of threads a context menu that sets it to the number of
+     * processor cores.
+     *
+     * @param spinner the spinner
+     * @param chosen called after the number of cores has been set by the menu
+     */
+    private void installThreadsContextMenu(javax.swing.JSpinner spinner, Runnable chosen) {
+        int cores = ThreadControl.getThreadsMax();
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        javax.swing.JMenuItem coresItem = new javax.swing.JMenuItem("Number of processor cores (" + cores + ")");
+        coresItem.addActionListener(e -> {
+            spinner.setValue(cores);
+            chosen.run();
+        });
+        menu.add(coresItem);
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                coresItem.setEnabled(!Integer.valueOf(cores).equals(spinner.getValue()));
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        spinner.setComponentPopupMenu(menu);
+        // a right click lands in the text field of the editor, and setModel() replaces the editor
+        // (see parameters2inputPanel() and parameters2calculationPanel())
+        inheritPopupMenu(spinner.getEditor());
+        spinner.addPropertyChangeListener("editor", e -> inheritPopupMenu(spinner.getEditor()));
+    }
+
+    private static void inheritPopupMenu(javax.swing.JComponent editor) {
+        editor.setInheritsPopupMenu(true);
+        if (editor instanceof javax.swing.JSpinner.DefaultEditor defaultEditor) {
+            defaultEditor.getTextField().setInheritsPopupMenu(true);
+        }
     }
 
     /**
@@ -4120,7 +4203,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
      * Creates a file chooser that starts in the directory it has shown the last time, also after
      * a restart (see rememberDirectory()). The directory of a file that is already given takes
      * precedence, because it is more specific. A directory that doesn't exist anymore is ignored
-     * by the chooser, it starts in its default directory then. Hidden files are shown.
+     * by the chooser, it starts in its default directory then. Hidden files are shown unless the
+     * user has switched them off with the check box next to the approve button, which is
+     * remembered.
      *
      * @param propertyKey the key under which the directory is remembered
      * @param currentFile the file that is given in the corresponding field, or null/empty
@@ -4129,7 +4214,26 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private JFileChooser createFileChooser(String propertyKey, String currentFile) {
         JFileChooser chooser = new JFileChooser();
         // check files are usually written with a leading dot (e.g. ".hashes"), so they must be selectable
-        chooser.setFileHidingEnabled(false);
+        boolean showHidden = !PropertyValues.FALSE.equals(
+                props.getProperty(PropertyKeys.GUI_FILECHOOSER_SHOW_HIDDEN));
+        chooser.setFileHidingEnabled(!showHidden);
+        javax.swing.JCheckBox showHiddenCheckBox = new javax.swing.JCheckBox("", showHidden);
+        showHiddenCheckBox.setMnemonic(java.awt.event.KeyEvent.VK_H);
+        // the callers set the selection mode after this method
+        updateShowHiddenText(chooser, showHiddenCheckBox);
+        chooser.addPropertyChangeListener(JFileChooser.FILE_SELECTION_MODE_CHANGED_PROPERTY,
+                e -> updateShowHiddenText(chooser, showHiddenCheckBox));
+        showHiddenCheckBox.addActionListener(e -> {
+            // the chooser reads the directory again on its own
+            chooser.setFileHidingEnabled(!showHiddenCheckBox.isSelected());
+            props.setProperty(PropertyKeys.GUI_FILECHOOSER_SHOW_HIDDEN,
+                    showHiddenCheckBox.isSelected() ? PropertyValues.TRUE : PropertyValues.FALSE);
+        });
+        if (!addNextToApproveButton(chooser, showHiddenCheckBox)) {
+            // an accessory takes width from the file list, so it is the fallback only
+            showHiddenCheckBox.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 0));
+            chooser.setAccessory(showHiddenCheckBox);
+        }
         String lastDirectory = props.getProperty(propertyKey);
         if (lastDirectory != null) {
             chooser.setCurrentDirectory(new File(lastDirectory));
@@ -4146,6 +4250,81 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             }
         }
         return chooser;
+    }
+
+    // a chooser that shows directories only hides resp. shows hidden directories (e.g. .git)
+    private static void updateShowHiddenText(JFileChooser chooser, javax.swing.JCheckBox checkBox) {
+        String what = chooser.getFileSelectionMode() == JFileChooser.DIRECTORIES_ONLY
+                ? "directories" : "files";
+        checkBox.setText("Show hidden " + what);
+        checkBox.setToolTipText(String.format(
+                "Shows %s whose name starts with a dot (on Windows: %s with the hidden attribute).",
+                what, what));
+    }
+
+    /**
+     * Puts a component into the button row of a file chooser, left of its buttons. JFileChooser
+     * has no API for that, so the row is found by the approve button, which is looked up by the
+     * text that the look and feel gives it (localized, e.g. "Open" or "Öffnen"). The row is
+     * replaced by a panel that holds the component and the row; the buttons stay untouched.
+     *
+     * Call it before the dialog is shown: showSaveDialog() changes the text of the button, but
+     * it is the same button.
+     *
+     * @param chooser the file chooser
+     * @param component the component to add
+     * @return false if the button row has not been found, the chooser is unchanged then
+     */
+    private static boolean addNextToApproveButton(JFileChooser chooser, javax.swing.JComponent component) {
+        javax.swing.JButton approveButton = findButton(chooser, chooser.getUI().getApproveButtonText(chooser));
+        if (approveButton == null || approveButton.getParent() == null
+                || approveButton.getParent().getParent() == null) {
+            return false;
+        }
+        java.awt.Container buttonRow = approveButton.getParent();
+        java.awt.Container outer = buttonRow.getParent();
+        int index = java.util.Arrays.asList(outer.getComponents()).indexOf(buttonRow);
+        Object constraints = outer.getLayout() instanceof java.awt.BorderLayout borderLayout
+                ? borderLayout.getConstraints(buttonRow) : null;
+
+        // the buttons sit at the bottom of their row (Metal and Synth keep a margin above them),
+        // so the component is put at the bottom as well, at the height of the buttons; a strut
+        // sets that height, so the width still follows the component (e.g. if its text changes)
+        javax.swing.JPanel bottom = new javax.swing.JPanel(new java.awt.BorderLayout());
+        bottom.setOpaque(false);
+        bottom.add(javax.swing.Box.createVerticalStrut(approveButton.getPreferredSize().height),
+                java.awt.BorderLayout.WEST);
+        bottom.add(component, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel left = new javax.swing.JPanel(new java.awt.BorderLayout());
+        left.setOpaque(false);
+        left.add(bottom, java.awt.BorderLayout.SOUTH);
+
+        javax.swing.JPanel row = new javax.swing.JPanel(new java.awt.BorderLayout());
+        row.setOpaque(false);
+        row.add(left, java.awt.BorderLayout.WEST);
+        outer.remove(buttonRow);
+        row.add(buttonRow, java.awt.BorderLayout.CENTER);
+        outer.add(row, constraints, index);
+        return true;
+    }
+
+    // the first button with the given text, searched depth-first
+    private static javax.swing.JButton findButton(java.awt.Container container, String text) {
+        if (text == null) {
+            return null;
+        }
+        for (java.awt.Component component : container.getComponents()) {
+            if (component instanceof javax.swing.JButton button && text.equals(button.getText())) {
+                return button;
+            }
+            if (component instanceof java.awt.Container child) {
+                javax.swing.JButton button = findButton(child, text);
+                if (button != null) {
+                    return button;
+                }
+            }
+        }
+        return null;
     }
 
     // True if both names refer to the same file. Relative names are resolved against the working
@@ -4329,9 +4508,12 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         updateKeyToolTip();
 
         //parameters.setAlgorithm(algoTextField.getText());
-        
+
         if (getOperatingMode()==OperatingMode.INTERACTIVE) {
             interactiveInputTextFieldKeyReleased(null);
+        } else {
+            // the recommended key length depends on the algorithms
+            checkKey();
         }
                 
         updateOutputTextField();
@@ -4485,7 +4667,6 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
-            helpDialog.setLocationRelativeTo(this);
         }
         try {
             String text = readTextFile(filename, charset);
@@ -4494,7 +4675,7 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // the character set that the file has been read with, see the combo box of the file
             helpDialog.setText(text, String.format("%s, %s, %s%s", lineCountText(text), fileSizeText(size),
                     charset.name(), lastModifiedText(filename)));
-            helpDialog.setVisible(true);
+            helpDialog.showOver(this);
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "The file could not be read.");
         }
@@ -4503,12 +4684,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void help(boolean strict, String title, String... texte) {
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
-            helpDialog.setLocationRelativeTo(this);
         }
         try {            
             helpDialog.searchHelp(strict, texte);
             helpDialog.setTitle(title);
-            helpDialog.setVisible(true);
+            helpDialog.showOver(this);
         } catch (NothingFoundException ex) {
             JOptionPane.showMessageDialog(this, String.format(ex.getMessage()));
             //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -4521,12 +4701,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void help(String text, boolean strict, String title) {
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
-            helpDialog.setLocationRelativeTo(this);
         }
         try {
             helpDialog.searchHelp(text, strict);
             helpDialog.setTitle(title);
-            helpDialog.setVisible(true);
+            helpDialog.showOver(this);
         } catch (NothingFoundException ex) {
             JOptionPane.showMessageDialog(this, String.format("No help found for %s", text));
             //Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -4654,6 +4833,11 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
                          break;
             case INTERACTIVE: setOperatingModeInteractive();
                          break;
+        }
+        // the Interactive mode has checked the key itself, the other modes may still show a
+        // mark of the Interactive mode; this also checks a key that has been given at startup
+        if (mode == OperatingMode.CALC || mode == OperatingMode.VERIFY) {
+            checkKey();
         }
         // the suggested output filename depends on the mode
         updateOutputTextField();
@@ -4913,6 +5097,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
         if (getOperatingMode()==OperatingMode.INTERACTIVE) {
             interactiveInputTextFieldKeyReleased(null);
+        } else {
+            checkKey();
         }
 
     }//GEN-LAST:event_keyTypeComboBoxItemStateChanged
@@ -4954,14 +5140,13 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         String text = keyAsText(key);
         if (helpDialog == null) {
             helpDialog = new HelpDialog(this, false);
-            helpDialog.setLocationRelativeTo(this);
         }
         helpDialog.setTitle(String.format("Viewer: %s (key, %s)", fullPath(filename), text != null ? "text" : "hex"));
         String shown = text != null ? text : hexDump(key, 64 * 1024);
         // a text key has been decoded as UTF-8, a hex dump shows the bytes without any character set
         helpDialog.setText(shown, String.format("%s, %s%s%s", lineCountText(shown), fileSizeText(key.length),
                 text != null ? ", " + StandardCharsets.UTF_8.name() : "", lastModifiedText(filename)));
-        helpDialog.setVisible(true);
+        helpDialog.showOver(this);
     }//GEN-LAST:event_keyViewButtonActionPerformed
 
     // the number of lines of a text for the status line of the viewer, e.g. "1,234 lines"
@@ -5135,6 +5320,161 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
         }
     }
 
+    /**
+     * Builds the key from the key field and the key type, as it is passed to Jacksum.
+     *
+     * @return the key, or null if there is none
+     */
+    private Sequence keyFromFields() {
+        String key = new String(keyPasswordField.getPassword());
+        Object type = keyTypeComboBox.getSelectedItem();
+        if (key.isEmpty() && (!isHmacSelected() || "File".equals(type))) {
+            // an empty key is no key at all: it would make Parameters.isKey() return true, and
+            // Jacksum would then put "-k txt:" into the header of the output file, even if the
+            // selected algorithm is not an HMAC at all.
+            // An empty file name is not an empty key either, so Jacksum reports the missing key.
+            return null;
+        } else if (key.isEmpty()) {
+            // an HMAC accepts an empty key (RFC 2104 pads it with zeros), so pass an empty key
+            // rather than none, otherwise Jacksum rejects the HMAC for lacking a key; this is
+            // the same as -k txt: on the command line
+            return new Sequence(Sequence.Type.TXT, "");
+        } else if ("Text".equals(type) || "Password".equals(type)) {
+            return new Sequence("txt:" + key);
+        } else if ("File".equals(type)) {
+            return new Sequence("file:" + key);
+        } else if ("Hex".equals(type)) {
+            return new Sequence("hex:" + key);
+        }
+        return null;
+    }
+
+    /**
+     * The minimal key length that RFC 2104 recommends for an HMAC algorithm.
+     *
+     * @param bytes the length in bytes
+     * @param algorithm the HMAC algorithm that requires it, as selected
+     * @param hash the name of the underlying hash function
+     */
+    private record KeyMinimum(int bytes, String algorithm, String hash) {
+    }
+
+    // "hmac:" or "hmac-", the name of the hash, and an optional output length in bits, the same
+    // as Jacksum's HMAC_Selector parses it
+    private static final java.util.regex.Pattern HMAC_NAME =
+            java.util.regex.Pattern.compile("(?i)hmac[:-](.+?)(:\\d+)?");
+
+    /**
+     * The minimal key length that RFC 2104 recommends for the selected HMAC algorithms: "In any
+     * case the minimal recommended length for K is L bytes (as the hash output length)". It is
+     * computed like Jacksum does for --info (AlgoInfoAction, HMAC.init()).
+     *
+     * The HMAC is created directly rather than by JacksumAPI.getChecksumInstance(), which would
+     * initialize it with the key that Jacksum holds globally, and fail without one.
+     *
+     * @return the largest minimum of the selected HMAC algorithms, or null if none is selected
+     */
+    private KeyMinimum recommendedMinimumKeyLength() {
+        KeyMinimum max = null;
+        for (String algorithm : algoTextField.getText().split("\\+")) {
+            java.util.regex.Matcher matcher = HMAC_NAME.matcher(algorithm.trim());
+            if (!matcher.matches()) {
+                continue;
+            }
+            try {
+                net.jacksum.algorithms.HMAC hmac = new net.jacksum.algorithms.HMAC(
+                        matcher.group(1).toLowerCase(java.util.Locale.ROOT));
+                int bytes = hmac.getAlgorithm().getSize() / 8;
+                if (max == null || bytes > max.bytes()) {
+                    max = new KeyMinimum(bytes, algorithm.trim(), hmac.getAlgorithm().getName());
+                }
+            } catch (java.security.NoSuchAlgorithmException | RuntimeException e) {
+                // an unknown algorithm is reported elsewhere
+            }
+        }
+        return max;
+    }
+
+    /**
+     * Flags the key field with a warning if the key is shorter than RFC 2104 recommends for the
+     * selected HMAC algorithms. The callers clear the key field first; an error or another
+     * warning that they have set since takes precedence and is left alone.
+     *
+     * Only lengths are reported, never the key itself, which may be a password.
+     */
+    private void updateKeyLengthWarning() {
+        if (keyPasswordField.getClientProperty(FlatClientProperties.OUTLINE) != null) {
+            return;
+        }
+        String message = keyLengthMessage();
+        if (message != null) {
+            markInputWarning(keyPasswordField, message);
+        }
+    }
+
+    /**
+     * Checks the key outside the Interactive mode, which checks it along with the input: a key
+     * that can't be decoded (e.g. invalid hex) is flagged as an error, a short key with a warning.
+     *
+     * A key file is not read here, because this runs on every keystroke.
+     */
+    private void checkKey() {
+        clearInputError(keyPasswordField);
+        Sequence key = keyFromFields();
+        if (key != null && key.getType() != Sequence.Type.FILE) {
+            try {
+                key.asBytes();
+            } catch (RuntimeException e) {
+                markInputError(keyPasswordField, e.getMessage());
+                return;
+            }
+        }
+        if (key != null && !isHmacSelected()) {
+            markInputWarning(keyPasswordField, KEY_WITHOUT_HMAC_WARNING);
+            return;
+        }
+        updateKeyLengthWarning();
+    }
+
+    // Jacksum uses the key for HMAC algorithms only and ignores it silently otherwise, so without
+    // a hint typing a key would seem to have no effect at all
+    private static final String KEY_WITHOUT_HMAC_WARNING = "The key has no effect, because it is "
+            + "used by HMAC algorithms only (e.g. hmac:sha-256), and none of the selected algorithms is one.";
+
+    // the reason why the key is too short, or null if it is long enough or can't be checked
+    private String keyLengthMessage() {
+        KeyMinimum minimum = recommendedMinimumKeyLength();
+        if (minimum == null) {
+            return null;
+        }
+        Sequence key = keyFromFields();
+        if (key == null) {
+            return null;
+        }
+        long length;
+        try {
+            if (key.getType() == Sequence.Type.FILE) {
+                // don't read the whole file on every keystroke, its size is all we need
+                java.nio.file.Path path = java.nio.file.Paths.get(key.getPayload());
+                if (!java.nio.file.Files.isRegularFile(path) || !java.nio.file.Files.isReadable(path)) {
+                    return null;
+                }
+                length = java.nio.file.Files.size(path);
+            } else {
+                length = key.asBytes().length;
+            }
+        } catch (IOException | RuntimeException e) {
+            // e.g. invalid hex; the callers report that as an error themselves
+            return null;
+        }
+        if (length >= minimum.bytes()) {
+            return null;
+        }
+        return String.format("The key has %d %s. RFC 2104 recommends at least %d bytes for %s "
+                + "(the output length of %s).", length, length == 1 ? "byte" : "bytes",
+                minimum.bytes(), minimum.algorithm(), minimum.hash());
+    }
+
     // true if at least one of the selected algorithms is an HMAC
     private boolean isHmacSelected() {
         return algoTextField.getText().toLowerCase().contains("hmac:");
@@ -5254,9 +5594,9 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
             // Jacksum uses the key for HMAC algorithms only and ignores it silently otherwise, so
             // without a hint typing a key would seem to have no effect at all
             if (parameters.isKey() && !isHmacSelected()) {
-                markInputWarning(keyPasswordField, "The key has no effect, because it is used by HMAC "
-                        + "algorithms only (e.g. hmac:sha-256), and none of the selected algorithms is one.");
+                markInputWarning(keyPasswordField, KEY_WITHOUT_HMAC_WARNING);
             }
+            updateKeyLengthWarning();
 
         } catch (ExitException | ParameterException | IllegalArgumentException ex) {
             // An error the user can fix. This method runs on every keystroke, so it must not open a
@@ -5284,6 +5624,8 @@ public class Main extends javax.swing.JFrame implements AlgorithmSelectorDialogI
     private void keyPasswordFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_keyPasswordFieldKeyReleased
         if (getOperatingMode() == OperatingMode.INTERACTIVE) {
             interactiveInputTextFieldKeyReleased(null);
+        } else {
+            checkKey();
         }
     }//GEN-LAST:event_keyPasswordFieldKeyReleased
 

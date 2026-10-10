@@ -77,7 +77,11 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         algorithmsTable.removeColumn(algorithmsTable.getColumnModel().getColumn(2));
         helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );     
         implTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );
+        net.jacksum.gui.util.SwingUtils.installCopyContextMenu(helpTextArea);
+        net.jacksum.gui.util.SwingUtils.installCopyContextMenu(implTextArea);
+        net.jacksum.gui.util.SwingUtils.installEditContextMenu(filterTextField);
         algorithmsTable.setRowSorter(altorithmsTableRowSorter);
+        filterToolTip = filterTextField.getToolTipText();
         //table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         adjustColumnWidths();
@@ -181,14 +185,20 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
 
     private void newFilter() {
         java.util.List<RowFilter<AlgorithmsTableModel, Integer>> filters = new java.util.ArrayList<>();
-        // If current expression doesn't parse, don't update.
+        // If current expression doesn't parse, don't update, but tell the user why.
+        // It is compiled without the "(?i)" prefix first, so that the position of the error
+        // refers to the text in the field.
+        String text = filterTextField.getText();
         try {
+            java.util.regex.Pattern.compile(text, java.util.regex.Pattern.CASE_INSENSITIVE);
             // the algorithm id only, case-insensitive: without a column index the filter would
             // also search the description, which is hidden, and the column of the check boxes
-            filters.add(RowFilter.regexFilter("(?i)" + filterTextField.getText(), 1));
+            filters.add(RowFilter.regexFilter("(?i)" + text, 1));
         } catch (java.util.regex.PatternSyntaxException e) {
+            markFilterError(e);
             return;
         }
+        clearFilterError();
         if (checkedFilter != null) {
             Boolean wanted = checkedFilter;
             filters.add(new RowFilter<AlgorithmsTableModel, Integer>() {
@@ -202,6 +212,90 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         updateAlgorithmCountLabel();
     }
     
+    // the tooltip of the filter field while its expression is valid
+    private String filterToolTip;
+
+    /**
+     * Flags the filter field because its expression is not valid: FlatLaf paints an error
+     * outline around it and the tooltip shows the error and where it is. No color is set
+     * explicitly, so the outline follows the current theme.
+     *
+     * @param e the error of the expression
+     */
+    private void markFilterError(java.util.regex.PatternSyntaxException e) {
+        filterTextField.putClientProperty(com.formdev.flatlaf.FlatClientProperties.OUTLINE,
+                com.formdev.flatlaf.FlatClientProperties.OUTLINE_ERROR);
+        String pattern = e.getPattern();
+        StringBuilder tip = new StringBuilder("<html>Invalid regular expression: ")
+                .append(escapeHtml(e.getDescription()))
+                .append("<pre>").append(escapeHtml(pattern));
+        int index = e.getIndex();
+        if (index >= 0) {
+            tip.append('\n').append(" ".repeat(Math.min(index, pattern.length()))).append('^');
+        }
+        filterTextField.setToolTipText(tip.append("</pre></html>").toString());
+    }
+
+    private void clearFilterError() {
+        filterTextField.putClientProperty(com.formdev.flatlaf.FlatClientProperties.OUTLINE, null);
+        filterTextField.setToolTipText(filterToolTip);
+    }
+
+    private static String escapeHtml(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    // created on the first click on the help button next to the filter field
+    private HelpDialog filterHelpDialog;
+
+    // describes what newFilter() does; the examples match the algorithm ids of Jacksum 4.0.1
+    private static final String FILTER_HELP = """
+            FILTER
+
+            The filter field narrows down the list of algorithms while you type.
+
+            How it works
+              - Only the algorithm ID is searched (e.g. sha3-256, hmac:sha-256),
+                not the description.
+              - Upper and lower case don't matter: SHA3 finds sha3-256.
+              - The text may appear anywhere in the ID: sha3 finds sha3-256 and
+                hmac:sha3-256.
+              - An empty field shows all algorithms.
+              - Ticks are kept while the filter hides an algorithm, so you can
+                filter, tick, filter again and tick more.
+
+            Show all, Show checked, Show unchecked
+              These buttons clear the filter field. Show checked and Show unchecked
+              then show only the ticked resp. unticked algorithms; text that you
+              type afterwards filters within them. Reset clears the filter, the
+              selection and all ticks.
+
+            Regular expressions
+              The text is a regular expression (Java syntax), so some characters
+              have a special meaning:
+
+                ^        start of the ID      ^sha3-       sha3-224 ... sha3-512
+                $        end of the ID        -256$        blake2b-256, sha-256, ...
+                .        any character        md.          md2, md4, md5, md6-...
+                ?        optional             ^sha3?-256$  sha-256, sha3-256
+                |        or                   crc|adler    adler32, crc8, crc16, ...
+                ( )      group                ^(md5|sha-1)$  exactly md5 and sha-1
+                [ ]      one of               ^blake2[bs]-256$  blake2b-256, blake2s-256
+                \\d       a digit              ^sha\\d?-     sha-1 ... sha3-512
+                *, +     repeat 0+ resp. 1+   ^crc\\d+$     crc8, crc16, crc32, ...
+                {n,m}    repeat n to m times  ^crc\\d{2}$   crc16, crc24, crc32, crc64
+                \\        literal character    \\.  \\+  \\(   a dot, a plus, a parenthesis
+
+            More examples
+              ^hmac:              all HMACs
+              ^(?!hmac:).*-256$   the 256-bit algorithms without the HMACs
+              ^sha-512/           sha-512/224, sha-512/256
+              ^haval_256_         haval_256_3, haval_256_4, haval_256_5
+
+            If the expression is incomplete or invalid (e.g. an open parenthesis),
+            the list keeps showing the result of the last valid expression.
+            """;
+
     private void updateAlgorithmCountLabel() {
         algorithmCountLabel.setText(String.format("total: %d, visible: %d, checked: %d",
                 getDataSize(),
@@ -396,6 +490,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         FilterLabel = new javax.swing.JLabel();
         algorithmCountLabel = new javax.swing.JLabel();
         filterTextField = new javax.swing.JTextField();
+        filterHelpButton = new javax.swing.JButton();
         showAllButton = new javax.swing.JButton();
         showCheckedButton = new javax.swing.JButton();
         showUncheckedButton = new javax.swing.JButton();
@@ -431,6 +526,14 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         algorithmCountLabel.setText("xxx/xxx algorithms picked");
 
         filterTextField.setToolTipText("Filter the algorithms, regular expressions are supported (e.g. ^sha3-)");
+
+        filterHelpButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/net/jacksum/gui/pix16x16/question.png"))); // NOI18N
+        filterHelpButton.setToolTipText("What does that mean?");
+        filterHelpButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                filterHelpButtonActionPerformed(evt);
+            }
+        });
 
         showAllButton.setText("Show all");
         showAllButton.setToolTipText("Show all available algorithms");
@@ -607,7 +710,9 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(FilterLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(filterTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE))
+                        .addComponent(filterTextField, javax.swing.GroupLayout.DEFAULT_SIZE, 257, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(filterHelpButton))
                     .addComponent(tableScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                     .addComponent(customizedAlgorithmsScrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addGap(12, 12, 12)
@@ -656,7 +761,8 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
                         .addComponent(showCheckedButton)
                         .addComponent(showUncheckedButton)
                         .addComponent(FilterLabel)
-                        .addComponent(filterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(filterTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(filterHelpButton))
                     .addComponent(customizedAlgorithmsScrollPane, javax.swing.GroupLayout.Alignment.TRAILING, 0, 0, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -747,6 +853,17 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
         }
     }//GEN-LAST:event_toggleButtonActionPerformed
 
+    private void filterHelpButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_filterHelpButtonActionPerformed
+        // this dialog is modal, so a help dialog of the main frame would be blocked by it
+        if (filterHelpDialog == null) {
+            filterHelpDialog = new HelpDialog(this, false);
+        }
+        filterHelpDialog.setTitle("Help: Filter");
+        filterHelpDialog.setText(FILTER_HELP);
+        filterHelpDialog.fitWidthToText();
+        filterHelpDialog.showOver(this);
+    }//GEN-LAST:event_filterHelpButtonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel FilterLabel;
     private javax.swing.JLabel algorithmCountLabel;
@@ -755,6 +872,7 @@ public class AlgorithmSelectorDialog extends javax.swing.JDialog implements Algo
     private javax.swing.JButton checkButton;
     private javax.swing.JScrollPane customizedAlgorithmsScrollPane;
     private javax.swing.JTable customizedAlgorithmsTable;
+    private javax.swing.JButton filterHelpButton;
     private javax.swing.JTextField filterTextField;
     private javax.swing.JPanel helpPanel;
     private javax.swing.JScrollPane helpScrollPane;

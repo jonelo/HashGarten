@@ -3,7 +3,7 @@
 The release notes of all released versions are also published at
 https://github.com/jonelo/HashGarten/releases - including the hash values of the released jar files.
 
-## HashGarten 0.21, unreleased
+## HashGarten 0.21, Oct 10, 2026
 
 - Bug fixes
   - Select algorithms: the implementation details of an HMAC are shown; selecting e.g.
@@ -101,8 +101,23 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
     name of a key file is still remembered
   - errors in the parameters at startup are written to `$HOME/.HashGarten.log`; they were printed
     to the terminal, which can't be seen if HashGarten has been started from a file browser
+  - Calculation and Verify: a key that can't be decoded (e.g. the key type Hex with a key that is
+    not hex) is flagged by an error outline around the key field while typing, and the tooltip
+    tells why; only the Interactive operating mode flagged it
+  - the key of an HMAC is no longer written in plain text into the header of the output file
+    ("invocation args"), fixed by Jacksum 4.0.2; the header says `-k password` instead, which is
+    how Jacksum shows a key that has been entered hidden; the name of a key file is kept
+  - the help window is wide enough to show the help text without scrolling horizontally (up to
+    the width of the screen); it was a few characters too narrow
+  - the help window and the viewer are shown centered over the main window, also after the main
+    window has been moved to another screen; they appeared where they had been shown the first
+    time
+  - Select algorithms: a filter that is not a valid regular expression (e.g. `sha[`) is flagged by
+    an error outline, and the tooltip shows the error and where it is; the list kept showing the
+    result of the previous filter without any hint
 
 - Enhancements
+  - requires Jacksum 4.0.2
   - Interactive: the output field has a context menu to copy the hash value to the clipboard
   - Input: Add allows to select several files and directories at once, and it starts in the
     directory that has been used last, also after a restart
@@ -133,6 +148,25 @@ https://github.com/jonelo/HashGarten/releases - including the hash values of the
   - Input: the entries of the file list can be reordered by drag and drop, and they have a
     context menu with Top, Up, Down, Bottom and Remove; these functions resp. buttons are greyed
     out when they would have no effect
+  - the file dialogs have a check box "Show hidden files" next to their buttons, so that hidden
+    files (on Windows the ones with the hidden attribute) can be hidden and shown again; they are
+    shown by default, and the choice is remembered, also after a restart; in the dialog that
+    selects a directory (relativize paths to) it is called "Show hidden directories"
+  - Calculation and Verify: the key field shows a warning outline if a key has been entered, but
+    none of the selected algorithms is an HMAC; the Interactive mode did that already
+  - the key field of the HMAC options shows a warning outline if the key is shorter than RFC 2104
+    recommends for the selected HMAC algorithms (the output length of the hash function); the
+    tooltip names the lengths, never the key
+  - the spinners for the number of reading and hashing threads have a context menu that sets them
+    to the number of processor cores
+  - Output Style: the field for a custom path separator has a context menu to choose the forward
+    slash (macOS, Linux) or the backslash (Windows); choosing one also ticks "Custom path
+    separator"
+  - Select algorithms: the filter field has a context menu with Cut, Copy, Paste and Clear
+  - Select algorithms: a "?" button next to the filter field explains how the filter works,
+    including examples for regular expressions (e.g. `^sha\d?-`)
+  - Select algorithms: the help text and the implementation details of an algorithm have a
+    context menu to copy the selected text, or the whole text if nothing is selected
 
 ## HashGarten 0.20, Oct 5, 2026
 

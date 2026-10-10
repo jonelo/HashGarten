@@ -43,4 +43,6 @@ public class PropertyKeys {
     public final static String GUI_OUTPUT_FILE_DIRECTORY = "gui.outputfile.directory";
     // the directory that the dialog to select the directory for "relativize paths to" has shown most recently
     public final static String GUI_PATH_RELATIVE_TO_DIRECTORY = "gui.pathrelativeto.directory";
+    // whether the file choosers show hidden files (dot-files); they do if the key is missing
+    public final static String GUI_FILECHOOSER_SHOW_HIDDEN = "gui.filechooser.showhidden";
 }

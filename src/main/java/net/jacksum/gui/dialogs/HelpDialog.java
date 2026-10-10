@@ -35,8 +35,25 @@ public class HelpDialog extends javax.swing.JDialog {
     
     public HelpDialog(DialogInterface dialogInterface, boolean modal) {
         super(dialogInterface.getFrame(), modal);
+        init();
+    }
+
+    /**
+     * Creates a help dialog that belongs to another dialog, e.g. to a modal one, which would
+     * block a help dialog that belongs to the main frame.
+     *
+     * @param owner the dialog the help dialog belongs to
+     * @param modal whether the dialog should be modal
+     */
+    public HelpDialog(java.awt.Dialog owner, boolean modal) {
+        super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
+        init();
+    }
+
+    private void init() {
         initComponents();
-        helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );     
+        helpTextArea.putClientProperty( "FlatLaf.style", "font: $monospaced.font" );
+        net.jacksum.gui.util.SwingUtils.installCopyContextMenu(helpTextArea);
     }
 
     /**
@@ -130,6 +147,7 @@ public class HelpDialog extends javax.swing.JDialog {
         statusLabel.setText("");
         helpTextArea.setText(Help.searchHelp("en", text, strict));
         helpTextArea.setCaretPosition(0);
+        fitWidthToText();
     }
     
     public void searchHelp(boolean strict, String... texte) throws NothingFoundException, IOException {
@@ -141,6 +159,89 @@ public class HelpDialog extends javax.swing.JDialog {
         statusLabel.setText("");
         helpTextArea.setText(sb.toString());
         helpTextArea.setCaretPosition(0);
+        fitWidthToText();
+    }
+
+    /**
+     * Shows the dialog centered over a window, so that it doesn't appear on another screen than
+     * the one the user is looking at. That happens if it is not visible yet, or if it is on
+     * another screen than the window (e.g. the window has been moved since). A dialog that is
+     * already open on the same screen stays where the user has put it.
+     *
+     * @param owner the window to center over, usually the main window
+     */
+    public void showOver(java.awt.Window owner) {
+        java.awt.GraphicsConfiguration screen = screenOf(owner);
+        if (!isVisible() || !screen.getBounds().contains(centerOf(this))) {
+            // computed rather than by setLocationRelativeTo(), which relies on the screen that
+            // AWT has assigned to the owner, and that lags behind after the owner has been
+            // shown or moved, so the dialog was put onto the wrong screen
+            java.awt.Rectangle ownerBounds = owner.getBounds();
+            java.awt.Rectangle usable = usableBounds(screen);
+            int x = ownerBounds.x + (ownerBounds.width - getWidth()) / 2;
+            int y = ownerBounds.y + (ownerBounds.height - getHeight()) / 2;
+            // keep it on the screen, e.g. if the owner is partly off the screen
+            x = Math.max(usable.x, Math.min(x, usable.x + usable.width - getWidth()));
+            y = Math.max(usable.y, Math.min(y, usable.y + usable.height - getHeight()));
+            setLocation(x, y);
+        }
+        setVisible(true);
+    }
+
+    private static java.awt.Point centerOf(java.awt.Window window) {
+        java.awt.Rectangle bounds = window.getBounds();
+        return new java.awt.Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
+    }
+
+    // the screen that contains the center of the window, according to its actual position
+    private static java.awt.GraphicsConfiguration screenOf(java.awt.Window window) {
+        java.awt.Point center = centerOf(window);
+        for (java.awt.GraphicsDevice device
+                : java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices()) {
+            java.awt.GraphicsConfiguration gc = device.getDefaultConfiguration();
+            if (gc.getBounds().contains(center)) {
+                return gc;
+            }
+        }
+        return window.getGraphicsConfiguration();
+    }
+
+    // the bounds of a screen without the menu bar, the dock resp. the task bar
+    private static java.awt.Rectangle usableBounds(java.awt.GraphicsConfiguration gc) {
+        java.awt.Rectangle bounds = gc.getBounds();
+        java.awt.Insets insets = java.awt.Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        return new java.awt.Rectangle(bounds.x + insets.left, bounds.y + insets.top,
+                bounds.width - insets.left - insets.right, bounds.height - insets.top - insets.bottom);
+    }
+
+    /**
+     * Widens the dialog so that the longest line of the text fits without scrolling horizontally.
+     * It is never narrowed, so the width of the layout is the minimum, and a width that the user
+     * has chosen is kept. It is never wider than the screen either; the rest can be scrolled then.
+     *
+     * The viewer of files doesn't call it, because a file may have lines of any length.
+     */
+    public void fitWidthToText() {
+        // lay out the new text first, so that the vertical scroll bar is there if it is needed;
+        // the height doesn't change, so it stays like that
+        validate();
+        // the preferred width of the text area is its longest line, plus its insets and the caret;
+        // everything around the viewport (borders, gaps, scroll bar) is taken from the layout
+        int needed = getWidth() - helpScrollPane.getViewport().getWidth()
+                + helpTextArea.getPreferredSize().width;
+        if (needed <= getWidth()) {
+            return;
+        }
+        java.awt.GraphicsConfiguration gc = getGraphicsConfiguration();
+        java.awt.Rectangle screen = gc.getBounds();
+        java.awt.Insets screenInsets = getToolkit().getScreenInsets(gc);
+        int left = screen.x + screenInsets.left;
+        int usable = screen.width - screenInsets.left - screenInsets.right;
+        int width = Math.min(needed, usable);
+        // keep the dialog on the screen
+        int x = Math.max(left, Math.min(getX(), left + usable - width));
+        setBounds(x, getY(), width, getHeight());
+        validate();
     }
     
     public void setText(String text) {

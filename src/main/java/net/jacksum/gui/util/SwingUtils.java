@@ -227,6 +227,88 @@ public class SwingUtils {
         }
     }
 
+    /**
+     * Gives a text component a context menu with Copy. It copies the selected text, or the
+     * whole text if nothing is selected.
+     *
+     * @param field the text component
+     */
+    public static void installCopyContextMenu(javax.swing.text.JTextComponent field) {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        javax.swing.JMenuItem copyItem = new javax.swing.JMenuItem("Copy");
+        copyItem.addActionListener(e -> {
+            String text = field.getSelectedText();
+            if (text == null || text.isEmpty()) {
+                text = field.getText();
+            }
+            java.awt.Toolkit.getDefaultToolkit().getSystemClipboard()
+                    .setContents(new java.awt.datatransfer.StringSelection(text), null);
+        });
+        menu.add(copyItem);
+        // there is nothing to copy as long as nothing has been shown
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                copyItem.setEnabled(field.getDocument().getLength() > 0);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        field.setComponentPopupMenu(menu);
+    }
+
+    /**
+     * Gives a text component a context menu with Cut, Copy, Paste and Clear.
+     *
+     * @param field the text component
+     */
+    public static void installEditContextMenu(javax.swing.text.JTextComponent field) {
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        javax.swing.JMenuItem cutItem = addEditItem(menu, field, "Cut", field::cut);
+        javax.swing.JMenuItem copyItem = addEditItem(menu, field, "Copy", field::copy);
+        javax.swing.JMenuItem pasteItem = addEditItem(menu, field, "Paste", field::paste);
+        menu.addSeparator();
+        javax.swing.JMenuItem clearItem = addEditItem(menu, field, "Clear", () -> field.setText(""));
+        menu.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {
+                boolean selected = field.getSelectionStart() != field.getSelectionEnd();
+                boolean editable = field.isEditable() && field.isEnabled();
+                cutItem.setEnabled(editable && selected);
+                copyItem.setEnabled(selected);
+                pasteItem.setEnabled(editable);
+                clearItem.setEnabled(editable && field.getDocument().getLength() > 0);
+            }
+
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+            }
+
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+            }
+        });
+        field.setComponentPopupMenu(menu);
+    }
+
+    private static javax.swing.JMenuItem addEditItem(javax.swing.JPopupMenu menu,
+            javax.swing.text.JTextComponent field, String label, Runnable action) {
+        javax.swing.JMenuItem item = new javax.swing.JMenuItem(label);
+        // a right click doesn't focus the field, so the caret wouldn't be visible afterwards
+        item.addActionListener(e -> {
+            field.requestFocusInWindow();
+            action.run();
+        });
+        menu.add(item);
+        return item;
+    }
+
     private static void swap(DefaultListModel model, int oldpos, int newpos) {
         Object backup = model.get(newpos);
         model.set(newpos, model.get(oldpos));
