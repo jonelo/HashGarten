@@ -19,37 +19,44 @@ algorithms.
 
 ## Screenshots
 
+### About
+
+![About](https://github.com/user-attachments/assets/1e595e3a-da81-4900-a185-526089dae8f9)
+
+
 ### Find and Select Hash Algorithms
 
-![Find and Select Hash Algorithms](https://github.com/user-attachments/assets/41e54f70-591a-4a94-b38c-6cf25282d17e)
+![Find and Select Hash Algorithms](https://github.com/user-attachments/assets/b8e2668e-e4cb-4d14-b68c-c195af97aa5d)
 
-The list of algorithms in the screenshot has been filtered. HashGarten currently supports 586 hash algorithms, plus 492
+The list of algorithms in the screenshot has been filtered by a regex. HashGarten currently supports 586 hash algorithms, plus 492
 HMAC variants.
 
 ### Calculate Hash Values
 
-![Calculate Hash Values](https://github.com/user-attachments/assets/49f76e03-7821-4a24-ad3e-54ad69caa3f2)
+![Calculate Hash Values](https://github.com/user-attachments/assets/7bab63a5-adbc-4312-8f05-a5cf989fdc81)
 
 ### Verify Hash Values
 
-![Verify Hash Values](https://github.com/user-attachments/assets/537ddd9d-d202-4f1f-be95-0605b04d8492)
+![Verify Hash Values](https://github.com/user-attachments/assets/4fc1c957-2537-4179-a176-2c048df9fb86)
 
 ### Interactive
 
-![Interactive](https://github.com/user-attachments/assets/6c4c87b2-4253-43be-bab4-edad6c4b51e2)
+![Interactive](https://github.com/user-attachments/assets/db02b411-b089-45e0-9032-f41b5cbc804d)
 
-### Set Preferences
+### Settings
 
-![Set Preferences](https://github.com/user-attachments/assets/042b68bc-0767-4dc4-bd55-7977b722d2c5)
+![Settings](https://github.com/user-attachments/assets/737f27d8-d8d2-41a6-b9e4-3c50e1702948)
+
 
 ## Features
 
+- Cross platform without the need of compilation, it runs on Microsoft Windows, Apple macOS, and GNU/Linux
 - Run it standalone, or use it from your file browser
 - Drag and drop files and directories onto the window
-- Calculate and verify hash values
+- Calculate and verify hash values of files
 - Hash text or other input interactively, as you type
 - Start it with Jacksum's command line options, since it supports the same options as Jacksum
-- Find the right algorithm quickly; the search field accepts regular expressions (e.g. `^sha\d?-`)
+- Find the right algorithm quickly; the search field accepts regular expressions (e.g. `^(hmac:)?sha-?\d`)
 - Select one or more algorithms out of 586 hash algorithms and 492 HMAC variants
 - Get detailed information about each algorithm
 - Get context help for many options
@@ -65,8 +72,8 @@ Java 25 or later.
 ## Usage
 
 ```sh
-java -jar HashGarten-0.20.0.jar
-java -jar HashGarten-0.20.0.jar -a sha3-256 /path/to/file
+java -jar HashGarten-0.21.0.jar
+java -jar HashGarten-0.21.0.jar -a sha3-256 /path/to/file
 ```
 
 ## Internals
