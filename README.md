@@ -1,5 +1,9 @@
 ![GitHub downloads](https://img.shields.io/github/downloads/jonelo/HashGarten/total?color=green) (direct) ![GitHub downloads](https://img.shields.io/github/downloads/jonelo/jacksum-fbi-windows/total?color=green) (FBI Windows) ![GitHub downloads](https://img.shields.io/github/downloads/jonelo/jacksum-fbi-linux/total?color=green) (FBI Linux) ![GitHub downloads](https://img.shields.io/github/downloads/jonelo/jacksum-fbi-macos/total?color=green) (FBI macOS) 
 
+<p align="center">
+<img width="256" height="256" alt="image" src="https://github.com/user-attachments/assets/cbe879db-c67f-4d9a-81d6-f95e63d43896" />
+</p>
+
 # HashGarten
 
 HashGarten is a graphical user interface for the desktop (Windows, Linux and macOS) that makes the features of
