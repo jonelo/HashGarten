@@ -11,11 +11,35 @@ HashGarten is also part of the Jacksum File Browser Integration:
 - https://github.com/jonelo/jacksum-for-macos
 - https://github.com/jonelo/jacksum-for-linux
 
-## Trivia
+## Features
 
-In a kindergarten, children are meant to be cherished and cared for like young plants. The German word has survived to
-this day and has spread to many other languages. HashGarten borrows the idea: it is a garden, too, but one for hash
-algorithms.
+- Cross platform without the need of compilation, it runs on Microsoft Windows, Apple macOS, and GNU/Linux
+- Run it standalone, or use it from your file browser
+- Drag and drop files and directories onto the window
+- Calculate and verify hash values of files
+- Hash text or other input interactively, as you type
+- Start it with Jacksum's command line options, since it supports the same options as Jacksum
+- Find the right algorithm quickly; the search field accepts regular expressions (e.g. `^(hmac:)?sha-?\d`)
+- Select one or more algorithms out of 586 hash algorithms and 492 HMAC variants
+- Get detailed information about each algorithm
+- Get context help for many options
+- Controls are shown only when you need them
+- Multi-screen support: the window opens on the screen where the mouse cursor is
+- Keep the window always on top if you like
+- Light and dark themes
+
+## Requirements
+
+- Java 25 or later
+- Library FlatLaf according to the release notes
+- Library Jacksum according to the release notes
+
+## Usage
+
+```sh
+java -jar HashGarten-0.21.0.jar
+java -jar HashGarten-0.21.0.jar -a sha3-256 /path/to/file
+```
 
 ## Screenshots
 
@@ -47,34 +71,11 @@ HMAC variants.
 
 ![Settings](https://github.com/user-attachments/assets/737f27d8-d8d2-41a6-b9e4-3c50e1702948)
 
+## Trivia
 
-## Features
-
-- Cross platform without the need of compilation, it runs on Microsoft Windows, Apple macOS, and GNU/Linux
-- Run it standalone, or use it from your file browser
-- Drag and drop files and directories onto the window
-- Calculate and verify hash values of files
-- Hash text or other input interactively, as you type
-- Start it with Jacksum's command line options, since it supports the same options as Jacksum
-- Find the right algorithm quickly; the search field accepts regular expressions (e.g. `^(hmac:)?sha-?\d`)
-- Select one or more algorithms out of 586 hash algorithms and 492 HMAC variants
-- Get detailed information about each algorithm
-- Get context help for many options
-- Controls are shown only when you need them
-- Multi-screen support: the window opens on the screen where the mouse cursor is
-- Keep the window always on top if you like
-- Light and dark themes
-
-## Requirements
-
-Java 25 or later.
-
-## Usage
-
-```sh
-java -jar HashGarten-0.21.0.jar
-java -jar HashGarten-0.21.0.jar -a sha3-256 /path/to/file
-```
+In a kindergarten, children are meant to be cherished and cared for like young plants. The German word has survived to
+this day and has spread to many other languages. HashGarten borrows the idea: it is a garden, too, but one for hash
+algorithms.
 
 ## Internals
 
