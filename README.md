@@ -52,7 +52,7 @@ java -jar HashGarten-0.21.0.jar -a sha3-256 /path/to/file
 ![About](https://github.com/user-attachments/assets/1e595e3a-da81-4900-a185-526089dae8f9)
 
 
-### Find and Select Hash Algorithms
+### Filter, Find and Select Hash Algorithms
 
 ![Find and Select Hash Algorithms](https://github.com/user-attachments/assets/b8e2668e-e4cb-4d14-b68c-c195af97aa5d)
 
